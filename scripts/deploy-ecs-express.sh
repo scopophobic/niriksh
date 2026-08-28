@@ -60,6 +60,7 @@ if aws ecs describe-express-gateway-service --service-arn "$SERVICE_ARN" --regio
     --health-check-path /api/health \
     --scaling-target minTaskCount=1,maxTaskCount=3,autoScalingMetric=AVERAGE_CPU,autoScalingTargetValue=60 \
     --monitor-resources \
+    --monitor-mode TEXT-ONLY \
     --region "$AWS_REGION"
 else
   aws ecs create-express-gateway-service \
@@ -72,6 +73,7 @@ else
     --scaling-target minTaskCount=1,maxTaskCount=3,autoScalingMetric=AVERAGE_CPU,autoScalingTargetValue=60 \
     --tags key=Application,value=Niriksh key=ManagedBy,value=deploy-ecs-express \
     --monitor-resources \
+    --monitor-mode TEXT-ONLY \
     --region "$AWS_REGION"
 fi
 
