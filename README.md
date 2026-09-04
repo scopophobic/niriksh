@@ -4,7 +4,15 @@ Niriksh is a working browser prototype for turning an unstructured complaint and
 
 It does **not** determine guilt, file a police report, verify an online account, or claim forensic authenticity.
 
-## Run the product
+## Run the complete product
+
+The application now has a real FastAPI backend and database. The simplest complete local start is:
+
+```bash
+docker compose up --build
+```
+
+This starts the Next.js web app on port 3000, FastAPI on port 8000, and PostgreSQL 17. Interactive backend documentation is available at `http://localhost:8000/docs`.
 
 Node.js 22+ is recommended:
 
@@ -13,9 +21,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The local text analyser works without an account, API key or database.
+Open [http://localhost:3000](http://localhost:3000). The local text analyser and browser cache still provide an offline demo fallback, but PostgreSQL is the canonical store in the complete stack.
 
-To enable the multimodal pipeline, copy `.env.example` to `.env.local`, add a server-side `GEMINI_API_KEY`, choose `GEMINI_MODEL`, and restart the development server. Gemini analysis is then enabled by default in the complaint flow; the reporter can turn it off before analysis, and the deterministic local engine remains the automatic fallback. `GEMINI_FALLBACK_MODEL` is used only for temporary overloads or timeouts. Never expose the key through a `NEXT_PUBLIC_` variable.
+To enable the multimodal pipeline, copy `.env.example` to `.env.local`, add a server-side `GEMINI_API_KEY`, choose `GEMINI_MODEL`, and restart the development server. Gemini analysis is then attempted automatically, and the deterministic local engine remains the fallback. `GEMINI_FALLBACK_MODEL` and `GEMINI_RESERVE_MODEL` provide distinct capacity pools for temporary overloads or timeouts. Never expose the key through a `NEXT_PUBLIC_` variable.
 
 The main product areas are:
 
@@ -50,7 +58,12 @@ The main product areas are:
 - Default server-side Gemini analysis of complaint context, screenshots, images, PDFs, audio and short videos when Gemini is configured
 - Structured AI output merged with the deterministic safety and routing pipeline
 - A visible analysis-mode disclosure so local fallback is never presented as media understanding
-- Browser-local case storage, source-focused case review, and report download
+- Database-backed complaint records with an offline browser cache, source-focused case review, and report download
+- Versioned analysis runs and report snapshots
+- Streamed private evidence ingestion with SHA-256 hashing
+- JWT officer/admin authentication, role checks, optimistic complaint versions, and audit events
+- Human routing decisions with mandatory reasons for overrides
+- A protected, idempotent Bhumika integration that accepts curated WhatsApp complaints and evidence, then creates the Niriksh analysis, report, and tracking number
 - Human-confirmed routing information and copyable content-takedown request text
 - Ten controlled benchmark fixtures covered by the automated test suite
 
@@ -66,11 +79,15 @@ Without `GEMINI_API_KEY`, images, video and audio can be previewed and fingerpri
 - A local deterministic TypeScript context engine for signals, negation, classification, priority, and questions
 - Regular-expression and source-aware parsing for structured details and timelines
 - Browser Web Crypto for SHA-256 file fingerprints
-- Browser storage for the prototype case workspace
+- PostgreSQL-backed case storage with a browser offline cache and retry queue
 - An optional server-only Google Gemini `generateContent` route using the official `@google/genai` SDK and structured JSON output
 - Automatic, disclosed Flash-model failover for temporary provider overloads and timeouts
 - Gemini Files API inputs for image, document, audio and native video analysis, with best-effort deletion after every request
 - Node's test runner through `tsx` for analyser regression tests
+- FastAPI, Pydantic, SQLAlchemy, Alembic, and PostgreSQL for the canonical backend
+- A versioned server-to-server integration contract isolated from officer and citizen APIs
+- HTTP-only officer web sessions and protected workspace routes
+- Selectable private local-disk or S3 evidence storage
 
 The deterministic pipeline always remains available as a repeatable fallback. When the multimodal route is configured, the result screen names the mode and model and shows how many evidence items received AI review.
 
@@ -80,20 +97,25 @@ The deterministic pipeline always remains available as a repeatable fallback. Wh
 npm test
 npm run lint
 npm run build
+cd backend && pytest -q
 ```
 
 ## Deploy to Amazon ECS Express Mode
 
 The production image uses Next.js standalone output, runs as the unprivileged `node` user, listens on port `3000`, and exposes `GET /api/health` for load-balancer and container health checks.
 
-Prerequisites are Docker, AWS CLI v2, an authenticated AWS account, and a default VPC with public subnets. Deploy or update the service with:
+Prerequisites are Docker, AWS CLI v2, an authenticated AWS account, a default VPC with public subnets, and an AWS Secrets Manager JSON secret. Deploy the API first:
 
 ```bash
-AWS_REGION=us-east-1 ./scripts/deploy-ecs-express.sh
+AWS_REGION=us-east-1 NIRIKSH_API_SECRET_ARN='<secret-arn>' ./scripts/deploy-ecs-express-api.sh
 ```
 
-The script creates the `niriksh` ECR repository and the two AWS-managed IAM roles required by Express Mode when they do not exist. It builds an immutable `linux/amd64` image, pushes it to ECR, and creates or updates the `niriksh` Express service with HTTPS, CloudWatch logging, load balancing, health checks, and CPU-based scaling from one to three tasks.
+Then deploy the web service against the API endpoint:
 
-The deterministic analysis remains available without external secrets. For multimodal analysis in production, store `GEMINI_API_KEY` in AWS Secrets Manager and attach it to the Express service as a container secret rather than committing it or passing it as plain text.
+```bash
+AWS_REGION=us-east-1 BACKEND_API_URL='https://<api-endpoint>/api/v1' NIRIKSH_WEB_SECRET_ARN='<secret-arn>' ./scripts/deploy-ecs-express.sh
+```
 
-An optional FastAPI contract service remains under `apps/api`; it is not required by the current browser workflow. Authentication and production evidence storage are intentionally deferred until the analysis experience is validated.
+The scripts create/update immutable ECR images and separate `niriksh-api` and `niriksh` services. Database, Gemini, integration, and object-storage credentials are injected from Secrets Manager rather than committed or baked into images.
+
+The active backend is in `backend/`; the previous `apps/api` contract stub has been removed. Bhumika continues owning its existing Meta account, app, phone number, conversation flow, and outbound replies. Niriksh receives only Bhumika's curated form submission and optional evidence bytes. See `docs/deployment.md`, `docs/bhumika-integration.md`, and `docs/demo-script.md` for the exact sequence and mentor walkthrough.

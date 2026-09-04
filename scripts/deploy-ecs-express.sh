@@ -7,8 +7,16 @@ ECR_REPOSITORY="${ECR_REPOSITORY:-niriksh}"
 ECS_SERVICE="${ECS_SERVICE:-niriksh}"
 ECS_CLUSTER="${ECS_CLUSTER:-default}"
 TARGET_PLATFORM="${TARGET_PLATFORM:-linux/amd64}"
+BACKEND_API_URL="${BACKEND_API_URL:-}"
+NIRIKSH_WEB_SECRET_ARN="${NIRIKSH_WEB_SECRET_ARN:-}"
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text --region "$AWS_REGION")"
-IMAGE_TAG="${IMAGE_TAG:-$(git rev-parse --short=12 HEAD 2>/dev/null || date -u +%Y%m%d%H%M%S)}"
+if [ -n "${IMAGE_TAG:-}" ]; then
+  IMAGE_TAG="$IMAGE_TAG"
+elif [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+  IMAGE_TAG="$(git rev-parse --short=12 HEAD 2>/dev/null || echo dev)-$(date -u +%Y%m%d%H%M%S)"
+else
+  IMAGE_TAG="$(git rev-parse --short=12 HEAD 2>/dev/null || date -u +%Y%m%d%H%M%S)"
+fi
 ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
 EXECUTION_ROLE="ecsTaskExecutionRole"
@@ -26,6 +34,11 @@ if ! aws iam get-role --role-name "$EXECUTION_ROLE" --region "$AWS_REGION" >/dev
   created_role=true
 fi
 aws iam attach-role-policy --role-name "$EXECUTION_ROLE" --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy --region "$AWS_REGION"
+
+if [ -n "$NIRIKSH_WEB_SECRET_ARN" ]; then
+  SECRET_POLICY="$(jq -nc --arg arn "$NIRIKSH_WEB_SECRET_ARN" '{Version:"2012-10-17",Statement:[{Effect:"Allow",Action:["secretsmanager:GetSecretValue"],Resource:$arn}]}')"
+  aws iam put-role-policy --role-name "$EXECUTION_ROLE" --policy-name NirikshWebReadDeploymentSecret --policy-document "$SECRET_POLICY" --region "$AWS_REGION"
+fi
 
 if ! aws iam get-role --role-name "$INFRASTRUCTURE_ROLE" --region "$AWS_REGION" >/dev/null 2>&1; then
   aws iam create-role --role-name "$INFRASTRUCTURE_ROLE" --assume-role-policy-document "$INFRA_TRUST" --region "$AWS_REGION" >/dev/null
@@ -50,7 +63,21 @@ fi
 aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 docker buildx build --platform "$TARGET_PLATFORM" --push --tag "$IMAGE_URI" --build-arg "APP_VERSION=$IMAGE_TAG" .
 
-PRIMARY_CONTAINER="{\"image\":\"${IMAGE_URI}\",\"containerPort\":3000,\"environment\":[{\"name\":\"NODE_ENV\",\"value\":\"production\"},{\"name\":\"APP_VERSION\",\"value\":\"${IMAGE_TAG}\"}]}"
+PRIMARY_CONTAINER="$(jq -nc \
+  --arg image "$IMAGE_URI" \
+  --arg version "$IMAGE_TAG" \
+  --arg backend "$BACKEND_API_URL" \
+  --arg secret "$NIRIKSH_WEB_SECRET_ARN" \
+  '{
+    image:$image,
+    containerPort:3000,
+    environment:([{"name":"NODE_ENV","value":"production"},{"name":"APP_VERSION","value":$version},{"name":"GEMINI_MODEL","value":"gemini-2.5-flash"},{"name":"GEMINI_FALLBACK_MODEL","value":"gemini-3.5-flash"},{"name":"GEMINI_RESERVE_MODEL","value":"gemini-3.6-flash"}]
+      + (if $backend == "" then [] else [{"name":"BACKEND_API_URL","value":$backend},{"name":"SESSION_COOKIE_SECURE","value":"true"},{"name":"BACKEND_ALLOW_DEMO_PROXY","value":"false"}] end)),
+    secrets:(if $secret == "" then [] else [
+      {name:"BACKEND_INTERNAL_API_KEY",valueFrom:($secret + ":INTERNAL_API_KEY::")},
+      {name:"GEMINI_API_KEY",valueFrom:($secret + ":GEMINI_API_KEY::")}
+    ] end)
+  }')"
 
 if aws ecs describe-express-gateway-service --service-arn "$SERVICE_ARN" --region "$AWS_REGION" >/dev/null 2>&1; then
   aws ecs update-express-gateway-service \

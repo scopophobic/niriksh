@@ -1,6 +1,6 @@
 # Niriksh decision record
 
-Last reconstructed: 29 August 2026
+Last reconstructed: 4 September 2026
 
 ## Purpose of this document
 
@@ -298,10 +298,11 @@ Live testing showed temporary high-demand errors, timeouts, and `DEADLINE_EXCEED
 The current attempt sequence is:
 
 1. configured/default primary model, 15-second request
-2. retry the primary, 15-second request
-3. configured fallback, 30-second request
-4. configured reserve, 30-second request
-5. deterministic local fallback in the client
+2. a distinct configured fallback model, 20-second request
+3. a distinct stable reserve model, 20-second request
+4. deterministic local fallback in the client
+
+Using separate model capacity pools proved more reliable than immediately retrying an overloaded primary. The complete generation failover stays within the load balancer request window, and server logs retain the model-specific failure reasons without exposing them to the reporter.
 
 Temporary 429, 500, 502, 503, 504, overload, timeout, deadline, and resource-exhaustion signals are treated as retryable. Permanent/schema/permission failures are returned immediately.
 
@@ -386,19 +387,19 @@ Trade-offs:
 - local data can be edited or cleared by the user
 - not appropriate for real sensitive evidence
 
-Status: accepted for the prototype only.
+Status: superseded as the source of truth by ADR-033; retained only as an offline/demo cache.
 
-### 26. FastAPI and PostgreSQL remain a future service boundary
+### 26. FastAPI and PostgreSQL remain a future service boundary (superseded)
 
 The optional FastAPI app mirrors analysis, demo login, queue, and decision contracts. Docker Compose also creates PostgreSQL. The current Next.js UI does not use that service for its active workflow, and PostgreSQL is not used for case persistence.
 
 This boundary was retained to communicate a production direction without risking the browser demo. It should either be integrated and expanded or removed from production deployment to avoid architectural ambiguity.
 
-Status: retained but inactive.
+Status: superseded by ADR-031 through ADR-034. FastAPI/PostgreSQL are now active.
 
 ### 27. Controlled benchmarks are regression checks, not accuracy claims
 
-The deterministic engine is tested against ten controlled benchmark scenarios plus merge/fallback/video behaviours. The Python contract service has three tests.
+The deterministic engine is tested against ten controlled benchmark scenarios plus merge/fallback/video behaviours. The replacement backend has five integration tests covering persistence and channel workflows.
 
 A 10/10 benchmark result means the known fixtures produced expected categories, priorities, entities, and concerns. It is not a real-world accuracy percentage. Production evaluation needs a labelled, representative dataset and metrics for precision, recall, calibration, missed urgent cases, false escalations, extraction errors, and performance across languages/media quality.
 
@@ -451,6 +452,140 @@ Current limitation: HTTPS works, but port 80 is not configured to serve or redir
 
 Status: accepted and operational, with HTTP redirect still open.
 
+### 31. FastAPI is now the real backend, not a contract placeholder
+
+The user chose to implement the backend before revisiting deployment. The small service under `apps/api` was therefore replaced with a top-level `backend/` modular monolith. The new service owns durable complaints, users, evidence records, analysis runs, reports, routing decisions, audit events, messaging contacts/sessions/messages, and webhook jobs.
+
+The old service was removed so there is only one Python backend to maintain.
+
+Status: accepted and implemented.
+
+### 32. Use a modular monolith before microservices
+
+The domain needs clear boundaries but does not yet need independently deployed services. Authentication, complaints, evidence, analysis, reports, routing, audit, and WhatsApp are separate modules in one FastAPI codebase. The API and worker share those modules and one database.
+
+This keeps transactions, local development, debugging, and deployment understandable while leaving extraction seams if scale or ownership later requires separate services.
+
+Status: accepted.
+
+### 33. PostgreSQL is canonical; SQLite is a development fallback
+
+Docker Compose now connects SQLAlchemy to PostgreSQL and Alembic owns the schema baseline. SQLite remains available for zero-setup development and isolated tests. Browser storage is retained only as a presentation/offline cache, not as the intended authoritative store.
+
+Status: accepted and implemented; UI sync status/retry remains future work.
+
+### 34. The browser reaches FastAPI through a Next.js BFF
+
+The browser calls same-origin `/api/cases` routes. Those server routes attach the internal backend credential. This avoids exposing `INTERNAL_API_KEY` in a `NEXT_PUBLIC_` variable or browser bundle and leaves a natural place for future cookie/session handling.
+
+Status: accepted and implemented.
+
+### 35. Persist evidence metadata now and isolate storage behind an adapter
+
+The backend accepts authenticated streaming uploads, enforces a size cap, sanitizes storage names, computes SHA-256 during ingestion, and stores content outside the public web tree. The local filesystem implementation is deliberately replaceable; production should use private object storage, quarantine/scanning, encryption, derivatives, retention, and access logs.
+
+Status: local and S3-compatible adapters implemented; private Supabase bucket provisioning remains.
+
+### 36. Repurpose Bhumika as a channel adapter, not a separate product database
+
+The existing Bhumika/Umang implementation proved useful patterns: normalize Meta webhooks, keep the route thin, model add-details/submit states, wrap the Cloud API, and provide fixture mode. Niriksh reuses those ideas but makes WhatsApp create and update the same canonical complaint records used by web intake.
+
+Webhook message IDs are idempotency keys. Raw events are persisted before acknowledgement processing, and a separate worker can claim/retry them. Contacts, sessions, and messages are retained for traceability.
+
+Status: superseded by decision 46 before live Meta cutover. The code remains inactive reference/rollback material.
+
+### 37. Human decisions and automated analysis are independently versioned
+
+Each analysis run records the complaint input version and immutable result. Reports store versioned snapshots. Routing decisions have their own records, and overrides require reasons. Cross-module actions append audit events. This prevents a current complaint view from erasing what an earlier model or reviewer saw.
+
+Status: accepted and implemented.
+
+### 38. Reuse Bhumika's live Meta assets instead of recreating WhatsApp
+
+The WhatsApp cutover reuses Bhumika's existing Meta Business account, developer application, WhatsApp Business Account, registered phone number, access token, verify token, app secret, webhook subscription, and approved templates. Niriksh accepts Bhumika's current environment-variable names as aliases.
+
+Only the callback URL changes during deployment. Bhumika's Supabase data model, civic scoring, dashboard, and portal logic are not imported. The former callback remains the rollback target.
+
+Status: superseded by decision 46. Bhumika retains these assets and Niriksh no longer consumes them.
+
+### 39. Use Supabase PostgreSQL as the shared database
+
+The deployed FastAPI service will use the new Niriksh Supabase PostgreSQL database. ECS is a persistent container workload, so the IPv4-compatible session pooler on port `5432` is the practical connection path. The SQLAlchemy URI must use one scheme only, the `postgresql+psycopg://` driver, a URL-encoded password, and `sslmode=require`. Alembic—not the Supabase dashboard—is the owner of the application schema.
+
+The repository's root `.env.local` currently points to Docker host `db`; that is only correct inside Compose and does not prove Supabase connectivity. Production receives `DATABASE_URL` from AWS Secrets Manager.
+
+Status: accepted and deployed. The migration and live connection smoke test pass.
+
+### 40. Use a private Supabase Storage bucket for the mentor demo
+
+Supabase Storage is selected for the immediate MVP because it sits beside the database, supports S3-compatible clients and presigned downloads, and requires no public browser access. Niriksh stores only storage keys, MIME/size metadata, provenance, analysis output, and SHA-256 digests in PostgreSQL; binary evidence remains in a private bucket. The backend is the only holder of the S3 access key.
+
+This is not yet the final forensic-evidence design. Supabase Storage does not support S3 object versioning, and deleted objects cannot be restored. The application therefore must not claim legal hold, immutability, authenticity, or evidentiary admissibility. A production evidence tier should evaluate AWS S3 with Object Lock, KMS, retention/legal-hold policy, malware quarantine, access logging, and tested recovery.
+
+Current Niriksh ingestion is intentionally capped at 10 MB per item even though the storage provider supports larger objects. This bounds WhatsApp download memory and inline analysis latency for the demo.
+
+Status: accepted and deployed for the demo. Private bucket write/hash/delete smoke testing passes.
+
+### 41. Move WhatsApp multimodal understanding into the backend
+
+The canonical backend now calls Gemini with the accumulated complaint, structured fields, and current message attachments. Audio/voice notes are transcribed inside the structured multimodal result; images/documents receive source-labelled observations. Extracted fields and transcripts are persisted with the complaint/evidence, and every connected run records provider, model, input version, output, and status.
+
+Connected analysis is advisory. The deterministic policy engine always runs and remains the fallback if the provider times out or fails. Prompt instructions treat evidence as untrusted, prohibit guilt/authenticity conclusions, and preserve the human-review boundary.
+
+Status: implemented and live provider schema smoke-tested.
+
+### 42. Use inline webhook processing for the single-service demo, then restore a worker
+
+The durable webhook inbox remains the system boundary. For tomorrow's one-service ECS deployment, `PROCESS_WEBHOOKS_INLINE=true` schedules processing after the `202` response in the API container. This avoids deploying a second non-HTTP service for the mentor demo.
+
+This is a temporary reliability compromise: a container termination after acknowledgement can strand work until a replay mechanism runs. The next production step is `PROCESS_WEBHOOKS_INLINE=false` with the existing worker deployed as a separately supervised service, plus an outbound-message outbox and dead-letter/replay operations.
+
+Status: superseded by decision 46; Niriksh no longer processes channel webhooks.
+
+### 43. A Niriksh reference is a tracking number, not an FIR number
+
+Submitting from WhatsApp closes intake, creates an immutable report snapshot, moves the complaint to `Awaiting review`, and replies with the `CYB-YYYY-NNNNNN` reference. Language says “submitted for Niriksh review”; it does not imply submission to police, the national cybercrime portal, or generation of an FIR.
+
+Status: implemented.
+
+### 44. Deploy web and API as separate ECS Express services
+
+The Next.js service remains `niriksh`; FastAPI is deployed as `niriksh-api`. The web service and Bhumika call separate protected API surfaces on that service. Database, Gemini, integration, and storage credentials are injected from AWS Secrets Manager and never baked into either image. Meta remains entirely inside Bhumika.
+
+Status: accepted and deployed. The existing web service was updated in place and the new API service is active.
+
+### 45. Redirect plain HTTP to the canonical HTTPS domain
+
+The custom domain originally had only a port 443 listener, so the exact `http://niriksh.scopophobic.xyz/` link failed before TLS negotiation. The existing load balancer now has a port 80 listener that returns a permanent `301` redirect to HTTPS; the application and session cookie remain HTTPS-only.
+
+Status: accepted, deployed, and verified.
+
+### 46. Keep Meta/WhatsApp in Bhumika and integrate at the curated-form boundary
+
+The direct Meta-to-Niriksh plan was replaced before live Meta cutover. Bhumika continues to own its existing Meta webhook, WhatsApp session, multilingual questions, media retrieval, and outbound victim communication. Niriksh no longer needs Meta credentials and does not expose the direct WhatsApp webhook.
+
+Bhumika now acts as an upstream intake application. It sends a versioned, curated form to a dedicated Niriksh server endpoint, optionally transfers original media bytes, and finalizes the submission. Niriksh owns canonical persistence, evidence hashing/private storage, deterministic and connected analysis, report versioning, officer review, audit, and the `CYB-YYYY-NNNNNN` tracking number returned to Bhumika.
+
+The integration uses a credential separate from both officer JWTs and the web BFF key. A database uniqueness constraint makes `submission_id` idempotent; external evidence IDs make uploads idempotent; status lookup supports timeout recovery; finalize creates at most one report for that submission.
+
+Reasons:
+
+- no risky Meta callback cutover before the mentor demo
+- Bhumika keeps the working conversation experience and credentials
+- Niriksh stays focused on case/evidence intelligence rather than channel operations
+- a stable JSON/file contract allows future channels to reuse the same pattern
+- failures and retries cannot silently duplicate cases
+
+Status: accepted, deployed, and live-smoke-tested on the Niriksh side. Adding the URL/key and schema mapping to Bhumika is the remaining cross-service step.
+
+### 47. Inline ordinary media for low-latency web analysis
+
+The original web adapter uploaded every image/audio/video file to the provider file service, waited for processing, and only then requested analysis. During provider demand spikes this consumed too much of the ECS load-balancer request window before model failover could complete.
+
+Web attachments up to 8 MB are now base64-encoded into the provider request, matching the backend path that successfully analysed Bhumika evidence. Larger attachments retain the provider file-service path. The primary attempt receives 25 seconds and the two capacity-pool fallbacks receive 18 and 10 seconds, keeping the whole sequence bounded. The deterministic local result remains available if every provider pool is unavailable.
+
+Status: accepted, deployed, and verified against the public domain with a fictional screenshot; source-specific findings and a timeline returned with HTTP 200.
+
 ## Decision index
 
 | ID | Decision | Status |
@@ -485,6 +620,23 @@ Status: accepted and operational, with HTTP redirect still open.
 | ADR-028 | Deploy a hardened standalone container to ECS Express Mode | Accepted |
 | ADR-029 | Use immutable ECR tags and repeatable create/update automation | Accepted |
 | ADR-030 | Use ACM + Porkbun CNAME for the custom HTTPS domain | Accepted |
+| ADR-031 | Make the top-level FastAPI service the canonical backend | Accepted |
+| ADR-032 | Use a modular monolith with separate API and worker processes | Accepted |
+| ADR-033 | Make PostgreSQL canonical and SQLite a local/test fallback | Accepted |
+| ADR-034 | Use a Next.js BFF so internal credentials stay server-side | Accepted |
+| ADR-035 | Put evidence behind a replaceable private storage adapter | Accepted |
+| ADR-036 | Repurpose Bhumika as the WhatsApp channel adapter | Superseded by ADR-046 |
+| ADR-037 | Version analysis, reports, and human routing decisions separately | Accepted |
+| ADR-038 | Reuse Bhumika's existing Meta assets inside Niriksh | Superseded by ADR-046 |
+| ADR-039 | Use Supabase PostgreSQL through the session pooler | Deployed |
+| ADR-040 | Use private Supabase Storage for the demo; stronger immutable storage later | Deployed for demo |
+| ADR-041 | Run WhatsApp multimodal extraction/transcription in FastAPI | Accepted |
+| ADR-042 | Process webhook jobs inline for the one-service demo only | Superseded by ADR-046 |
+| ADR-043 | Treat the Niriksh reference as tracking, not an FIR | Accepted |
+| ADR-044 | Deploy separate web and API ECS Express services | Deployed |
+| ADR-045 | Redirect HTTP to the canonical HTTPS domain | Deployed |
+| ADR-046 | Keep Meta in Bhumika; send Niriksh a curated, idempotent form/media submission | Accepted |
+| ADR-047 | Inline ordinary web media to keep connected analysis inside the request window | Accepted |
 
 ## Explicitly deferred or rejected scope
 
@@ -499,37 +651,36 @@ The following were intentionally excluded from the MVP:
 - automatic bans, routing, enforcement, or takedowns
 - large-scale web crawling or social monitoring
 - cross-case intelligence graphs
-- production authentication and role enforcement
-- durable database-backed case storage
+- citizen OTP/session authentication and per-complaint grants
+- production identity-provider integration and administrator provisioning
 - immutable production evidence storage
 - malware scanning and forensic metadata validation
-- notification delivery
+- production notification templates and delivery monitoring
 - real team capacity and operational analytics
 - legally validated electronic-evidence certification
 
 ## Known inconsistencies and follow-up decisions
 
 1. **README versus current AI behaviour:** README says a reporter can disable connected analysis; the current UI automatically uses it whenever configured.
-2. **Model defaults:** `app/api/analyze/route.ts` defaults to one primary model while `.env.example` overrides it with another. Deployment behaviour depends on environment configuration and should be standardised.
-3. **Production Gemini:** the initial AWS deployment did not include `GEMINI_API_KEY`, so the deployed service used local analysis unless the secret was added later.
-4. **FastAPI ambiguity:** Docker Compose makes the web service depend on FastAPI/PostgreSQL even though the primary browser workflow does not call them.
+2. **Model defaults:** the web currently prefers `gemini-2.5-flash` for stable media latency while the API prefers `gemini-3.5-flash`; both use distinct fallback pools. These adapters should still be consolidated behind one shared configuration contract.
+3. **Bhumika mapping:** Bhumika still needs the client-side mapping from its conversation state to Niriksh schema `1.0` and the shared integration key in its deployment secret.
+4. **Policy duplication:** the frontend TypeScript analyser is richer than the new Python baseline; policy should be consolidated behind one versioned backend contract.
 5. **Admin realism:** several admin capacity, health, identity, and success-rate values are illustrative UI data, not live operational telemetry.
-6. **Citizen privacy language:** the UI says only authorised reviewers can access case material, but the prototype has no real authentication or server access control.
-7. **Evidence durability:** binary `blob:` previews and in-memory `File` objects are not durable across reloads.
-8. **HTTP redirect:** only HTTPS is currently verified; `http://niriksh.scopophobic.xyz` does not redirect.
+6. **Citizen authorization:** officer APIs are protected, but public intake does not yet issue a citizen session or per-complaint access grant.
+7. **Evidence UI sync:** the backend can store binary files, but the current report flow persists only their metadata; `blob:` previews remain browser-local.
+8. **Integration latency:** analysis/finalize is currently synchronous. A production version should return a job ID and use a durable analysis queue for long audio/video.
 9. **Provider disclosure:** public UI intentionally hides vendor/model names, while operational/audit views may still need them for accountability.
 10. **Evaluation:** controlled fixtures are too small for accuracy or fairness claims.
 
 ## Recommended next decision sequence
 
-1. Reconcile README, UI consent, and connected-analysis policy.
-2. Decide whether the FastAPI service becomes the real backend or is removed.
-3. Introduce authentication and separate citizen/officer/admin authorisation.
-4. Move cases and audit events from `localStorage` to a database.
-5. Store original evidence in immutable encrypted object storage with derivative tracking.
-6. Add asynchronous media jobs, progress, retries, and larger evidence limits.
-7. Add explicit provider/model/audit metadata visible to authorised reviewers.
-8. Build a labelled evaluation corpus and measure extraction, urgency, and routing performance.
-9. Add HTTP-to-HTTPS redirection and codify custom-domain infrastructure.
+1. Add visible frontend sync states and retry failed complaint writes.
+2. Configure Bhumika's Niriksh client, test text and media transfer, and verify the returned tracking number reaches the approved test phone.
+3. Add citizen OTP/session authentication and per-complaint grants.
+4. Consolidate TypeScript policy and Gemini adapters behind the versioned backend analysis interface.
+5. Replace local evidence storage with immutable encrypted object storage and derivative tracking.
+6. Add malware/content quarantine and safe reviewer previews.
+7. Build a labelled evaluation corpus and measure extraction, urgency, routing, language, and modality performance.
+8. Add observability, backup/restore tests, retention controls, and infrastructure as code.
+9. Add a durable analysis job/outbox worker and encode the deployed web/API/load-balancer resources as infrastructure as code.
 10. Obtain legal, privacy, security, and evidence-handling review before real complaints are accepted.
-

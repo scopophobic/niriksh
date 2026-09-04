@@ -4,18 +4,44 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      BACKEND_API_URL: http://api:8000/api/v1
+      BACKEND_INTERNAL_API_KEY: ${BACKEND_INTERNAL_API_KEY:-local-development-key}
+      BACKEND_ALLOW_DEMO_PROXY: "false"
+      SESSION_COOKIE_SECURE: "false"
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.5-flash}
+      GEMINI_RESERVE_MODEL: ${GEMINI_RESERVE_MODEL:-gemini-3.6-flash}
     depends_on:
       api:
         condition: service_healthy
 
   api:
-    build: ./apps/api
+    build: ./backend
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://triage:triage@db:5432/triage
-      DEMO_TRIAGE_PASSWORD: ${DEMO_TRIAGE_PASSWORD:-demo-only-change-me}
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://triage:triage@db:5432/triage
+      FRONTEND_ORIGINS: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-local-only-change-before-deployment}
+      INTERNAL_API_KEY: ${BACKEND_INTERNAL_API_KEY:-local-development-key}
+      BHUMIKA_INTEGRATION_KEY: ${BHUMIKA_INTEGRATION_KEY:-local-bhumika-integration-key}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-demo-only-change-me}
+      EVIDENCE_STORAGE_PATH: /app/data/evidence
+      EVIDENCE_STORAGE_BACKEND: ${EVIDENCE_STORAGE_BACKEND:-local}
+      EVIDENCE_S3_BUCKET: ${EVIDENCE_S3_BUCKET:-}
+      EVIDENCE_S3_REGION: ${EVIDENCE_S3_REGION:-ap-south-1}
+      EVIDENCE_S3_PREFIX: ${EVIDENCE_S3_PREFIX:-niriksh/evidence}
+      EVIDENCE_S3_ENDPOINT_URL: ${EVIDENCE_S3_ENDPOINT_URL:-}
+      EVIDENCE_S3_ACCESS_KEY_ID: ${EVIDENCE_S3_ACCESS_KEY_ID:-}
+      EVIDENCE_S3_SECRET_ACCESS_KEY: ${EVIDENCE_S3_SECRET_ACCESS_KEY:-}
+      EVIDENCE_S3_FORCE_PATH_STYLE: ${EVIDENCE_S3_FORCE_PATH_STYLE:-false}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
+      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.6-flash}
+      GEMINI_RESERVE_MODEL: ${GEMINI_RESERVE_MODEL:-gemini-2.5-flash}
+      AUTO_CREATE_TABLES: "false"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 5s
@@ -24,6 +50,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - evidence_data:/app/data/evidence
 
   db:
     image: postgres:17-alpine
@@ -41,3 +69,4 @@ services:
 
 volumes:
   triage_data:
+  evidence_data:

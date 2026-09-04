@@ -1,1 +1,0 @@
-"""Niriksh demo API."""

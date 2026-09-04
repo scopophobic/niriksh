@@ -467,7 +467,7 @@ export function ReportFlow() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const createReport = () => {
+  const createReport = async () => {
     if (!analysis) return;
     const addedContext = analysis.questions.map((question, index) => answers[index]?.trim() ? `${question} ${answers[index].trim()}` : "").filter(Boolean).join(". ");
     const refreshedLocal = addedContext ? analyzeComplaint(`${description}. Additional information: ${addedContext}`, files, details) : analysis;
@@ -513,10 +513,28 @@ export function ReportFlow() {
         { label: "Evidence analysis completed", detail: "Context, priority, verification readiness and routing information were prepared.", time: "Just now", actor: "Niriksh Analysis" },
       ],
     };
-    addCase(newCase);
+    const persistedCase = await addCase(newCase);
+    if (persistedCase._uploadToken) {
+      await Promise.allSettled(files.map(async item => {
+        const source = item.sha256 ? sourceFiles[item.sha256] : undefined;
+        if (!source) return;
+        const form = new FormData();
+        form.append("evidence", source, source.name);
+        form.append("evidence_type", item.type);
+        if (item.purpose) form.append("purpose", item.purpose);
+        if (item.originality) form.append("originality", item.originality);
+        if (item.contextNote) form.append("context_note", item.contextNote);
+        if (item.sha256?.match(/^[a-f0-9]{64}$/i)) form.append("expected_sha256", item.sha256);
+        await fetch(`/api/cases/${encodeURIComponent(persistedCase.id)}/evidence`, {
+          method: "POST",
+          headers: { "X-Complaint-Token": persistedCase._uploadToken! },
+          body: form,
+        });
+      }));
+    }
     setAnalysis(finalAnalysis);
     setSummary(finalSummary);
-    setReference(nextReference);
+    setReference(persistedCase.reference);
     setScreen("report");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

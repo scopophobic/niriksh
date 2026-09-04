@@ -5,9 +5,16 @@ import { MultimodalInsight, Severity } from "@/lib/types";
 export const runtime = "nodejs";
 export const maxDuration = 180;
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.7-flash";
-const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash";
-const RESERVE_MODEL = process.env.GEMINI_RESERVE_MODEL || "gemini-3.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash";
+const RESERVE_MODEL = process.env.GEMINI_RESERVE_MODEL || "gemini-3.6-flash";
+
+class TemporaryAnalysisFailure extends Error {
+  constructor(readonly attempts: string[]) {
+    super("The connected analysis service was temporarily unavailable after retrying. Please retry shortly.");
+    this.name = "TemporaryAnalysisFailure";
+  }
+}
 
 const schema = {
   type: "object",
@@ -89,6 +96,7 @@ type ApiFinding = {
 
 type GeminiPart =
   | { text: string }
+  | { inlineData: { data: string; mimeType: string } }
   | { fileData: { fileUri: string; mimeType: string } };
 
 type GeminiMediaType = "image" | "audio" | "video" | "document";
@@ -152,10 +160,13 @@ function providerErrorMessage(error: unknown) {
 }
 
 function isTemporaryProviderFailure(error: unknown) {
-  return /high demand|overload|temporar|unavailable|timeout|timed out|deadline|deadline_exceeded|aborted|resource_exhausted|429|500|502|503|504/i.test(providerErrorMessage(error));
+  return /high demand|overload|temporar|unavailable|timeout|timed out|deadline|deadline_exceeded|aborted|resource_exhausted|network|fetch failed|econnreset|socket|408|429|500|502|503|504/i.test(providerErrorMessage(error));
 }
 
 async function generateStructuredAnalysis(ai: GoogleGenAI, model: string, parts: GeminiPart[], timeout: number) {
+  const thinkingConfig = model.startsWith("gemini-2.5-")
+    ? { thinkingBudget: 0 }
+    : { thinkingLevel: ThinkingLevel.LOW };
   const response = await ai.models.generateContent({
     model,
     contents: [{ role: "user", parts }],
@@ -163,9 +174,9 @@ async function generateStructuredAnalysis(ai: GoogleGenAI, model: string, parts:
       systemInstruction: instructions,
       responseMimeType: "application/json",
       responseJsonSchema: schema,
-      maxOutputTokens: 3500,
+      maxOutputTokens: 2500,
       temperature: 0.1,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+      thinkingConfig,
       httpOptions: { timeout },
       abortSignal: AbortSignal.timeout(timeout),
     },
@@ -175,13 +186,12 @@ async function generateStructuredAnalysis(ai: GoogleGenAI, model: string, parts:
 }
 
 async function generateWithFailover(ai: GoogleGenAI, parts: GeminiPart[]) {
-  const attempts = [
-    { model: MODEL, timeout: 15_000 },
-    { model: MODEL, timeout: 15_000 },
-    ...[FALLBACK_MODEL, RESERVE_MODEL]
-      .filter((model, index, models) => model !== MODEL && models.indexOf(model) === index)
-      .map(model => ({ model, timeout: 30_000 })),
-  ];
+  // Keep the complete sequence below the load balancer's request window while
+  // preferring a different capacity pool over retrying one overloaded model.
+  const timeouts = [25_000, 18_000, 10_000];
+  const attempts = [MODEL, FALLBACK_MODEL, RESERVE_MODEL]
+    .filter((model, index, models) => models.indexOf(model) === index)
+    .map((model, index) => ({ model, timeout: timeouts[index] || 20_000 }));
   const temporaryFailures: string[] = [];
 
   for (let index = 0; index < attempts.length; index += 1) {
@@ -196,13 +206,13 @@ async function generateWithFailover(ai: GoogleGenAI, parts: GeminiPart[]) {
       if (!isTemporaryProviderFailure(error)) throw error;
       temporaryFailures.push(`${attempt.model}: ${providerErrorMessage(error)}`);
       if (index < attempts.length - 1) {
-        const delay = Math.min(4_000, 750 * (2 ** index)) + Math.floor(Math.random() * 350);
+        const delay = 250 + Math.floor(Math.random() * 250);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
 
-  throw new Error("The connected analysis service was temporarily unavailable after retrying. Please retry shortly.");
+  throw new TemporaryAnalysisFailure(temporaryFailures);
 }
 
 export async function GET() {
@@ -249,6 +259,24 @@ export async function POST(request: Request) {
       }
 
       try {
+        // Inline ordinary form attachments. This removes a separate provider
+        // upload/processing round trip and proved materially more reliable for
+        // screenshots and voice notes within the load balancer request window.
+        if (file.size <= 8_000_000) {
+          return {
+            fileName: file.name,
+            parts: [
+              { text: `${type[0].toUpperCase()}${type.slice(1)} evidence source: ${file.name}` },
+              {
+                inlineData: {
+                  data: Buffer.from(await file.arrayBuffer()).toString("base64"),
+                  mimeType: file.type || "application/octet-stream",
+                },
+              },
+            ] as GeminiPart[],
+          };
+        }
+
         const uploaded = await ai.files.upload({
           file,
           config: { mimeType: file.type || "application/octet-stream", displayName: file.name },
@@ -310,7 +338,10 @@ export async function POST(request: Request) {
     };
     return NextResponse.json({ insight });
   } catch (error) {
-    console.error("Gemini multimodal analysis error", error);
+    console.error("Gemini multimodal analysis error", {
+      message: providerErrorMessage(error),
+      attempts: error instanceof TemporaryAnalysisFailure ? error.attempts : undefined,
+    });
     const message = providerErrorMessage(error);
     const detail = /model|quota|rate|permission|structured|processing|demand|timeout|deadline|unavailable|429|503|504/i.test(message)
       ? ` ${message}`
