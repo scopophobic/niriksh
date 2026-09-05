@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, CheckCircle2, Clock3, FileCheck2, FileText, PhoneCall, Route, SearchCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, BrainCircuit, CheckCircle2, Clock3, FileCheck2, FileText, MessageCircle, PhoneCall, Route, SearchCheck, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PublicHeader } from "@/components/PublicHeader";
 
@@ -9,7 +9,7 @@ export default function Home() {
 
     <main>
       <section className="landing-hero">
-        <div className="landing-hero-copy"><span className="landing-kicker"><ShieldCheck size={17}/> India’s guided cyber complaint workspace</span><h1>Clarity and support,<br/><em>when it matters most.</em></h1><p>Register a cyber complaint, understand what the evidence may show, and follow every update from one calm, secure place.</p><div className="landing-hero-actions"><Link className="landing-primary" href="/report">Register a complaint <ArrowRight size={19}/></Link><Link className="landing-secondary" href="/track"><SearchCheck size={18}/> Track my complaint</Link></div><div className="landing-trust-row"><span><CheckCircle2/>Plain-language guidance</span><span><CheckCircle2/>Clear status updates</span><span><CheckCircle2/>Human-reviewed decisions</span></div></div>
+        <div className="landing-hero-copy"><span className="landing-kicker"><ShieldCheck size={17}/> India’s guided cyber complaint workspace</span><h1>Clarity and support,<br/><em>when it matters most.</em></h1><p>Register a cyber complaint, understand what the evidence may show, and follow every update from one calm, secure place.</p><div className="landing-hero-actions"><Link className="landing-primary" href="/report">Register a complaint <ArrowRight size={19}/></Link><Link className="landing-secondary" href="/track"><SearchCheck size={18}/> Track my complaint</Link></div><div className="landing-trust-row"><span><CheckCircle2/>Plain-language guidance</span><span><CheckCircle2/>Clear status updates</span><span><CheckCircle2/>Human-reviewed decisions</span></div><p style={{marginTop:16}}><Link href="/whatsapp" style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:13,fontWeight:700,color:"var(--teal-dark)"}}><MessageCircle size={16}/> Prefer a guided chat instead? Try the WhatsApp-style demo →</Link></p></div>
         <aside className="landing-preview-card"><div className="landing-preview-head"><span><FileCheck2 size={21}/></span><div><small>WHAT YOU RECEIVE</small><strong>A report you can understand</strong></div></div><div className="landing-preview-summary"><small>AT A GLANCE</small><h2>Important facts first</h2><p>Priority, possible harm and the strongest evidence indicators are shown before the longer detail.</p></div><div className="landing-preview-items"><span><i>1</i><div><strong>Plain-language summary</strong><small>What the system understood</small></div></span><span><i>2</i><div><strong>Incident timeline</strong><small>What happened and when</small></div></span><span><i>3</i><div><strong>Help and routing</strong><small>Who to contact next</small></div></span></div></aside>
       </section>
 

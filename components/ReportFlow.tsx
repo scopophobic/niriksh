@@ -41,6 +41,7 @@ import {
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { analyzeComplaint } from "@/lib/analyzer";
 import { addLocalEngine, mergeMultimodalAnalysis } from "@/lib/multimodal";
+import { prepareFile } from "@/lib/evidence";
 import { DEMO_CHAT_DESCRIPTION } from "@/lib/mock-data";
 import { AnalysisResult, ComplaintDetails, EvidenceItem, MultimodalInsight, TriageCase } from "@/lib/types";
 import { useCaseStore } from "@/lib/case-store";
@@ -211,38 +212,6 @@ const DEMO_SCENARIOS: Array<{ label: string; description: string; details: Compl
     evidence: [DEMO_EVIDENCE],
   },
 ];
-
-function classifyFile(file: File): EvidenceItem["type"] {
-  if (file.type.startsWith("video")) return "Video";
-  if (file.type.startsWith("image")) return "Image";
-  if (file.type.startsWith("audio")) return "Audio";
-  return "Document";
-}
-
-function fileSize(bytes: number) {
-  return bytes >= 1_000_000 ? `${(bytes / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.ceil(bytes / 1000))} KB`;
-}
-
-async function prepareFile(file: File): Promise<EvidenceItem> {
-  const type = classifyFile(file);
-  const bytes = await file.arrayBuffer();
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  const sha256 = Array.from(new Uint8Array(digest)).map(value => value.toString(16).padStart(2, "0")).join("");
-  const lowerName = file.name.toLowerCase();
-  const isText = file.type.startsWith("text/") || file.type === "application/json" || [".txt", ".csv", ".json", ".html"].some(extension => lowerName.endsWith(extension));
-  return {
-    name: file.name,
-    type,
-    size: fileSize(file.size),
-    verified: true,
-    mimeType: file.type,
-    sha256,
-    extractedText: isText ? new TextDecoder().decode(bytes).slice(0, 100_000) : undefined,
-    originality: "Unknown",
-    previewUrl: type === "Image" || type === "Video" || type === "Audio" ? URL.createObjectURL(file) : undefined,
-    purpose: "Supporting evidence",
-  };
-}
 
 export function ReportFlow() {
   const { addCase } = useCaseStore();
