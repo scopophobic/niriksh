@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./ui-refresh.css";
 import "./case-reconstruction.css";
+import "./landing-reconstruction.css";
 import { CaseStoreProvider } from "@/lib/case-store";
 
 export const metadata: Metadata = {

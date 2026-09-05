@@ -40,7 +40,7 @@ export function RelatedIncidents({ complaintId }: { complaintId: string }) {
     setAttempt(value => value + 1);
   };
 
-  return <section className="folio-section related-incidents" id="related-incidents">
+  return <section className="folio-section related-incidents" id="related-incidents" aria-live="polite">
     <div className="folio-section-head"><div><span className="connect-label"><Share2/>Connect</span><h2>Related incidents</h2><p>Cases that contain the same explicit normalized identifier.</p></div>{state === "ready" && <span>{data?.total || 0} potential connection{data?.total === 1 ? "" : "s"}</span>}</div>
 
     {state === "loading" && <div className="connection-state"><LoaderCircle className="connection-spinner"/><span>Checking exact identifier matches…</span></div>}
@@ -51,7 +51,7 @@ export function RelatedIncidents({ complaintId }: { complaintId: string }) {
       <header><div><Link href={`/cases/${encodeURIComponent(incident.complaint_id)}`}>{incident.reference}<ArrowUpRight/></Link><span>{incident.category} · {incident.status}</span></div><strong>{incident.matched_indicator_count} shared</strong></header>
       <p>{incident.summary}</p>
       <div className="shared-indicator-list">{incident.shared_indicators.map(indicator => <div className="shared-indicator" key={`${indicator.type}-${indicator.normalized_value}`}>
-        <div className="shared-value"><small>{indicator.type_label}</small><strong>{indicator.display_value}</strong><span>Exact normalized match</span></div>
+        <div className="shared-value"><small>{indicator.type_label}</small><strong translate="no">{indicator.display_value}</strong><span>Exact normalized match</span></div>
         <div className="shared-provenance"><div><small>This case</small><SourceList sources={indicator.current_sources} current/></div><i/><div><small>{incident.reference}</small><SourceList sources={indicator.related_sources}/></div></div>
       </div>)}</div>
     </article>)}</div>}
