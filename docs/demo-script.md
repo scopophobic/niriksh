@@ -7,7 +7,7 @@
 3. Confirm Niriksh health says `bhumika_integration: configured` and `direct_whatsapp_webhook: disabled`.
 4. Configure Bhumika with the Niriksh API URL and the shared integration key. Do not change Bhumika's Meta callback or credentials.
 5. Keep one approved test phone ready.
-6. Send one private test text and one voice note before presenting. Confirm Bhumika sends the curated submission, the case appears in Niriksh, and Bhumika relays the tracking number.
+6. Send one private test text and one voice note before presenting. Confirm Bhumika sends the curated submission, the case appears in Niriksh, and Bhumika relays both the tracking number and signed portal link.
 
 ## 30-second setup
 
@@ -22,10 +22,11 @@
 5. Send a short fictional voice note containing the date, location, and transaction reference.
 6. When Niriksh responds, say: “Bhumika transferred the original voice note to Niriksh. Niriksh stored it privately, computed a SHA-256 digest, transcribed it, extracted useful fields, and retained the transcript with the evidence record. The model output is advisory and has a deterministic fallback.”
 7. Tap **Submit report**.
-8. Show the WhatsApp reply containing a `CYB-YYYY-NNNNNN` tracking number and report version.
-9. Refresh the officer dashboard, open the new case, and show the summary, category, priority, extracted fields, evidence metadata/transcript, report, and audit trail.
-10. Send `status` in WhatsApp and explain that Bhumika looks up the existing Niriksh submission/tracking state instead of opening a duplicate case.
-11. Close with: “This is submitted for Niriksh review, not automatically to police. The next integration can send a human-approved report to an authorised external system.”
+8. Show the WhatsApp reply containing a `CYB-YYYY-NNNNNN` tracking number and tap its signed Niriksh tracking link. Point out that it shows status/history without exposing the narrative or evidence.
+9. Refresh the officer dashboard, open the new case, and show the human-selected subject folder, summary, extracted fields, source-linked context, evidence metadata/transcript, missing information, report, and audit trail. Explicitly show that there is no automated priority score.
+10. Send `status` in WhatsApp and explain that Bhumika reads the protected update feed instead of opening a duplicate case.
+11. Send one fictional follow-up detail. Show that Bhumika creates a supplement on the same tracking ID and Niriksh creates report version 2.
+12. Close with: “This is submitted for Niriksh review, not automatically to police. The next integration can send a human-approved report to an authorised external system.”
 
 ## Architecture answer
 

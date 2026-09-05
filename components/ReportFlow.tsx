@@ -44,8 +44,8 @@ import { addLocalEngine, mergeMultimodalAnalysis } from "@/lib/multimodal";
 import { DEMO_CHAT_DESCRIPTION } from "@/lib/mock-data";
 import { AnalysisResult, ComplaintDetails, EvidenceItem, MultimodalInsight, TriageCase } from "@/lib/types";
 import { useCaseStore } from "@/lib/case-store";
+import { REVIEW_CATEGORIES } from "@/lib/review-policy";
 import { Logo } from "./Logo";
-import { SeverityBadge } from "./SeverityBadge";
 import { PublicHeader } from "./PublicHeader";
 
 type Screen = "intake" | "analyzing" | "analysis" | "report" | "routing";
@@ -77,7 +77,7 @@ const STATES = ["Assam", "Delhi", "Karnataka", "Maharashtra", "Rajasthan", "Tami
 const HARMFUL_NATURE = ["Sexual or intimate", "Humiliating or defamatory", "Threatening or coercive", "Fraud or scam", "Harassment or bullying"];
 
 const EMPTY_DETAILS: ComplaintDetails = {
-  selectedCategory: "Not selected — analyse from context",
+  selectedCategory: "",
   incidentStatus: "Not sure",
   reporterRole: "Person affected",
   financial: { involved: false, moneyStatus: "Not sure" },
@@ -289,7 +289,7 @@ export function ReportFlow() {
   const showFinancial = Boolean(details.financial?.involved);
   const hasVoiceDescription = files.some(file => file.purpose === "Voice description");
   const descriptionReady = description.trim().length >= 60 || Boolean(hasVoiceDescription && aiConfigured);
-  const canAnalyse = descriptionReady && Boolean(details.incidentDate) && Boolean(details.state) && Boolean(details.channel) && Boolean(details.declarationConfirmed) && !isRecording;
+  const canAnalyse = descriptionReady && Boolean(details.selectedCategory) && Boolean(details.incidentDate) && Boolean(details.state) && Boolean(details.channel) && Boolean(details.declarationConfirmed) && !isRecording;
 
   const setField = <K extends keyof ComplaintDetails>(key: K, value: ComplaintDetails[K]) => setDetails(current => ({ ...current, [key]: value }));
   const setFinancial = (patch: Partial<NonNullable<ComplaintDetails["financial"]>>) => setDetails(current => ({ ...current, financial: { involved: false, ...current.financial, ...patch } }));
@@ -482,6 +482,7 @@ export function ReportFlow() {
       reference: nextReference,
       description,
       summary: finalSummary,
+      reviewCategory: details.selectedCategory,
       category: finalAnalysis.category,
       secondary: finalAnalysis.secondary,
       severity: finalAnalysis.severity,
@@ -510,7 +511,7 @@ export function ReportFlow() {
       },
       audit: [
         { label: "Complaint details confirmed", detail: "The reporter completed the declaration and reviewed the analysis.", time: "Just now", actor: "Complainant" },
-        { label: "Evidence analysis completed", detail: "Context, priority, verification readiness and routing information were prepared.", time: "Just now", actor: "Niriksh Analysis" },
+        { label: "Structured intake completed", detail: "Context, sources, missing details and a human-selected subject folder were prepared without automated priority scoring.", time: "Just now", actor: "Niriksh Analysis" },
       ],
     };
     const persistedCase = await addCase(newCase);
@@ -547,8 +548,8 @@ export function ReportFlow() {
       `Created: ${new Date().toLocaleString()}`,
       "",
       `Summary: ${summary}`,
-      `Analysis category: ${analysis.category}`,
-      `Priority: ${analysis.severity} (${analysis.score}/100)`,
+      `Human-selected subject folder: ${analysis.category}`,
+      "Automated priority: Not used",
       `Verification readiness: ${analysis.verification.readiness}%`,
       `Jurisdiction supplied: ${analysis.routing.jurisdiction}`,
       "",
@@ -563,9 +564,8 @@ export function ReportFlow() {
       "EVIDENCE",
       ...analysis.evidenceAnalysis.map(item => `- ${item.fileName}: ${[...item.observations, ...item.limitations].join("; ")}`),
       "",
-      "ROUTING RECOMMENDATION",
-      `Primary unit: ${analysis.routing.primaryUnit}`,
-      `Supporting units: ${analysis.routing.supportingUnits.join(", ") || "None"}`,
+      "HUMAN ROUTING RECORD",
+      `Proposed team: ${analysis.routing.primaryUnit}`,
       ...analysis.routing.reasons.map(item => `- ${item}`),
       "",
       analysis.verification.disclaimer,
@@ -591,7 +591,7 @@ export function ReportFlow() {
   const copyTakedown = async () => {
     if (!analysis) return;
     const text = [
-      "Request for urgent platform content review",
+      "Request for platform content review",
       `Reference: ${reference}`,
       `Content URL/account: ${details.aiMisuse?.contentUrl || details.accountOrUrl || "Add URL before sending"}`,
       `Reported issue: ${analysis.category}`,
@@ -636,8 +636,9 @@ export function ReportFlow() {
             <div className="compact-form-body">
               <label className="guided-description"><div className="voice-description-heading"><span>1. Describe the incident <em>Required</em></span><button type="button" className={isRecording ? "recording" : ""} onClick={isRecording ? stopVoiceDescription : startVoiceDescription} aria-pressed={isRecording}>{isRecording ? <><Square size={14} fill="currentColor"/> Stop recording</> : <><Mic size={17}/> Describe by voice</>}</button></div><textarea maxLength={3000} value={description} disabled={isRecording} onChange={event => setDescription(event.target.value)} placeholder="Type here, or choose ‘Describe by voice’. For example: Someone made a fake video using my face, posted it on Instagram yesterday, and is asking people for money."/><div className="description-status"><small className={descriptionReady ? "ready" : ""}>{descriptionReady ? "Description ready" : `${Math.max(0, 60 - description.length)} more typed characters recommended`} · {description.length}/3000</small>{isRecording && <span className="voice-live"><i/>Listening… {voiceInterim}</span>}{hasVoiceDescription && !isRecording && <span className="voice-added"><CheckCircle2 size={14}/>Voice recording attached</span>}</div>{voiceError && <p className="voice-error"><Info size={15}/>{voiceError}</p>}</label>
 
-              <div className="compact-section-label"><span>2</span><div><strong>Add the basic details</strong><small>Four quick answers help organise and route the report.</small></div></div>
+              <div className="compact-section-label"><span>2</span><div><strong>Add the basic details</strong><small>Select a subject folder and add the facts that help a person review the report.</small></div></div>
               <div className="compact-core-fields guided-field-grid">
+                <label className="wide"><span>Subject folder <em>Required</em></span><select value={details.selectedCategory || ""} onChange={event => setField("selectedCategory", event.target.value)}><option value="">Choose the closest subject</option>{REVIEW_CATEGORIES.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select><small>The reporter chooses this folder. An officer can correct it later.</small></label>
                 <label><span>Date <em>Required</em></span><input type="date" value={details.incidentDate || ""} onChange={event => setField("incidentDate", event.target.value)}/></label>
                 <label><span>App or channel <em>Required</em></span><select value={details.channel || ""} onChange={event => setField("channel", event.target.value)}><option value="">Choose one</option>{CHANNELS.map(item => <option key={item}>{item}</option>)}</select></label>
                 <label><span>Your State / UT <em>Required</em></span><select value={details.state || ""} onChange={event => setField("state", event.target.value)}><option value="">Choose one</option>{STATES.map(item => <option key={item}>{item}</option>)}</select></label>
@@ -682,7 +683,7 @@ export function ReportFlow() {
 
             <div className="guided-form-footer">
               <span><LockKeyhole size={15}/>{aiConfigured ? "The analysis pipeline reviews the complaint and supported evidence. Temporary processing files are deleted afterward." : "Local analysis mode. Selected files stay in this browser."}</span>
-              <button className="portal-primary" onClick={runAnalysis} disabled={!canAnalyse}>Analyse complaint <ArrowRight size={17}/></button>
+              <button className="portal-primary" onClick={runAnalysis} disabled={!canAnalyse}>Organise complaint <ArrowRight size={17}/></button>
             </div>
           </section>
         </div>}
@@ -699,9 +700,9 @@ export function ReportFlow() {
           <div className={`engine-disclosure ${analysis.engine?.mode === "Multimodal AI" ? "connected" : "local"}`}><BrainCircuit size={18}/><div><strong>{analysis.engine?.label || "Structured text analysis"}</strong><span>{analysis.engine?.mode === "Multimodal AI" ? `${analysis.engine.mediaReviewed} evidence item${analysis.engine.mediaReviewed === 1 ? " was" : "s were"} analysed alongside the complaint context. Human verification remains required.` : "The result is based on structured fields, complaint text and evidence notes; media content was not interpreted."}</span></div></div>
 
           <div className="analysis-decision-strip">
-            <div><small>PRIORITY</small><SeverityBadge level={analysis.severity}/><span>{analysis.score}/100 signal score</span></div>
-            <div><small>THIS MAY INVOLVE</small><strong>{analysis.category}</strong><span>{analysis.confidence}% rule confidence</span></div>
-            <div><small>VERIFICATION READINESS</small><strong>{analysis.verification.readiness}%</strong><span>{analysis.verification.readyChecks}/{analysis.verification.totalChecks} checks ready</span></div>
+            <div><small>SUBJECT FOLDER</small><strong>{analysis.category}</strong><span>Selected by the reporter</span></div>
+            <div><small>PROPOSED REVIEW TEAM</small><strong>{analysis.routing.primaryUnit}</strong><span>Officer confirmation required</span></div>
+            <div><small>INFORMATION CHECKLIST</small><strong>{analysis.verification.readiness}%</strong><span>{analysis.verification.readyChecks}/{analysis.verification.totalChecks} details ready</span></div>
           </div>
 
           <article className="analysis-card summary-card"><div className="analysis-card-title"><div><ClipboardCheck size={18}/><h2>Plain-language summary</h2></div><span>Editable</span></div><textarea value={summary} onChange={event => setSummary(event.target.value)}/><p><Info size={14}/> This describes the allegation. It is not a finding that the content is fake or that a person is responsible.</p></article>
@@ -729,17 +730,17 @@ export function ReportFlow() {
               <div className="smart-reference-row"><div><small>KEEP THIS REFERENCE</small><strong>{reference}</strong><span>Use it when discussing this prepared report.</span></div><button onClick={copyReference}>{copied ? <Check size={17}/> : <Copy size={17}/>} {copied ? "Copied" : "Copy reference"}</button></div>
 
               <section className="report-at-a-glance">
-                <div className={`report-priority-card priority-${analysis.severity.toLowerCase().replace(/\s+/g, "-")}`}><small>RECOMMENDED PRIORITY</small><div className="priority-label-row"><SeverityBadge level={analysis.severity}/><span>Human review</span></div><div className="priority-score"><strong>{analysis.score}</strong><span>/100 signal strength</span></div><div className="severity-meter" aria-label={`${analysis.score} out of 100 signal strength`}><i style={{ width: `${analysis.score}%` }}/></div><p>Signals help order review. They are not a finding of guilt.</p></div>
-                <div><small>THIS MAY INVOLVE</small><strong>{analysis.category}</strong><p>{analysis.confidence}% analysis confidence</p></div>
+                <div className="report-priority-card"><small>DECISION POLICY</small><div className="priority-label-row"><ShieldCheck size={18}/><span>Human review</span></div><p>No automated priority, guilt, or routing decision is generated.</p></div>
+                <div><small>SUBJECT FOLDER</small><strong>{analysis.category}</strong><p>Selected by the reporter; officer-confirmed</p></div>
                 <div><small>READY FOR REVIEW</small><strong>{analysis.verification.readiness}%</strong><p>{analysis.verification.readyChecks} of {analysis.verification.totalChecks} checks ready</p></div>
               </section>
 
               <section className="smart-report-summary"><span><Eye size={20}/></span><div><small>WHAT THE SYSTEM UNDERSTOOD</small><p>{summary}</p></div></section>
 
               <section className="smart-important-section">
-                <div className="smart-section-title"><div><AlertTriangle size={20}/><span><small>LOOK AT THESE FIRST</small><h2>Important findings</h2></span></div><b>{analysis.highlights.length}</b></div>
+                <div className="smart-section-title"><div><AlertTriangle size={20}/><span><small>SOURCE-BACKED CONTEXT</small><h2>Details mentioned in the report</h2></span></div><b>{analysis.highlights.length}</b></div>
                 <div className="smart-indicator-list">{analysis.highlights.slice(0, 5).map(item => <article className={`smart-indicator ${item.level.toLowerCase()}`} key={`${item.label}-${item.source}`}><i/><div><span><strong>{item.label}</strong><em>{item.level}</em></span><p>{item.detail}</p><small>Source: {item.source}</small></div></article>)}</div>
-                {!analysis.highlights.length && <p className="report-empty-copy">No urgent indicator was found automatically. A human should still review the full report.</p>}
+                {!analysis.highlights.length && <p className="report-empty-copy">No context marker was extracted automatically. A human should still review the full report.</p>}
               </section>
 
               <section className="report-timeline-section">
@@ -760,7 +761,7 @@ export function ReportFlow() {
             </article>
 
             <aside className="report-assurance-column">
-              <article className="report-status-card"><span><ShieldCheck size={23}/></span><small>CURRENT STATUS</small><h2>Prepared—not yet submitted</h2><p>Your report is organised for review. Use the official portal or contact shown below to file or seek urgent help.</p><button className="portal-primary" onClick={() => setScreen("routing")}>See recommended route <ArrowRight size={16}/></button><Link className="portal-secondary report-track-link" href="/track">View in my complaints</Link></article>
+              <article className="report-status-card"><span><ShieldCheck size={23}/></span><small>CURRENT STATUS</small><h2>Prepared—not yet submitted</h2><p>Your report is organised for review. Use the official portal or contact shown below to file or seek urgent help.</p><button className="portal-primary" onClick={() => setScreen("routing")}>Review destination information <ArrowRight size={16}/></button><Link className="portal-secondary report-track-link" href="/track">View in my complaints</Link></article>
 
               <article className="what-next-card"><small>WHAT HAPPENS NEXT</small><h2>Your next steps</h2><ol><li className="done"><i><Check/></i><span><strong>Report prepared</strong><small>Save your reference and a copy.</small></span></li><li><i>2</i><span><strong>Submit through an official channel</strong><small>Niriksh has not sent it automatically.</small></span></li><li><i>3</i><span><strong>Human review and updates</strong><small>Use the official acknowledgement number to track it.</small></span></li></ol></article>
 
@@ -775,13 +776,13 @@ export function ReportFlow() {
         </section>}
 
         {screen === "routing" && analysis && <section className="routing-workspace">
-          <div className="routing-heading"><span><Route size={22}/></span><div><small>ROUTING INFORMATION</small><h1>{analysis.routing.status}</h1><p>The system explains the recommended destination. A human must confirm and submit it.</p></div><SeverityBadge level={analysis.severity}/></div>
-          <div className="citizen-routing-summary"><div><small>PRIORITY</small><strong>{analysis.severity}</strong></div><div><small>ROUTE READINESS</small><strong>{analysis.verification.readiness}%</strong></div><div><small>EVIDENCE ITEMS</small><strong>{files.length}</strong></div><div><small>DETAILS TO ADD</small><strong>{analysis.missing.length}</strong></div></div>
+          <div className="routing-heading"><span><Route size={22}/></span><div><small>ROUTING INFORMATION</small><h1>{analysis.routing.status}</h1><p>The subject folder suggests a review team. A human must confirm and submit it.</p></div></div>
+          <div className="citizen-routing-summary"><div><small>SUBJECT FOLDER</small><strong>{analysis.category}</strong></div><div><small>INFORMATION READY</small><strong>{analysis.verification.readiness}%</strong></div><div><small>EVIDENCE ITEMS</small><strong>{files.length}</strong></div><div><small>DETAILS TO ADD</small><strong>{analysis.missing.length}</strong></div></div>
           <div className="routing-grid">
-            <article className="routing-primary"><small>RECOMMENDED PRIMARY REVIEW</small><span><Landmark size={22}/></span><h2>{analysis.routing.primaryUnit}</h2><p>{analysis.routing.jurisdiction}</p><div>{analysis.routing.reasons.map(item => <span key={item}><CheckCircle2 size={14}/>{item}</span>)}</div></article>
+            <article className="routing-primary"><small>PROPOSED SUBJECT TEAM</small><span><Landmark size={22}/></span><h2>{analysis.routing.primaryUnit}</h2><p>{analysis.routing.jurisdiction}</p><div>{analysis.routing.reasons.map(item => <span key={item}><CheckCircle2 size={14}/>{item}</span>)}</div></article>
             <article className="routing-support"><h2>Supporting review</h2>{analysis.routing.supportingUnits.length ? analysis.routing.supportingUnits.map(unit => <span key={unit}><ShieldCheck size={15}/>{unit}</span>) : <p>No additional specialist unit is currently suggested.</p>}<div className="routing-not-sent"><Info size={15}/><span><strong>Not automatically sent</strong>This prototype displays routing information only.</span></div></article>
           </div>
-          <article className="routing-next-card"><div><small>WHAT TO DO NOW</small><h2>Use this recommendation to complete the official report</h2><p>Keep your evidence unchanged, confirm the location shown above, then submit through an official channel. This page has not sent anything automatically.</p></div><ol><li><i>1</i><span><strong>Check the destination</strong><small>Confirm the State, district and suggested review unit.</small></span></li><li><i>2</i><span><strong>Save your prepared report</strong><small>Keep the reference and original evidence files.</small></span></li><li><i>3</i><span><strong>Submit and track officially</strong><small>Use the acknowledgement number supplied by the authority.</small></span></li></ol><div><a className="portal-primary" href="https://www.cybercrime.gov.in/" target="_blank" rel="noreferrer">Open official portal <ExternalLink size={15}/></a>{(analysis.context.harm.includes("Financial loss") || analysis.context.harm.includes("Possible financial loss")) && <a className="portal-secondary" href="tel:1930"><PhoneCall size={15}/> Call 1930</a>}</div></article>
+          <article className="routing-next-card"><div><small>WHAT TO DO NOW</small><h2>Confirm the destination and complete the official report</h2><p>Keep your evidence unchanged, have a person confirm the location and team, then submit through an official channel. This page has not sent anything automatically.</p></div><ol><li><i>1</i><span><strong>Human confirmation</strong><small>Confirm the State, district, subject folder, and review team.</small></span></li><li><i>2</i><span><strong>Save your prepared report</strong><small>Keep the reference and original evidence files.</small></span></li><li><i>3</i><span><strong>Submit and track officially</strong><small>Use the acknowledgement number supplied by the authority.</small></span></li></ol><div><a className="portal-primary" href="https://www.cybercrime.gov.in/" target="_blank" rel="noreferrer">Open official portal <ExternalLink size={15}/></a>{(analysis.context.harm.includes("Financial loss") || analysis.context.harm.includes("Possible financial loss")) && <a className="portal-secondary" href="tel:1930"><PhoneCall size={15}/> Call 1930</a>}</div></article>
           {analysis.takedown.recommended && <article className="takedown-card"><div className="takedown-icon"><Link2 size={22}/></div><div><small>CONTENT SAFETY PROMPT</small><h2>{analysis.takedown.title}</h2><div className="takedown-reasons">{analysis.takedown.reasons.map(item => <span key={item}><AlertTriangle size={13}/>{item}</span>)}</div><ol>{analysis.takedown.preservationSteps.map(step => <li key={step}>{step}</li>)}</ol></div><button onClick={copyTakedown}><Copy size={15}/>{takedownCopied ? "Copied request" : "Copy takedown request"}</button></article>}
           <div className="routing-actions"><button className="portal-secondary" onClick={() => setScreen("report")}><ArrowLeft size={15}/> Back to report</button><div><Link href="/dashboard" className="portal-secondary">Open evidence workspace</Link><button className="portal-primary" onClick={reset}>Start another complaint</button></div></div>
         </section>}

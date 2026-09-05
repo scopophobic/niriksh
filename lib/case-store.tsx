@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { DEMO_CASES, withCurrentAnalysis } from "./mock-data";
 import { TriageCase } from "./types";
+import { reviewCase } from "./review-policy";
 
 interface CaseStoreValue {
   cases: TriageCase[];
@@ -17,11 +18,11 @@ interface CaseStoreValue {
 const CaseStore = createContext<CaseStoreValue | null>(null);
 const STORAGE_KEY = "niriksh-demo-cases-v2";
 const PENDING_KEY = "niriksh-pending-sync-v1";
-const hydrateCase = (item: TriageCase) => item.analysisDetails ? item : withCurrentAnalysis(item);
+const hydrateCase = (item: TriageCase) => reviewCase(item.analysisDetails ? item : withCurrentAnalysis(item));
 type PendingOperation = { kind: "create" | "update"; id: string; payload: TriageCase | Partial<TriageCase> };
 
 export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
-  const [cases, setCases] = useState<TriageCase[]>(DEMO_CASES);
+  const [cases, setCases] = useState<TriageCase[]>(() => DEMO_CASES.map(hydrateCase));
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<"loading" | "synced" | "offline" | "error">("loading");
 
@@ -68,7 +69,7 @@ export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
   }, [cases, hydrated]);
 
   const updateCase = (id: string, patch: Partial<TriageCase>) => {
-    setCases(items => items.map(item => item.id === id ? { ...item, ...patch } : item));
+    setCases(items => items.map(item => item.id === id ? reviewCase({ ...item, ...patch }) : item));
     void fetch(`/api/cases/${encodeURIComponent(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -79,14 +80,15 @@ export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
     }).catch(() => enqueue({ kind: "update", id, payload: patch }));
   };
   const addCase = async (item: TriageCase) => {
-    setCases(items => [item, ...items.filter(existing => existing.id !== item.id)]);
+    const normalizedItem = reviewCase(item);
+    setCases(items => [...items.filter(existing => existing.id !== item.id), normalizedItem]);
     try {
       const response = await fetch("/api/cases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item),
+        body: JSON.stringify(normalizedItem),
       });
-      if (!response.ok) { enqueue({ kind: "create", id: item.id, payload: item }); return item; }
+      if (!response.ok) { enqueue({ kind: "create", id: item.id, payload: normalizedItem }); return normalizedItem; }
       const responseCase = await response.json() as TriageCase & { _uploadToken?: string };
       const uploadToken = responseCase._uploadToken;
       const { _uploadToken: _discarded, ...caseWithoutToken } = responseCase;
@@ -96,8 +98,8 @@ export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
       setSyncState("synced");
       return { ...persisted, _uploadToken: uploadToken };
     } catch {
-      enqueue({ kind: "create", id: item.id, payload: item });
-      return item;
+      enqueue({ kind: "create", id: item.id, payload: normalizedItem });
+      return normalizedItem;
     }
   };
   const retrySync = async () => {
@@ -125,7 +127,7 @@ export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
     setSyncState(remaining.length ? "error" : "synced");
   };
-  const resetDemo = () => { setCases(DEMO_CASES); localStorage.removeItem(STORAGE_KEY); };
+  const resetDemo = () => { setCases(DEMO_CASES.map(hydrateCase)); localStorage.removeItem(STORAGE_KEY); };
 
   return <CaseStore.Provider value={{ cases, syncState, getCase: id => cases.find(item => item.id === id), addCase, updateCase, resetDemo, retrySync }}>{children}</CaseStore.Provider>;
 }

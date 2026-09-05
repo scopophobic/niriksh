@@ -29,16 +29,18 @@ The main product areas are:
 
 - `/` — public landing page, safety guidance and a short explanation of the workflow.
 - `/report` — add a complaint and evidence, review the analysis, answer missing-context questions, and download a report.
+- `/track?token=...` — open a signed victim tracking link with safe case-status history.
 - `/dashboard` — review the local case workspace and open a case's context, timeline, facts, and evidence.
-- `/routing` — review recommended units, jurisdiction, verification readiness, missing information and priority.
+- `/routing` — review cases by human-selected subject folder, jurisdiction, information readiness, and missing details; no automated priority queue.
+- `/safety` — check suspicious message warning signs and privacy-protected identifier records.
 
 ## Suggested product walkthrough
 
 1. Open `/report` and either complete the guided incident form or select **Load a complete sample**.
-2. Select **Analyse complaint**. Check the priority, context, important source-backed indicators, verification readiness, evidence limitations, and questions.
+2. Select **Organise complaint**. Check the subject folder, context, source-backed details, information checklist, evidence limitations, and questions.
 3. Correct the summary or answer a question, then create and download the structured report.
 4. Continue to the routing screen, then open `/dashboard` to review the saved case from the evidence workspace.
-5. Open `/routing` to review recommended destinations and cases that still need information.
+5. Open `/routing` to review subject folders, proposed teams, and cases that still need information. A human confirms every destination.
 
 ## What actually works
 
@@ -50,7 +52,7 @@ The main product areas are:
 - Source-labelled dates, repeated events, platforms, usernames, email, phone, UPI ID, URLs, amounts, and transaction IDs
 - Timeline construction and contradiction detection
 - Follow-up questions for missing or conflicting context
-- Deterministic category, confidence, priority score, and plain reasons
+- Reporter-selected subject folders with explicit human confirmation
 - Hard child-safety escalation and explicit uncertainty for insufficient information
 - Browser SHA-256 fingerprints for selected files
 - Preview of local images and videos and direct reading of plain-text files
@@ -63,7 +65,7 @@ The main product areas are:
 - Streamed private evidence ingestion with SHA-256 hashing
 - JWT officer/admin authentication, role checks, optimistic complaint versions, and audit events
 - Human routing decisions with mandatory reasons for overrides
-- A protected, idempotent Bhumika integration that accepts curated WhatsApp complaints and evidence, then creates the Niriksh analysis, report, and tracking number
+- A protected, idempotent Bhumika integration that accepts curated complaints/evidence, returns a signed tracking link and update feed, and attaches later information to the same case as report v2+
 - Human-confirmed routing information and copyable content-takedown request text
 - Ten controlled benchmark fixtures covered by the automated test suite
 
@@ -76,7 +78,7 @@ Without `GEMINI_API_KEY`, images, video and audio can be previewed and fingerpri
 ## Technology
 
 - Next.js 16, React 19, and TypeScript for the product UI
-- A local deterministic TypeScript context engine for signals, negation, classification, priority, and questions
+- A local deterministic TypeScript organiser for source markers, negation, entities, timelines, and missing-field questions
 - Regular-expression and source-aware parsing for structured details and timelines
 - Browser Web Crypto for SHA-256 file fingerprints
 - PostgreSQL-backed case storage with a browser offline cache and retry queue
@@ -118,4 +120,4 @@ AWS_REGION=us-east-1 BACKEND_API_URL='https://<api-endpoint>/api/v1' NIRIKSH_WEB
 
 The scripts create/update immutable ECR images and separate `niriksh-api` and `niriksh` services. Database, Gemini, integration, and object-storage credentials are injected from Secrets Manager rather than committed or baked into images.
 
-The active backend is in `backend/`; the previous `apps/api` contract stub has been removed. Bhumika continues owning its existing Meta account, app, phone number, conversation flow, and outbound replies. Niriksh receives only Bhumika's curated form submission and optional evidence bytes. See `docs/deployment.md`, `docs/bhumika-integration.md`, and `docs/demo-script.md` for the exact sequence and mentor walkthrough.
+The active backend is in `backend/`; the previous `apps/api` contract stub has been removed. Bhumika continues owning its existing Meta account, app, phone number, conversation flow, and outbound replies. Niriksh receives only Bhumika's curated form submission and optional evidence bytes. See `docs/deployment.md`, `docs/bhumika-integration.md`, `docs/bhumika-agent-handoff.md`, and `docs/demo-script.md` for deployment, the exact contract, a copy-ready instruction for Bhumika's coding agent, and the mentor walkthrough.

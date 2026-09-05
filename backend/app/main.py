@@ -12,6 +12,7 @@ from app.db.base import Base
 from app.db.models import User
 from app.db.session import Database, build_database
 from app.modules.analysis.provider import GeminiComplaintAnalyzer
+from app.modules.safety.service import record_identifier
 from app.storage import build_evidence_storage
 
 
@@ -25,12 +26,32 @@ def seed_users(database: Database, settings: Settings) -> None:
         db.commit()
 
 
+def seed_fictional_directory_record(database: Database, settings: Settings) -> None:
+    if not settings.seed_demo_users:
+        return
+    with database.session_factory() as db:
+        secret = settings.directory_hash_secret or settings.jwt_secret
+        from app.modules.safety.service import lookup_identifier
+        if not lookup_identifier(db, "demo-payee@upi", "upi", secret)["found"]:
+            record_identifier(
+                db,
+                "demo-payee@upi",
+                "upi",
+                "reviewed_concern",
+                "Fictional demonstration record; it does not identify a real person or account.",
+                secret,
+            )
+            db.commit()
+
+
 def create_app(settings: Settings | None = None, database: Database | None = None) -> FastAPI:
     settings = settings or get_settings()
     if settings.app_env.lower() in {"production", "prod"}:
         insecure = {"local-only-change-before-deployment", "local-development-key", "replace-me"}
         if settings.jwt_secret in insecure or settings.internal_api_key in insecure:
             raise RuntimeError("Production secrets must be explicitly configured")
+        if not settings.directory_hash_secret or len(settings.directory_hash_secret) < 32:
+            raise RuntimeError("DIRECTORY_HASH_SECRET must be at least 32 characters in production")
     settings.evidence_storage_path.mkdir(parents=True, exist_ok=True)
     if settings.database_url.startswith("sqlite:///./"):
         Path(settings.database_url.removeprefix("sqlite:///./")).parent.mkdir(parents=True, exist_ok=True)
@@ -41,6 +62,7 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
         if settings.auto_create_tables:
             Base.metadata.create_all(database.engine)
         seed_users(database, settings)
+        seed_fictional_directory_record(database, settings)
         yield
         database.engine.dispose()
 

@@ -8,6 +8,7 @@ services:
       BACKEND_INTERNAL_API_KEY: ${BACKEND_INTERNAL_API_KEY:-local-development-key}
       BACKEND_ALLOW_DEMO_PROXY: "false"
       SESSION_COOKIE_SECURE: "false"
+      DISABLE_OFFICER_AUTH: ${DISABLE_OFFICER_AUTH:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.5-flash}
@@ -24,19 +25,16 @@ services:
       APP_ENV: development
       DATABASE_URL: postgresql+psycopg://triage:triage@db:5432/triage
       FRONTEND_ORIGINS: http://localhost:3000
+      PUBLIC_APP_URL: http://localhost:3000
+      TRACKING_TOKEN_DAYS: ${TRACKING_TOKEN_DAYS:-180}
       JWT_SECRET: ${JWT_SECRET:-local-only-change-before-deployment}
       INTERNAL_API_KEY: ${BACKEND_INTERNAL_API_KEY:-local-development-key}
+      DIRECTORY_HASH_SECRET: ${DIRECTORY_HASH_SECRET:-local-directory-hash-secret-change-me}
       BHUMIKA_INTEGRATION_KEY: ${BHUMIKA_INTEGRATION_KEY:-local-bhumika-integration-key}
       DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-demo-only-change-me}
       EVIDENCE_STORAGE_PATH: /app/data/evidence
-      EVIDENCE_STORAGE_BACKEND: ${EVIDENCE_STORAGE_BACKEND:-local}
-      EVIDENCE_S3_BUCKET: ${EVIDENCE_S3_BUCKET:-}
-      EVIDENCE_S3_REGION: ${EVIDENCE_S3_REGION:-ap-south-1}
-      EVIDENCE_S3_PREFIX: ${EVIDENCE_S3_PREFIX:-niriksh/evidence}
-      EVIDENCE_S3_ENDPOINT_URL: ${EVIDENCE_S3_ENDPOINT_URL:-}
-      EVIDENCE_S3_ACCESS_KEY_ID: ${EVIDENCE_S3_ACCESS_KEY_ID:-}
-      EVIDENCE_S3_SECRET_ACCESS_KEY: ${EVIDENCE_S3_SECRET_ACCESS_KEY:-}
-      EVIDENCE_S3_FORCE_PATH_STYLE: ${EVIDENCE_S3_FORCE_PATH_STYLE:-false}
+      # Local Compose must never mix test uploads with the production bucket.
+      EVIDENCE_STORAGE_BACKEND: local
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
       GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.6-flash}

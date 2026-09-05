@@ -7,24 +7,18 @@ import {
   EvidenceAnalysis,
   EvidenceItem,
   GroundedFact,
-  Severity,
   TimelineEvent,
   VerificationCheck,
 } from "./types";
+import { reviewCategory } from "./review-policy";
 
 interface TextSource {
   label: string;
   text: string;
 }
 
-interface Candidate {
-  category: string;
-  confidence: number;
-  sources: string[];
-}
-
 const URL_RE = /https?:\/\/[^\s]+/gi;
-const UPI_RE = /\b[\w.-]{2,256}@[a-zA-Z]{2,64}\b(?!\.)/g;
+const UPI_RE = /\b[\w.-]{2,256}@[a-zA-Z]{2,64}\b/g;
 const EMAIL_RE = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g;
 const USER_RE = /@[a-zA-Z0-9._]{3,30}/g;
 const PHONE_RE = /(?:\+91[-\s]?)?[6-9]\d{9}\b/g;
@@ -263,34 +257,6 @@ function actionsFrom(text: string) {
   return actions.filter(([pattern]) => pattern.test(text)).map(([, label]) => label);
 }
 
-function classificationCandidates(sources: TextSource[]) {
-  const signalSources = (key: keyof typeof SIGNALS) => sourcesWith(sources, SIGNALS[key]);
-  const ai = signalSources("ai");
-  const financial = signalSources("financial");
-  const threat = signalSources("threat");
-  const intimate = signalSources("intimate");
-  const child = signalSources("child");
-  const impersonation = signalSources("impersonation");
-  const phishing = signalSources("phishing");
-  const compromise = signalSources("compromise");
-  const harassment = signalSources("harassment");
-  const harmfulContent = signalSources("harmfulContent");
-  const candidates: Candidate[] = [];
-  const add = (condition: boolean, category: string, confidence: number, support: string[]) => {
-    if (condition) candidates.push({ category, confidence: Math.min(97, confidence + (support.some(source => source.startsWith("Evidence:")) ? 3 : 0)), sources: unique(support) });
-  };
-  add(Boolean(child.length && intimate.length), "Synthetic child safety risk", 96, [...child, ...intimate, ...ai]);
-  add(Boolean(ai.length && harmfulContent.length), "AI-generated harmful content", 94, [...ai, ...harmfulContent, ...intimate, ...impersonation]);
-  add(Boolean(ai.length && impersonation.length), "Synthetic media impersonation", 91, [...ai, ...impersonation]);
-  add(Boolean(threat.length), "Threats", 87, threat);
-  add(Boolean(phishing.length), "Phishing", 92, phishing);
-  add(Boolean(compromise.length), "Account compromise", 86, compromise);
-  add(Boolean(financial.length), "Online financial fraud", 80, financial);
-  add(Boolean(impersonation.length), "Social media impersonation", 83, impersonation);
-  add(Boolean(harassment.length), "Online harassment", 76, harassment);
-  return candidates.sort((a, b) => b.confidence - a.confidence);
-}
-
 export function analyzeComplaint(text: string, evidenceOrCount: EvidenceItem[] | number = 0, details?: ComplaintDetails): AnalysisResult {
   const description = clean(text);
   const evidence = Array.isArray(evidenceOrCount) ? evidenceOrCount : [];
@@ -318,26 +284,22 @@ export function analyzeComplaint(text: string, evidenceOrCount: EvidenceItem[] |
   const impersonation = has("impersonation");
   const compromise = has("compromise");
 
-  const candidates = classificationCandidates(sources);
-  const primary = candidates[0];
-  const category = primary?.category || "Unclear / needs review";
-  const confidence = primary?.confidence || 34;
-  const secondary = candidates.slice(1).filter(candidate => candidate.confidence >= 75 && candidate.category !== category).map(candidate => candidate.category).slice(0, 3);
+  const folder = reviewCategory(details?.selectedCategory);
+  const category = folder.label;
+  const confidence = 0;
+  const secondary: string[] = [];
 
   const riskFactors: string[] = [];
-  let score = 0;
   const sensitiveChildRisk = child && (intimate || harmfulContent);
-  if (sensitiveChildRisk) { score += 100; riskFactors.push("A child may be at risk"); }
-  if (threat) { score += 60; riskFactors.push("Immediate physical threat"); }
-  if (intimate) { score += 60; riskFactors.push("Possible non-consensual intimate content"); }
-  if (actualLoss) { score += 50; riskFactors.push("Money may already have been lost"); }
-  if (active) { score += 30; riskFactors.push("The incident may still be happening"); }
-  if (impersonation) { score += 20; riskFactors.push("Someone may be using another person's identity"); }
-  if (compromise) { score += 30; riskFactors.push("An account may be under someone else's control"); }
-  score = Math.min(100, score);
-  let severity: Severity = score >= 80 ? "Critical" : score >= 50 ? "High" : score >= 25 ? "Medium" : "Low";
-  if (sensitiveChildRisk) severity = "Critical";
-  if (!primary) severity = "Needs review";
+  if (sensitiveChildRisk) riskFactors.push("Reporter mentions a child and sensitive material");
+  if (threat) riskFactors.push("Reporter mentions threatening language");
+  if (intimate) riskFactors.push("Reporter mentions intimate content");
+  if (actualLoss) riskFactors.push("Reporter says money may have moved");
+  if (active) riskFactors.push("Reporter says the incident may be continuing");
+  if (impersonation) riskFactors.push("Reporter mentions possible identity misuse");
+  if (compromise) riskFactors.push("Reporter mentions possible account-access loss");
+  const score = 0;
+  const severity = "Needs review" as const;
 
   const extracted = extractEntities(sources);
   const entities = [...extracted.entities];
@@ -430,29 +392,11 @@ export function analyzeComplaint(text: string, evidenceOrCount: EvidenceItem[] |
   const known = expected - missing.length;
   const completeness = Math.max(18, Math.min(96, Math.round((known / expected) * 100)));
 
-  const departments = category.includes("Synthetic") || category.includes("AI-generated") ? ["Synthetic Media Review"] : category === "Threats" || category === "Online harassment" || category === "Account compromise" ? ["General Cybercrime"] : category === "Phishing" || category.includes("financial") ? ["Financial Fraud Unit"] : ["General Cybercrime"];
-  if (sensitiveChildRisk) departments.unshift("Women & Child Safety");
-  if (financial && !departments.includes("Financial Fraud Unit")) departments.unshift("Financial Fraud Unit");
-
-  const evidenceSupport = primary?.sources.filter(source => source.startsWith("Evidence:")) || [];
+  const departments = [folder.team];
   const reasons: string[] = [];
-  if (primary) reasons.push(`Information related to ${category.toLowerCase()} was found in ${primary.sources.join(" and ").replaceAll("Evidence: ", "the file ")}.`);
-  if (evidenceSupport.length) reasons.push("The complaint and attached evidence provide related context.");
-  if (active) reasons.push("The description suggests the incident may still be happening.");
-  if (!primary) reasons.push("There is not enough specific information to choose a reliable category yet.");
-
-  const summaryByCategory: Record<string, string> = {
-    "Threats": `The supplied information describes ${active ? "repeated or ongoing " : ""}contact containing language that may affect someone's personal safety.`,
-    "Online harassment": `The supplied information describes ${active ? "repeated " : ""}unwanted online contact.`,
-    "Synthetic media impersonation": "The supplied information describes media that may imitate someone's identity and needs authenticity and distribution checks.",
-    "AI-generated harmful content": "The supplied information describes suspected AI-generated or manipulated content that may misuse identity, dignity or consent and needs rapid authenticity and distribution review.",
-    "Synthetic child safety risk": "The report may involve a child and sensitive synthetic content, so it needs immediate specialist review.",
-    "Phishing": `The supplied information describes a possible deceptive message or website${actualLoss ? " connected to a financial loss" : ""}.`,
-    "Online financial fraud": `The supplied information describes a possible financial fraud${actualLoss ? " where money may already have been transferred" : ""}.`,
-    "Social media impersonation": "The supplied information describes an account or profile that may be using another person's identity.",
-    "Account compromise": "The supplied information describes possible unauthorised access to an online account.",
-  };
-  const summary = summaryByCategory[category] || "There is not enough specific information to understand the incident reliably yet. A few focused details would help.";
+  reasons.push(`The reporter selected the ${category} subject folder.`);
+  reasons.push("A reviewer confirms the facts, folder, and destination team.");
+  const summary = `The reporter submitted information in the ${category.toLowerCase()} subject folder. The details below organise their account for human review.`;
 
   const highlights: AnalysisHighlight[] = [];
   const addHighlight = (key: keyof typeof SIGNALS, label: string, detail: string, level: AnalysisHighlight["level"]) => {
@@ -467,13 +411,13 @@ export function analyzeComplaint(text: string, evidenceOrCount: EvidenceItem[] |
       }
     }
   };
-  if (sensitiveChildRisk) addHighlight("child", "Child-safety indicator", "The supplied information may involve a minor and sensitive content.", "Critical");
-  if (intimate) addHighlight("intimate", "Possible non-consensual intimate content", "Sexual or intimate material is described and consent must be checked.", "Critical");
-  if (threat) addHighlight("threat", "Personal-safety language", "Threatening or location-related language may require urgent human review.", "Critical");
-  if (harmfulContent) addHighlight("harmfulContent", "Potentially harmful or degrading content", "The wording suggests humiliation, defamation, non-consensual use or reputation harm.", "Warning");
-  if (impersonation) addHighlight("impersonation", "Identity may be misused", "A person's face, voice, name or profile may be presented without permission.", "Warning");
-  if (actualLoss) addHighlight("loss", "Reported financial loss", "The complaint indicates money may already have moved.", "Warning");
-  if (active) addHighlight("active", "Content or contact may still be active", "Ongoing availability or distribution can increase harm and preservation urgency.", "Warning");
+  if (sensitiveChildRisk) addHighlight("child", "Child mentioned", "The supplied information mentions a minor and sensitive content; a reviewer must verify the context.", "Context");
+  if (intimate) addHighlight("intimate", "Intimate content mentioned", "The reporter describes sexual or intimate material.", "Context");
+  if (threat) addHighlight("threat", "Threat language mentioned", "The reporter describes threatening or location-related language.", "Context");
+  if (harmfulContent) addHighlight("harmfulContent", "Harmful content mentioned", "The reporter describes humiliation, defamation, non-consensual use, or reputation harm.", "Context");
+  if (impersonation) addHighlight("impersonation", "Identity misuse mentioned", "A person's face, voice, name, or profile is mentioned as being used without permission.", "Context");
+  if (actualLoss) addHighlight("loss", "Money movement reported", "The reporter says money may have moved.", "Context");
+  if (active) addHighlight("active", "Continuing activity reported", "The reporter says the content or contact may still be active.", "Context");
   if (aiSuspected) addHighlight("ai", "AI manipulation is reported", "This is a reporter-provided indicator, not a forensic authenticity finding.", "Context");
 
   const checks: VerificationCheck[] = [
@@ -495,28 +439,28 @@ export function analyzeComplaint(text: string, evidenceOrCount: EvidenceItem[] |
   };
 
   const jurisdictionParts = [details?.policeStation && `${details.policeStation} Police Station`, details?.district, details?.state].filter(Boolean);
-  const routingReady = Boolean(details?.state && primary && completeness >= 50);
+  const routingReady = Boolean(details?.state && details?.selectedCategory && completeness >= 50);
   const routing = {
     status: routingReady ? "Ready for human routing" as const : "Needs information before routing" as const,
     jurisdiction: jurisdictionParts.join(" · ") || "Jurisdiction not provided",
     primaryUnit: departments[0],
     supportingUnits: unique(departments.slice(1)),
     reasons: unique([
-      `Analysis indicates ${category}.`,
-      `${severity} review priority was calculated from the supplied risk signals.`,
+      `The reporter selected ${category}; an officer confirms or changes it.`,
+      "No automated urgency or routing decision is generated.",
       details?.state ? `The reporter selected ${details.state} for jurisdiction review.` : "State or UT must be confirmed before routing.",
     ]),
   };
 
-  const takedownRecommended = Boolean(details?.aiMisuse?.takedownWanted || (aiSuspected && (harmfulContent || intimate || impersonation) && (active || details?.aiMisuse?.distribution === "Still online or spreading")));
+  const takedownRecommended = Boolean(details?.aiMisuse?.takedownWanted);
   const takedown = {
     recommended: takedownRecommended,
-    title: takedownRecommended ? "Preserve the evidence, then request platform review" : "No immediate takedown prompt generated",
+    title: takedownRecommended ? "Preserve the evidence, then request platform review" : "Platform-review guidance was not requested",
     reasons: takedownRecommended ? unique([
       aiSuspected ? "The reporter identifies the content as AI-generated or manipulated." : "Manipulation has been reported.",
       intimate ? "The report may involve non-consensual intimate material." : "The report describes possible identity, dignity or reputation harm.",
       active ? "The content may still be accessible or spreading." : "The reporter requested takedown support.",
-    ]) : ["The supplied information does not yet establish that harmful content is currently available online."],
+    ]) : ["The reporter did not request platform-review guidance."],
     preservationSteps: takedownRecommended ? [
       "Save the content URL, account name, date and time before requesting removal.",
       "Keep the best available original file and an unchanged screenshot or screen recording.",

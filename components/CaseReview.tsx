@@ -5,7 +5,6 @@ import Link from "next/link";
 import { AlertTriangle, ArrowLeft, CheckCircle2, ExternalLink, FileText, Image as ImageIcon, Info, Landmark, MapPin, Paperclip, Route, ShieldCheck, Video } from "lucide-react";
 import { useCaseStore } from "@/lib/case-store";
 import { EvidenceItem } from "@/lib/types";
-import { SeverityBadge } from "./SeverityBadge";
 
 export function CaseReview({ id }: { id: string }) {
   const { getCase } = useCaseStore();
@@ -18,15 +17,15 @@ export function CaseReview({ id }: { id: string }) {
     <div className="breadcrumbs"><Link href="/dashboard"><ArrowLeft size={15}/> Cases</Link><span>/</span><span>{item.reference}</span></div>
     <header className="simple-review-head">
       <div><span>EVIDENCE REVIEW</span><h1>{item.reference}</h1><p>{item.createdLabel} · {item.evidence.length} file{item.evidence.length === 1 ? "" : "s"} attached</p></div>
-      <SeverityBadge level={item.severity}/>
+      <span className="badge badge-review">Human review required</span>
     </header>
 
     <div className="simple-review-stack">
-      <section className="case-brief hero-panel"><div className="simple-section-heading"><h2>What may have happened</h2><strong>{item.category}</strong></div><p>{item.summary}</p><div className="neutral-note"><Info size={15}/> This describes what was reported. It is not a final finding.</div></section>
+      <section className="case-brief hero-panel"><div className="simple-section-heading"><h2>What was reported</h2><strong>{item.category}</strong></div><p>{item.summary}</p><div className="neutral-note"><Info size={15}/> The subject folder was selected during intake. It is not a legal classification or final finding.</div></section>
 
       {details && <>
         {details.highlights.length > 0 && <section className="case-section important-highlights">
-          <div className="simple-section-heading"><h2>Important indicators</h2><span>Each indicator keeps its source</span></div>
+          <div className="simple-section-heading"><h2>Context markers</h2><span>Each marker keeps its source</span></div>
           <div>{details.highlights.map(highlight => <div className={`highlight-${highlight.level.toLowerCase()}`} key={highlight.label}><i/><span><strong>{highlight.label}</strong><p>{highlight.detail}</p><small>Source: {highlight.source}</small></span></div>)}</div>
         </section>}
 
@@ -38,9 +37,9 @@ export function CaseReview({ id }: { id: string }) {
           </section>
           <section className="case-section review-routing-card">
             <div className="simple-section-heading"><h2>Routing information</h2><span><Route size={14}/>{details.routing.status}</span></div>
-            <div className="review-route-primary"><Landmark size={19}/><span><small>PRIMARY REVIEW</small><strong>{details.routing.primaryUnit}</strong><em>{details.routing.jurisdiction}</em></span></div>
+            <div className="review-route-primary"><Landmark size={19}/><span><small>PROPOSED SUBJECT TEAM</small><strong>{details.routing.primaryUnit}</strong><em>{details.routing.jurisdiction}</em></span></div>
             {details.routing.supportingUnits.map(unit => <p key={unit}><ShieldCheck size={13}/>{unit}</p>)}
-            <small className="review-route-note">Recommendation only — a human must confirm the destination.</small>
+            <small className="review-route-note">The subject folder suggests this team. A human must confirm or change the destination and record why.</small>
           </section>
         </div>
 

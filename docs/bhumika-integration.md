@@ -1,24 +1,28 @@
 # Bhumika → Niriksh integration contract
 
-Last verified against the repository: 4 September 2026  
-Contract version: `1.0`  
+Last verified against the repository: 5 September 2026
+Contract version: `1.0`
 Audience: the developer integrating Bhumika's WhatsApp intake with Niriksh
+
+Deployment status: the Niriksh endpoints, migration, and tracking page are live and production-smoke-tested. The remaining work is inside Bhumika and is specified in `docs/bhumika-agent-handoff.md`.
+
+Decision-policy update (5 September 2026): Bhumika should ask the victim to choose the closest Niriksh subject folder and send its ID in `complaint_details.selectedCategory`. It must not derive priority, severity, or routing. Niriksh no longer returns a severity score. See `docs/human-review-and-safety.md`.
 
 ## Ownership boundary
 
 Bhumika owns Meta/WhatsApp completely: webhook verification, conversation state, questions, language handling, media download, and replies. Niriksh has no Meta callback, access token, phone-number ID, or outbound WhatsApp transport.
 
-Once Bhumika has enough information, it submits a normalized Niriksh complaint. Niriksh owns the canonical case, private evidence, deterministic and connected analysis, report versions, tracking number, officer queue, and audit history.
+Once Bhumika has enough information, it submits a normalized Niriksh complaint. Niriksh owns the canonical case, private evidence, structured extraction, report versions, tracking number, chronological officer inbox, and audit history.
 
 ```text
 Victim ↔ WhatsApp/Meta ↔ Bhumika
-                           |
-                           | curated HTTPS submission + optional file bytes
-                           v
+                           |  ^
+       curated submission  |  | tracking link, status, questions
+       + optional bytes    v  |
                       Niriksh API
                            |-- Supabase PostgreSQL
                            |-- private Supabase Storage
-                           |-- Gemini + deterministic fallback
+                           |-- extraction-only Gemini + deterministic organiser
                            `-- report + CYB tracking number
 ```
 
@@ -75,7 +79,24 @@ Content-Type: application/json
 }
 ```
 
-Niriksh returns HTTP `201` with `complaint_id`, `tracking_number`, analysis category/severity/questions, report version/text, and the current case status. Repeating the same payload with the same `submission_id` returns HTTP `200`, `duplicate: true`, and the original case/report. Reusing that ID with different data returns `409`.
+Niriksh returns HTTP `201` with `complaint_id`, `tracking_number`, a signed `tracking_url`, a victim-ready message, analysis category/severity/questions, report version/text, the current case status, and URLs for recovery, updates, and supplements. Repeating the same payload with the same `submission_id` returns HTTP `200`, `duplicate: true`, and the original case/report. Reusing that ID with different data returns `409`.
+
+Important response fields:
+
+    {
+      "accepted": true,
+      "duplicate": false,
+      "submission_id": "bhumika-report-8c9d2",
+      "tracking_number": "CYB-20260905-ABC123",
+      "tracking_url": "https://niriksh.scopophobic.xyz/track?token=<signed-token>",
+      "case_status": "Awaiting review",
+      "message_for_victim": "Your complaint has been registered ...",
+      "status_path": "/api/v1/integrations/bhumika/intakes/bhumika-report-8c9d2",
+      "updates_path": "/api/v1/integrations/bhumika/intakes/bhumika-report-8c9d2/updates",
+      "supplements_path": "/api/v1/integrations/bhumika/intakes/bhumika-report-8c9d2/supplements"
+    }
+
+Bhumika should persist these fields against its conversation and send `message_for_victim` as the acknowledgement. The signed tracking URL is safe for the victim portal and does not reveal the complaint narrative, evidence, identity fields, report body, provider data, or internal complaint ID.
 
 ## Submission with original media
 
@@ -95,10 +116,51 @@ GET /api/v1/integrations/bhumika/intakes/{submission_id}
 
 Bhumika can use this after a timeout before retrying. Valid processing states are `evidence_pending`, `received`, and `completed`. A successful Niriksh response means prepared for Niriksh human review; it does not mean an FIR or government complaint was filed.
 
+For ongoing, victim-safe updates use:
+
+    GET /api/v1/integrations/bhumika/intakes/{submission_id}/updates
+    GET /api/v1/integrations/bhumika/intakes/{submission_id}/updates?after=2026-09-05T10:30:00Z
+
+The response contains the current `case_status`, `requested_information`, `message_for_victim`, tracking values, and an allow-listed event feed. Bhumika can call it when the victim types “status” and from a small background poller. Store the latest event time and pass it as `after` so old messages are not sent twice.
+
+## Adding information after the case was filed
+
+Do not create another intake. Add a supplement to the original `submission_id`:
+
+    POST /api/v1/integrations/bhumika/intakes/{submission_id}/supplements
+    Content-Type: application/json
+
+    {
+      "schema_version": "1.0",
+      "supplement_id": "wa-message-or-batch-id-002",
+      "description_addendum": "The victim supplied the receiving UPI ID and clarified the time.",
+      "complaint_details": {
+        "incidentTime": "14:20",
+        "financial": {
+          "bankOrWallet": "UPI",
+          "beneficiary": "example@upi"
+        }
+      },
+      "evidence": [],
+      "finalize": true
+    }
+
+This updates the same complaint, preserves its tracking number/link, reruns analysis, and creates report version 2 or later. `supplement_id` is an idempotency key: the same request is safe to retry; different content under the same ID returns `409`.
+
+For a supplement containing original media:
+
+1. Create it with `finalize: false` and evidence metadata.
+2. Upload every file to the returned `supplement.evidence_upload_path` using the same multipart fields as the original evidence endpoint.
+3. POST the returned `supplement.finalize_path`.
+
+The returned report version advances once. A repeated finalize call returns the existing version.
+
 ## What Bhumika should relay to the victim
 
 - `tracking_number`
+- `tracking_url`
 - `case_status`
+- `message_for_victim`
 - high-priority `analysis.missing_questions`, if Bhumika chooses to collect another detail before finalization
 - confirmation that the report is prepared for Niriksh review
 - emergency/financial safety guidance owned by the Bhumika conversation flow
@@ -150,8 +212,15 @@ All four integration endpoints require the Bhumika integration header.
 | `GET` | `/integrations/bhumika/intakes/{submission_id}` | Recover the result or current state after a timeout |
 | `POST` | `/integrations/bhumika/intakes/{submission_id}/evidence` | Upload one original evidence file idempotently |
 | `POST` | `/integrations/bhumika/intakes/{submission_id}/finalize` | Analyze stored evidence and create report version 1 |
+| `GET` | `/integrations/bhumika/intakes/{submission_id}/updates` | Poll victim-safe status/events; optionally filter with `after` |
+| `POST` | `/integrations/bhumika/intakes/{submission_id}/supplements` | Add more text/details/media metadata to the same case idempotently |
+| `GET` | `/integrations/bhumika/intakes/{submission_id}/supplements/{supplement_id}` | Recover a supplement after a timeout |
+| `POST` | `/integrations/bhumika/intakes/{submission_id}/supplements/{supplement_id}/evidence` | Upload one supplement file idempotently |
+| `POST` | `/integrations/bhumika/intakes/{submission_id}/supplements/{supplement_id}/finalize` | Analyze supplement media and create the next report version |
 
 The paths above are relative to the `/api/v1` base URL.
+
+The public victim endpoint `GET /public/tracking/{signed-token}` does not require the integration key. The token must come from `tracking_url`; tracking numbers alone are intentionally not accepted because they are guessable.
 
 ## Server configuration
 
@@ -244,7 +313,7 @@ The object is extensible, but these names match Niriksh's current analysis and r
 
 | Field | Suggested format | Meaning |
 |---|---|---|
-| `selectedCategory` | string | Bhumika's selected or derived working category |
+| `selectedCategory` | string | Victim-selected Niriksh subject-folder ID; use `other` if unsure. Never derive priority from it. |
 | `incidentDate` | `YYYY-MM-DD` | Exact or best-known incident date |
 | `incidentTime` | `HH:MM` | Exact or approximate local incident time |
 | `delayReason` | string | Reason for delayed reporting, if relevant |
@@ -393,8 +462,7 @@ A new submission returns `201 Created`. An identical logical retry using the sam
     "mode": "Connected multimodal",
     "provider": "Gemini",
     "model": "configured-model-name",
-    "category": "Online financial fraud",
-    "severity": "High",
+    "category": "Financial fraud",
     "completeness": 88,
     "missing_questions": [
       "What UPI ID or account received the payment?"

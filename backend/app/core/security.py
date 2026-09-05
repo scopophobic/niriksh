@@ -44,6 +44,32 @@ def decode_access_token(token: str, settings: Settings) -> dict:
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm], issuer="niriksh-api")
 
 
+def create_tracking_token(complaint_id: str, reference: str, created_at: datetime, settings: Settings) -> str:
+    issued_at = created_at if created_at.tzinfo else created_at.replace(tzinfo=timezone.utc)
+    payload = {
+        "sub": complaint_id,
+        "ref": reference,
+        "type": "public_tracking",
+        "iat": issued_at,
+        "exp": issued_at + timedelta(days=settings.tracking_token_days),
+        "iss": "niriksh-tracking",
+        "aud": "niriksh-public-portal",
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def decode_tracking_token(token: str, settings: Settings) -> dict:
+    payload = jwt.decode(
+        token,
+        settings.jwt_secret,
+        algorithms=[settings.jwt_algorithm],
+        issuer="niriksh-tracking",
+        audience="niriksh-public-portal",
+    )
+    if payload.get("type") != "public_tracking":
+        raise jwt.InvalidTokenError("Invalid tracking-token type")
+    return payload
+
+
 def secure_equal(left: str, right: str) -> bool:
     return bool(left and right) and hmac.compare_digest(left.encode(), right.encode())
-

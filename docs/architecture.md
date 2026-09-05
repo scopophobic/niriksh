@@ -1,6 +1,6 @@
 # Niriksh backend architecture
 
-Last updated: 4 September 2026
+Last updated: 5 September 2026
 
 ## System boundary
 
@@ -34,7 +34,8 @@ The domain needs clear code and data ownership but does not yet need distributed
 | Module | Owns | Invariant |
 |---|---|---|
 | `auth` | users, password verification, JWTs, roles | Protected routes require an officer/admin token or narrowly scoped service credential |
-| `bhumika` | external submission contract, idempotency, finalize orchestration | One Bhumika `submission_id` creates at most one complaint and report |
+| `bhumika` | external submission/supplement contract, idempotency, finalize orchestration, safe update feed | One Bhumika `submission_id` creates at most one complaint; retries never create extra report versions |
+| `tracking` | signed victim links and allow-listed public status projection | A tracking link exposes status only, never complaint/evidence/report internals |
 | `complaints` | canonical case and compatibility payload | Every complaint has one unique `CYB-YYYY-NNNNNN` reference and increasing version |
 | `evidence` | metadata, private bytes, hashes | Files are size-bounded, path-safe, private, and SHA-256 hashed during ingestion |
 | `analysis` | deterministic policy, connected provider, immutable runs | Provider failure never discards the complaint; automated output remains advisory |
@@ -48,7 +49,8 @@ The old `whatsapp` parser/transport code remains in the repository only as inact
 
 ```text
 integration_submissions
-  └── complaint_id
+  ├── complaint_id
+  └── integration_supplements
 
 complaints
   ├── evidence_items
@@ -62,6 +64,8 @@ users
 ```
 
 `integration_submissions` stores the Bhumika submission/conversation IDs, original normalized request, processing state, complaint link, and completion time. A unique `(source, external_submission_id)` constraint is the final duplicate barrier even if Bhumika retries after a network timeout.
+
+`integration_supplements` stores idempotent later-information batches. Each completed supplement updates the same complaint and creates the next immutable report version; it never changes the public tracking number.
 
 `complaints.case_payload` is a compatibility bridge for the current frontend; searchable/security-relevant fields also have relational columns. Binary evidence never enters that JSON document.
 
@@ -89,6 +93,8 @@ Original media:
 
 `GET /integrations/bhumika/intakes/{submission_id}` is the recovery check after timeouts. Identical retries return the original result. A different payload under an existing ID returns `409 Conflict`. Evidence uploads are independently idempotent by Bhumika's stable external evidence ID.
 
+The response also supplies a signed tracking URL, victim-ready message, protected update-feed path, and supplement path. Bhumika can relay new officer-safe events by polling the update feed with an `after` cursor. Later victim details use an idempotent supplement, with the same three-stage flow when it contains media. This creates report v2+ on the same case.
+
 ## Analysis boundary
 
 The deterministic engine runs first and supplies transparent safety/category/completeness behavior. Gemini receives the curated narrative, structured fields, transcripts, and up to eight stored evidence items. It can add source-labelled observations, transcription, extracted details, questions, and a situation summary.
@@ -108,6 +114,7 @@ The 10 MB application cap bounds memory and provider latency. Supabase Storage i
 - Browser officer flows use an HTTP-only secure session whose JWT is validated by FastAPI.
 - The Next.js BFF uses `INTERNAL_API_KEY`; it is never sent to browser JavaScript.
 - Bhumika uses a different `BHUMIKA_INTEGRATION_KEY` accepted only by `/integrations/bhumika/*`.
+- Victims use a signed, expiring tracking token with a distinct issuer/audience/type. The public projection contains no narrative, evidence, identities, internal complaint ID, or report body.
 - Public citizen intake cannot call officer or Bhumika integration routes.
 - Production rejects known development JWT/internal-key defaults.
 
@@ -116,3 +123,5 @@ The Bhumika key is a demo-ready shared secret. A production integration should a
 ## Deployment
 
 The existing `niriksh` Next.js ECS Express service calls the separate `niriksh-api` FastAPI ECS Express service. Supabase provides PostgreSQL and private object storage. AWS Secrets Manager injects database, storage, Gemini, authentication, and Bhumika integration credentials. Bhumika remains independently deployed and keeps its Meta configuration unchanged.
+
+The tracking/supplement revision is deployed to those same services. `PUBLIC_APP_URL` is a non-secret API task variable; the existing `JWT_SECRET` signs scoped tracking tokens. The application startup runs Alembic revision `20260905_0003`, which adds `integration_supplements`.

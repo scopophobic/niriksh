@@ -8,6 +8,7 @@ from app.db.models import AnalysisRun, Complaint, EvidenceItem
 from app.modules.analysis.engine import analysis_engine
 from app.modules.audit.service import record_event
 from app.modules.complaints.schemas import CasePayload, ComplaintCreate
+from app.modules.review.policy import review_case
 
 
 def new_reference(db: Session) -> str:
@@ -24,11 +25,12 @@ def build_case(db: Session, payload: ComplaintCreate) -> dict:
     now = datetime.now(timezone.utc)
     case_id = f"submitted-{secrets.token_hex(12)}"
     reference = new_reference(db)
-    return {
+    return review_case({
         "id": case_id,
         "reference": reference,
         "description": payload.description,
         "summary": finding["summary"],
+        "reviewCategory": payload.complaint_details.get("selectedCategory", "other"),
         "category": finding["category"],
         "secondary": finding["secondary"],
         "severity": finding["severity"],
@@ -68,10 +70,11 @@ def build_case(db: Session, payload: ComplaintCreate) -> dict:
                 "actor": "Niriksh Analysis",
             },
         ],
-    }
+    })
 
 
 def sync_case(db: Session, raw: dict, source_channel: str = "web", event_type: str = "complaint.created") -> Complaint:
+    raw = review_case(raw)
     case = CasePayload.model_validate(raw)
     payload = case.model_dump(mode="json", exclude_none=True)
     complaint = db.get(Complaint, case.id)
@@ -125,18 +128,22 @@ def sync_case(db: Session, raw: dict, source_channel: str = "web", event_type: s
 
 
 def update_case(db: Session, complaint: Complaint, patch: dict, actor_type: str = "internal") -> Complaint:
-    allowed = {"status", "summary", "category", "severity", "severityScore", "completeness", "department", "audit"}
+    allowed = {"status", "summary", "reviewCategory", "category", "completeness", "department", "audit"}
     sanitized = {key: value for key, value in patch.items() if key in allowed and value is not None}
     payload = dict(complaint.case_payload or {})
     payload.update(sanitized)
+    payload = review_case(payload)
     complaint.case_payload = payload
     complaint.version += 1
     for attr, key in [
         ("status", "status"), ("summary", "summary"), ("category", "category"),
-        ("severity", "severity"), ("severity_score", "severityScore"), ("completeness", "completeness"),
+        ("completeness", "completeness"),
     ]:
         if key in sanitized:
             setattr(complaint, attr, sanitized[key])
+    complaint.category = payload["category"]
+    complaint.severity = "Needs review"
+    complaint.severity_score = 0
+    complaint.confidence = 0
     record_event(db, "complaint.updated", f"Complaint {complaint.reference} was updated.", complaint.id, actor_type=actor_type, data={"fields": sorted(sanitized)})
     return complaint
-

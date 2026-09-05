@@ -214,7 +214,7 @@ The initial taxonomy was expanded to cover AI-generated or manipulated material 
 
 The output never treats “AI-generated” as a forensic finding. It records a reported or model-observed manipulation indicator requiring specialist verification.
 
-Status: accepted and implemented.
+Status: accepted, deployed, and production-smoke-tested.
 
 ### 12. Evidence integrity begins in the browser, but is not chain of custody
 
@@ -586,6 +586,18 @@ Web attachments up to 8 MB are now base64-encoded into the provider request, mat
 
 Status: accepted, deployed, and verified against the public domain with a fictional screenshot; source-specific findings and a timeline returned with HTTP 200.
 
+### 48. Use signed tracking links, a pull update feed, and idempotent supplements
+
+A raw `CYB-...` number is short and potentially guessable, so it is not sufficient authorization for a public case lookup. Niriksh returns a time-limited JWT bearer link with a tracking-specific issuer, audience, and token type. Its public projection is allow-listed: status, dates, category, assigned review unit, report readiness, requested questions, generic guidance, and safe audit labels. It excludes narratives, evidence, identities, internal IDs, report bodies, and provider internals.
+
+Bhumika remains the communication owner. It receives a victim-ready acknowledgement, stores the tracking link, and reads a protected `updates` feed using an optional timestamp cursor. A pull feed was chosen for this stage because it needs no public Bhumika callback, signing protocol, delivery outbox, or new production secret. Bhumika can poll open cases and respond immediately to a victim's “status” message; update IDs allow outbound deduplication.
+
+Later victim information is represented by an idempotent supplement attached to the original integration submission. Text can finalize in one request. Media uses create/upload/finalize. Completion reruns analysis and creates the next immutable report version while retaining the original complaint and tracking number.
+
+Limitations: a bearer link must be treated as private, currently expires after the configured number of days, and has no individual revocation record. High-scale production should add citizen identity/grants, token rotation/revocation, and—if instant delivery is required—a signed webhook backed by a durable outbox.
+
+Status: accepted and implemented.
+
 ## Decision index
 
 | ID | Decision | Status |
@@ -637,6 +649,7 @@ Status: accepted, deployed, and verified against the public domain with a fictio
 | ADR-045 | Redirect HTTP to the canonical HTTPS domain | Deployed |
 | ADR-046 | Keep Meta in Bhumika; send Niriksh a curated, idempotent form/media submission | Accepted |
 | ADR-047 | Inline ordinary web media to keep connected analysis inside the request window | Accepted |
+| ADR-048 | Use signed tracking links, a pull update feed, and idempotent supplements | Deployed |
 
 ## Explicitly deferred or rejected scope
 
@@ -684,3 +697,8 @@ The following were intentionally excluded from the MVP:
 8. Add observability, backup/restore tests, retention controls, and infrastructure as code.
 9. Add a durable analysis job/outbox worker and encode the deployed web/API/load-balancer resources as infrastructure as code.
 10. Obtain legal, privacy, security, and evidence-handling review before real complaints are accepted.
+# Current superseding decision — human judgment only
+
+As of 5 September 2026, Niriksh no longer uses AI or deterministic scoring to assign priority, severity, confidence, legal category, or routing. Cases are shown in received order and grouped by a reporter-selected subject folder that an officer confirms or changes. Connected AI is limited to extraction, transcription, source-grounded summarisation, timelines, and missing-field questions. The public safety checker is rule-based and non-adjudicative. See [Human Review, Subject Folders, and Public Safety Checks](./human-review-and-safety.md).
+
+Any older decision below that describes automated classification, scoring, priority-first reports, or AI routing is retained only as project history and is superseded by this decision.

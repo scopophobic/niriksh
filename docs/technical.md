@@ -1,6 +1,6 @@
 # Niriksh technical reference
 
-Last verified against the repository: 4 September 2026
+Last verified against the repository: 5 September 2026
 
 ## What the project is now
 
@@ -20,7 +20,8 @@ The product remains a triage aid. It does not prove authenticity, identify offen
 | Database | Supabase PostgreSQL in production; PostgreSQL in Compose; SQLite test fallback | Canonical structured records |
 | Migrations | Alembic | Reproducible schema baseline and future revisions |
 | Authentication | salted scrypt + signed JWT | Officer/admin identities and server-to-server access |
-| Integration | Protected Bhumika service API | Curated WhatsApp-form intake, evidence transfer, idempotency, finalize/recovery |
+| Integration | Protected Bhumika service API | Curated intake, evidence transfer, idempotency, finalize/recovery, update polling, and supplements |
+| Public tracking | Signed JWT bearer link + allow-listed projection | Victim-safe status/history without exposing case material |
 | Evidence | private filesystem or S3 adapter | Streaming storage, SHA-256, and authenticated download |
 | Tests | Node test runner + Pytest | Analysis regression and backend integration coverage |
 
@@ -46,6 +47,7 @@ backend/
     routing/                   human decisions
     audit/                     event history
     bhumika/                   curated intake contract and finalize orchestration
+    tracking/                  signed links and victim-safe status projection
     whatsapp/                  inactive legacy direct-Meta adapter (not mounted)
   migrations/                  Alembic schema history
   tests/                       API/database/channel integration tests
@@ -92,8 +94,9 @@ If the backend is temporarily unavailable, the local browser cache keeps the dem
 3. Niriksh validates the versioned schema and unique idempotency key, then creates the canonical complaint and tracking number.
 4. A text/transcript-only submission can finalize immediately. If original media must be transferred, Bhumika creates with `finalize: false`, uploads each file using a stable external evidence ID, then calls finalize.
 5. Niriksh privately stores and hashes bytes, combines the narrative/fields/transcripts/media, runs deterministic and connected analysis, and persists source-specific findings.
-6. Finalize creates report version 1, moves the case to `Awaiting review`, appends audit events, and returns the tracking/report data for Bhumika to relay.
-7. Identical retries return the same case/report; payload reuse under the same ID returns `409`.
+6. Finalize creates report version 1, moves the case to `Awaiting review`, appends audit events, and returns the tracking number, signed portal link, safe message, update path, and supplement path for Bhumika.
+7. Bhumika polls the protected safe update feed or calls it for a victim “status” request. Later victim information is added idempotently to the same case and produces report v2+.
+8. Identical retries return the same case/report; payload reuse under the same ID returns `409`.
 
 ## Database tables
 
@@ -111,6 +114,7 @@ If the backend is temporarily unavailable, the local browser cache keeps the dem
 | `channel_messages` | direction, external ID, type, text, raw/response payload |
 | `webhook_events` | idempotency ID, payload, processing state, attempts, retry time/error |
 | `integration_submissions` | source submission/conversation IDs, request snapshot, complaint link, state, completion time |
+| `integration_supplements` | submission link, stable supplement ID, request snapshot, state, completion time |
 
 Supabase PostgreSQL is the deployed shared database. SQLite is a zero-setup local/test fallback, not the multi-user production store.
 
@@ -119,6 +123,8 @@ Supabase PostgreSQL is the deployed shared database. SQLite is a zero-setup loca
 As verified on 4 September 2026, the existing `niriksh` ECS Express website was updated in place and a separate `niriksh-api` ECS Express service was added. The custom domain serves the new web image over HTTPS, and HTTP redirects permanently to HTTPS. The API is reachable at `https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws`; the web BFF uses its `/api/v1` prefix.
 
 Alembic has migrated the Supabase schema. The API health probe successfully executes `SELECT 1`. A private `niriksh-bucket` object was written, hashed, and deleted during the storage smoke test. A fictional Bhumika text submission created a case, connected analysis, tracking number, and report; an identical retry returned the same tracking number as a duplicate. A second fictional submission uploaded and retried screenshot evidence, then finalized successfully. The public web form also returned HTTP 200 with source-specific screenshot findings and a timeline after the inline-media change.
+
+On 5 September 2026, the Bhumika two-way contract and public tracking UI were deployed to the same services. A fictional production smoke test verified intake `201`, identical retry `200`, signed tracking URL, allow-listed public response `200`, protected updates, a supplement on the same tracking number, report version 2, and connected analysis. The custom tracking page returned `200`, an invalid tracking token returned `401`, and plain HTTP still redirected with `301`.
 
 The direct Meta plan was superseded. Bhumika keeps its callback and Meta credentials; Niriksh's direct WhatsApp route is disabled. The only cross-service requirement is a dedicated `BHUMIKA_INTEGRATION_KEY` shared by the two server deployments.
 
@@ -147,6 +153,10 @@ All routes below are prefixed by `/api/v1` except health.
 | `GET /integrations/bhumika/intakes/{submission_id}` | Bhumika key | recover state after a timeout |
 | `POST /integrations/bhumika/intakes/{submission_id}/evidence` | Bhumika key | idempotent private evidence upload |
 | `POST /integrations/bhumika/intakes/{submission_id}/finalize` | Bhumika key | run analysis and create the report exactly once |
+| `GET /integrations/bhumika/intakes/{submission_id}/updates` | Bhumika key | victim-safe event/status polling with optional cursor |
+| `POST /integrations/bhumika/intakes/{submission_id}/supplements` | Bhumika key | add later information to the same case and create report v2+ |
+| `GET/POST /integrations/bhumika/intakes/{submission_id}/supplements/...` | Bhumika key | recover, upload supplement media, and finalize idempotently |
+| `GET /public/tracking/{signed-token}` | signed bearer link | allow-listed victim tracking status/history |
 
 Protected means a valid officer/admin bearer token or the internal server key. Override decisions require a non-empty reason.
 
@@ -229,6 +239,7 @@ Important variables:
 | `EVIDENCE_S3_ACCESS_KEY_ID`, `EVIDENCE_S3_SECRET_ACCESS_KEY` | server-only storage credentials |
 | `EVIDENCE_S3_FORCE_PATH_STYLE` | required for the Supabase S3 endpoint |
 | `BHUMIKA_INTEGRATION_KEY` | dedicated server credential for curated Bhumika submissions |
+| `PUBLIC_APP_URL`, `TRACKING_TOKEN_DAYS` | tracking-link origin and lifetime; no separate tracking secret is required |
 | `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL`, `GEMINI_RESERVE_MODEL` | backend and web connected-analysis configuration |
 | `SESSION_COOKIE_SECURE` | set `true` behind production HTTPS |
 
@@ -250,9 +261,12 @@ Backend tests cover login/database health, complaint analysis and persistence, o
 
 - Existing UI updates use optimistic fire-and-forget sync; it needs visible pending/failed state for production.
 - Browser-selected binary evidence is uploaded after complaint creation; failed file uploads need a visible retry state in the UI.
-- Bhumika must map its final conversation state into the versioned Niriksh schema and transfer original file bytes before finalize when Niriksh should analyze those bytes.
+- Bhumika must map its final conversation state into the versioned Niriksh schema, persist returned tracking/update fields, and transfer original file bytes before finalize when Niriksh should analyze those bytes. The full coding-agent handoff is in `docs/bhumika-agent-handoff.md`.
 - The web path and WhatsApp path still have two connected-analysis adapters; their output contracts should be consolidated after the demo.
 - Seed cases and several admin/citizen operational values remain fictional demo data.
 - No official portal submission, platform takedown, notification SLA, or government integration occurs.
 - Supabase Storage is suitable for the demo but is not immutable evidence storage; versioning, legal hold, quarantine, and recovery controls remain production work.
-- The database migration, Bhumika intake API, updated web service, custom HTTPS domain, and HTTP redirect are deployed and live-smoke-tested. Bhumika still needs the Niriksh URL/key and schema mapping; Meta itself remains unchanged.
+- The supplement migration, Bhumika intake/update APIs, signed public tracking, updated web service, custom HTTPS domain, and HTTP redirect are deployed and live-smoke-tested. Bhumika still needs the Niriksh URL/key and client-side mapping described in the handoff document; Meta itself remains unchanged.
+# Current architecture notice
+
+As of 5 September 2026, automated priority, severity, confidence, legal classification, and routing decisions are prohibited. Connected AI is an extraction/summarisation adapter only. Legacy decision columns remain temporarily for schema compatibility but are neutralised at `0` / `Needs review` on write and read. The current architecture, category catalog, safety checker, hashed directory, API endpoints, migration, and production configuration are specified in [Human Review, Subject Folders, and Public Safety Checks](./human-review-and-safety.md). Older conflicting sections in this document describe superseded iterations.

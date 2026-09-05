@@ -20,7 +20,7 @@ def record_decision(
     complaint = db.get(Complaint, complaint_id)
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
-    recommendation = {"category": payload.category, "severity": payload.severity, "departments": payload.departments}
+    recommendation = {"category": payload.category, "departments": payload.departments}
     decision = RoutingDecision(
         complaint_id=complaint_id,
         action=payload.action,
@@ -35,13 +35,10 @@ def record_decision(
     elif payload.action == "request_information":
         patch["status"] = "Needs information"
     if payload.category:
-        patch["category"] = payload.category
-    if payload.severity:
-        patch["severity"] = payload.severity
+        patch["reviewCategory"] = payload.category
     if payload.departments:
         patch["department"] = payload.departments
     update_case(db, complaint, patch, actor_type=actor.role if actor else "internal")
     record_event(db, "routing.decision", f"Routing decision recorded: {payload.action}.", complaint_id, actor=actor, data=recommendation)
     db.commit()
     return {"id": decision.id, "complaint_id": complaint_id, "action": decision.action, "recorded_at": decision.created_at}
-

@@ -59,7 +59,8 @@ def list_complaints(
     limit: int = Query(default=100, ge=1, le=500),
     db: Session = Depends(get_db),
 ) -> list[dict]:
-    query = select(Complaint).order_by(Complaint.created_at.desc()).limit(limit)
+    # The officer inbox is chronological, never ordered by an automated risk score.
+    query = select(Complaint).order_by(Complaint.created_at.asc()).limit(limit)
     if status:
         query = query.where(Complaint.status == status)
     return [row.case_payload for row in db.scalars(query).all()]
