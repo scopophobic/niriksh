@@ -9,6 +9,7 @@ import {
 import { useCaseStore } from "@/lib/case-store";
 import { caseIndicators, evidenceAnchor, missingInformation, sourceEvidenceName } from "@/lib/case-intelligence";
 import { EvidenceItem } from "@/lib/types";
+import { RelatedIncidents } from "./RelatedIncidents";
 
 function SourceTrace({ source }: { source: string }) {
   const evidenceName = sourceEvidenceName(source);
@@ -62,6 +63,8 @@ export function CaseReview({ id }: { id: string }) {
           <div className="folio-section-head"><div><h2>Extracted indicators</h2><p>Explicit cyber identifiers only. Generic people, places and category words are excluded.</p></div><span>{indicators.length} found</span></div>
           {indicators.length ? <div className="indicator-ledger">{indicators.map(indicator => <div className="indicator-row" key={`${indicator.type}-${indicator.value}`}><small>{indicator.type}</small><strong className="indicator-value">{indicator.value}</strong><SourceTrace source={indicator.source}/></div>)}</div> : <div className="empty-ledger"><Info size={18}/><span>No explicit phone, email, payment ID, transaction reference, URL, domain or social handle was extracted.</span></div>}
         </section>
+
+        <RelatedIncidents complaintId={item.id}/>
 
         {details && <section className="folio-section">
           <div className="folio-section-head"><div><h2>Source trace</h2><p>Each extracted fact points back to the submitted narrative, form or named evidence.</p></div><span>{details.facts.length} facts</span></div>
