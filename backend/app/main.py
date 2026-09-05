@@ -12,6 +12,7 @@ from app.db.base import Base
 from app.db.models import User
 from app.db.session import Database, build_database
 from app.modules.analysis.provider import GeminiComplaintAnalyzer
+from app.modules.connect.service import backfill_case_indicators
 from app.modules.safety.service import record_identifier
 from app.storage import build_evidence_storage
 
@@ -63,6 +64,9 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
             Base.metadata.create_all(database.engine)
         seed_users(database, settings)
         seed_fictional_directory_record(database, settings)
+        with database.session_factory() as db:
+            backfill_case_indicators(db)
+            db.commit()
         yield
         database.engine.dispose()
 

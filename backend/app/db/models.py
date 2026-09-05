@@ -50,6 +50,7 @@ class Complaint(Base):
 
     evidence: Mapped[list["EvidenceItem"]] = relationship(back_populates="complaint", cascade="all, delete-orphan")
     analyses: Mapped[list["AnalysisRun"]] = relationship(back_populates="complaint", cascade="all, delete-orphan")
+    indicators: Mapped[list["CaseIndicator"]] = relationship(back_populates="complaint", cascade="all, delete-orphan")
 
 
 class EvidenceItem(Base):
@@ -71,6 +72,29 @@ class EvidenceItem(Base):
     metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     complaint: Mapped[Complaint] = relationship(back_populates="evidence")
+
+
+class CaseIndicator(Base):
+    """An explicit submitted or extracted identifier used for deterministic correlation."""
+
+    __tablename__ = "case_indicators"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id", ondelete="CASCADE"), index=True)
+    indicator_type: Mapped[str] = mapped_column(String(40))
+    raw_value: Mapped[str] = mapped_column(String(700))
+    normalized_value: Mapped[str] = mapped_column(String(500))
+    source_evidence_id: Mapped[str | None] = mapped_column(
+        ForeignKey("evidence_items.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    extraction_source: Mapped[str] = mapped_column(String(40), default="deterministic")
+    source_label: Mapped[str] = mapped_column(String(500), default="Complaint record")
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+    complaint: Mapped[Complaint] = relationship(back_populates="indicators")
+
+
+Index("ix_case_indicators_match", CaseIndicator.indicator_type, CaseIndicator.normalized_value)
 
 
 class AnalysisRun(Base):

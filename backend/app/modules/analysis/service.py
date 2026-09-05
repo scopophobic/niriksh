@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from app.db.models import AnalysisRun, Complaint, EvidenceItem
 from app.modules.analysis.engine import analysis_engine
 from app.modules.analysis.provider import ConnectedFinding, merge_extracted_details
+from app.modules.connect.service import sync_case_indicators
 from app.modules.review.policy import review_case
 
 
@@ -94,3 +95,7 @@ def persist_case(complaint: Complaint, case: dict) -> None:
     ]))
     complaint.case_payload = case
     complaint.version += 1
+    db = object_session(complaint)
+    if db:
+        db.flush()
+        sync_case_indicators(db, complaint)

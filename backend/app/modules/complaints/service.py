@@ -8,6 +8,7 @@ from app.db.models import AnalysisRun, Complaint, EvidenceItem
 from app.modules.analysis.engine import analysis_engine
 from app.modules.audit.service import record_event
 from app.modules.complaints.schemas import CasePayload, ComplaintCreate
+from app.modules.connect.service import sync_case_indicators
 from app.modules.review.policy import review_case
 
 
@@ -114,6 +115,8 @@ def sync_case(db: Session, raw: dict, source_channel: str = "web", event_type: s
             extracted_text=item.extractedText,
             metadata_json=metadata,
         ))
+    db.flush()
+    sync_case_indicators(db, complaint)
     if case.analysisDetails:
         db.add(AnalysisRun(
             complaint_id=complaint.id,
