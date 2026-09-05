@@ -2,9 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, CheckCircle2, ExternalLink, FileText, Image as ImageIcon, Info, Landmark, MapPin, Paperclip, Route, ShieldCheck, Video } from "lucide-react";
+import {
+  Activity, AlertTriangle, ArrowLeft, CheckCircle2, CircleHelp, FileSearch, FileText,
+  Image as ImageIcon, Info, Link2, MapPin, Paperclip, ShieldCheck, Video,
+} from "lucide-react";
 import { useCaseStore } from "@/lib/case-store";
+import { caseIndicators, evidenceAnchor, missingInformation, sourceEvidenceName } from "@/lib/case-intelligence";
 import { EvidenceItem } from "@/lib/types";
+
+function SourceTrace({ source }: { source: string }) {
+  const evidenceName = sourceEvidenceName(source);
+  const href = evidenceName
+    ? `#${evidenceAnchor(evidenceName)}`
+    : /user description|reporter narrative/i.test(source)
+      ? "#original-narrative"
+      : /^form:/i.test(source)
+        ? "#intake-details"
+        : undefined;
+  const content = <><Link2/>Source → {source}</>;
+  return href ? <a className="source-link" href={href}>{content}</a> : <span className="source-link">{content}</span>;
+}
 
 export function CaseReview({ id }: { id: string }) {
   const { getCase } = useCaseStore();
@@ -12,83 +29,87 @@ export function CaseReview({ id }: { id: string }) {
   if (!item) return <div className="not-found"><AlertTriangle size={34}/><h1>Case not found</h1><p>This case may have been cleared when the demo was reset.</p><Link className="button button-primary" href="/dashboard">Return to cases</Link></div>;
 
   const details = item.analysisDetails;
-  const locationQuery = [item.complaintDetails?.policeStation, item.complaintDetails?.district, item.complaintDetails?.state].filter(Boolean).join(", ");
-  return <div className="page simple-review-page">
+  const indicators = caseIndicators(item);
+  const location = [item.complaintDetails?.policeStation, item.complaintDetails?.district, item.complaintDetails?.state].filter(Boolean).join(", ") || item.location;
+  const signals = details?.highlights || [];
+
+  return <div className="page case-folio">
     <div className="breadcrumbs"><Link href="/dashboard"><ArrowLeft size={15}/> Cases</Link><span>/</span><span>{item.reference}</span></div>
-    <header className="simple-review-head">
-      <div><span>EVIDENCE REVIEW</span><h1>{item.reference}</h1><p>{item.createdLabel} · {item.evidence.length} file{item.evidence.length === 1 ? "" : "s"} attached</p></div>
-      <span className="badge badge-review">Human review required</span>
+
+    <header className="folio-header">
+      <div><div className="folio-title-line"><h1 className="folio-reference">{item.reference}</h1><span className="folio-folder">{item.category}</span></div><p>Received {item.createdLabel.toLocaleLowerCase()} · {item.evidence.length} evidence item{item.evidence.length === 1 ? "" : "s"}</p></div>
+      <div className="folio-status"><small>Current case status</small><strong>{item.status}</strong><span>Set and changed by the review workflow</span></div>
     </header>
 
-    <div className="simple-review-stack">
-      <section className="case-brief hero-panel"><div className="simple-section-heading"><h2>What was reported</h2><strong>{item.category}</strong></div><p>{item.summary}</p><div className="neutral-note"><Info size={15}/> The subject folder was selected during intake. It is not a legal classification or final finding.</div></section>
+    <div className="provenance-legend" aria-label="Information provenance legend"><strong>Reading key</strong><span><i/>Original evidence</span><span><i/>Extracted fact</span><span><i/>Analysis-assisted observation</span></div>
 
-      {details && <>
-        {details.highlights.length > 0 && <section className="case-section important-highlights">
-          <div className="simple-section-heading"><h2>Context markers</h2><span>Each marker keeps its source</span></div>
-          <div>{details.highlights.map(highlight => <div className={`highlight-${highlight.level.toLowerCase()}`} key={highlight.label}><i/><span><strong>{highlight.label}</strong><p>{highlight.detail}</p><small>Source: {highlight.source}</small></span></div>)}</div>
-        </section>}
+    <section className="reconstruction-summary">
+      <span><FileSearch size={23}/></span>
+      <div><small className="folio-meta-label">Case reconstruction</small><h2>What happened</h2><p>{item.summary}</p><em>Prepared from the submitted complaint and available evidence. It remains a review aid, not a finding of fact.</em></div>
+    </section>
 
-        <div className="review-analysis-grid">
-          <section className="case-section verification-card">
-            <div className="simple-section-heading"><h2>Verification readiness</h2><strong>{details.verification.readiness}%</strong></div>
-            <div>{details.verification.checks.map(check => <span className={`check-${check.status.toLowerCase().replace(" ", "-")}`} key={check.label}>{check.status === "Ready" ? <CheckCircle2/> : <AlertTriangle/>}<b>{check.label}</b><small>{check.detail}</small></span>)}</div>
-            <p>{details.verification.disclaimer}</p>
-          </section>
-          <section className="case-section review-routing-card">
-            <div className="simple-section-heading"><h2>Routing information</h2><span><Route size={14}/>{details.routing.status}</span></div>
-            <div className="review-route-primary"><Landmark size={19}/><span><small>PROPOSED SUBJECT TEAM</small><strong>{details.routing.primaryUnit}</strong><em>{details.routing.jurisdiction}</em></span></div>
-            {details.routing.supportingUnits.map(unit => <p key={unit}><ShieldCheck size={13}/>{unit}</p>)}
-            <small className="review-route-note">The subject folder suggests this team. A human must confirm or change the destination and record why.</small>
-          </section>
-        </div>
-
-        {locationQuery && <section className="case-section location-map-card">
-          <div className="simple-section-heading"><div><MapPin size={17}/><h2>Reported location</h2></div><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(locationQuery)}`} target="_blank" rel="noreferrer">Open in Maps <ExternalLink size={13}/></a></div>
-          <p className="location-map-label">{locationQuery}</p>
-          <div className="location-map-frame"><iframe title={`Map showing ${locationQuery}`} src={`https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&output=embed`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" /></div>
-          <small className="location-map-note">Approximate pin based on the State, district, and police station selected by the reporter. It is not a precise address.</small>
-        </section>}
-
-        <section className="case-section">
-          <div className="simple-section-heading"><h2>Context</h2><span>From the description and files</span></div>
-          <div className="plain-context-grid">
-            <div><small>WHO REPORTED IT</small><strong>{details.context.reporterRole}</strong></div>
-            <div><small>IS IT STILL HAPPENING?</small><strong>{details.context.incidentStatus}</strong></div>
-            <div><small>POSSIBLE HARM</small><strong>{details.context.harm.join(", ") || "Not clear yet"}</strong></div>
-            <div><small>ACTIONS ALREADY TAKEN</small><strong>{details.context.actionsTaken.join(", ") || "None mentioned"}</strong></div>
-          </div>
+    <div className="folio-grid">
+      <div className="folio-main">
+        <section className="folio-section hero-timeline">
+          <div className="folio-section-head"><div><h2>Chronological reconstruction</h2><p>Events stay attached to the source and precision available in the record.</p></div><span>{details?.timeline.length || 0} events</span></div>
+          {details?.timeline.length ? <div className="reconstruction-timeline">{details.timeline.map((event, index) => <div className="reconstruction-event" key={`${event.when}-${event.what}-${index}`}>
+            <time className="event-time">{event.when}</time><i className="event-node"/>
+            <div className="event-copy"><strong>{event.what}</strong><span className="precision-tag">{event.precision}</span><p>{event.precision === "Exact" ? "Time supplied explicitly in the complaint record." : event.precision === "Repeated" ? "Reported as a repeated event; no single exact time is assumed." : "Chronology is approximate; exact ordering has not been inferred."}</p><SourceTrace source={event.source}/></div>
+          </div>)}</div> : <div className="empty-ledger"><CircleHelp size={18}/><span>No supported event time is available yet. The timeline stays empty rather than inventing an order.</span></div>}
         </section>
 
-        {details.timeline.length > 0 && <section className="case-section">
-          <div className="simple-section-heading"><h2>Timeline</h2><span>Each item keeps its source</span></div>
-          <div className="plain-timeline">{details.timeline.map((event, index) => <div key={`${event.when}-${index}`}><i>{index + 1}</i><div><strong>{event.when}</strong><p>{event.what}</p><span>Source: {event.source}</span></div></div>)}</div>
-        </section>}
-
-        <section className="case-section">
-          <div className="simple-section-heading"><h2>Useful details</h2><span>What was found and where</span></div>
-          <div className="grounded-facts">{details.facts.map((fact, index) => <div key={`${fact.label}-${index}`}><small>{fact.label}</small><strong>{fact.value}</strong><span>{fact.source}</span></div>)}</div>
+        <section className="folio-section">
+          <div className="folio-section-head"><div><h2>Extracted indicators</h2><p>Explicit cyber identifiers only. Generic people, places and category words are excluded.</p></div><span>{indicators.length} found</span></div>
+          {indicators.length ? <div className="indicator-ledger">{indicators.map(indicator => <div className="indicator-row" key={`${indicator.type}-${indicator.value}`}><small>{indicator.type}</small><strong className="indicator-value">{indicator.value}</strong><SourceTrace source={indicator.source}/></div>)}</div> : <div className="empty-ledger"><Info size={18}/><span>No explicit phone, email, payment ID, transaction reference, URL, domain or social handle was extracted.</span></div>}
         </section>
 
-        {details.concerns.length > 0 && <section className="case-section clarification-card"><div className="simple-section-heading"><h2>Something does not match</h2></div>{details.concerns.map(concern => <div className="review-concern" key={concern.issue}><AlertTriangle size={16}/><div><strong>{concern.issue}</strong><span>{concern.question}</span></div></div>)}</section>}
-      </>}
+        {details && <section className="folio-section">
+          <div className="folio-section-head"><div><h2>Source trace</h2><p>Each extracted fact points back to the submitted narrative, form or named evidence.</p></div><span>{details.facts.length} facts</span></div>
+          {details.facts.length ? <div className="fact-trace">{details.facts.map((fact, index) => <div key={`${fact.label}-${fact.value}-${index}`}><span className="trace-kind">Extracted fact</span><small>{fact.label}</small><strong>{fact.value}</strong><SourceTrace source={fact.source}/></div>)}</div> : <div className="empty-ledger"><Info size={18}/><span>No structured facts have been extracted from the available material.</span></div>}
+        </section>}
 
-      <section className="case-section">
-        <div className="simple-section-heading"><h2>Original description</h2><span>Kept unchanged</span></div>
-        <blockquote>{item.description}</blockquote>
-      </section>
+        {details?.concerns.length ? <section className="folio-section clarification-card"><div className="folio-section-head"><div><h2>Details that conflict</h2><p>These points need clarification rather than an automated conclusion.</p></div></div>{details.concerns.map(concern => <div className="review-concern" key={concern.issue}><AlertTriangle size={16}/><div><strong>{concern.issue}</strong><span>{concern.question}</span></div></div>)}</section> : null}
 
-      <section className="case-section">
-        <div className="simple-section-heading"><h2>Files and what they add</h2><span>{item.evidence.length} attached</span></div>
-        {item.evidence.length ? <div className="review-evidence-list">{item.evidence.map(file => {
-          const finding = details?.evidenceAnalysis.find(result => result.fileName === file.name);
-          return <div className="review-evidence-item" key={file.name}><CaseEvidencePreview file={file}/><div><strong>{file.name}</strong><small>{file.type} · {file.size}</small>{finding?.observations.map(observation => <p key={observation}><CheckCircle2 size={13}/>{observation}</p>)}{finding?.limitations.map(limitation => <p className="limitation" key={limitation}><Info size={13}/>{limitation}</p>)}</div></div>;
-        })}</div> : <div className="no-evidence"><FileText size={25}/><div><strong>No file attached</strong><span>The description can still be reviewed.</span></div></div>}
-      </section>
+        <section className="folio-section narrative-record" id="original-narrative">
+          <div className="folio-section-head"><div><h2>Original complaint narrative</h2><p>Reporter-provided text, preserved without rewriting.</p></div><span>Original source</span></div>
+          <blockquote>{item.description}</blockquote>
+        </section>
 
-      {item.missing.length > 0 && <section className="case-section"><div className="simple-section-heading"><h2>Information that may still help</h2></div><div className="review-missing">{item.missing.map(missing => <span key={missing}>+ {missing}</span>)}</div></section>}
+        <section className="folio-section" id="evidence-record">
+          <div className="folio-section-head"><div><h2>Evidence record</h2><p>Original items and the observations currently associated with each one.</p></div><span>{item.evidence.length} attached</span></div>
+          {item.evidence.length ? <div className="evidence-ledger">{item.evidence.map(file => {
+            const finding = details?.evidenceAnalysis.find(result => result.fileName === file.name);
+            return <article className="evidence-record" id={evidenceAnchor(file.name)} key={file.name}>
+              <CaseEvidencePreview file={file}/>
+              <div className="evidence-record-copy"><div><div><span className="trace-kind">Original evidence</span><strong>{file.name}</strong></div><small>{file.type} · {file.size}</small></div>
+                {finding?.observations.map(observation => <p className="evidence-observation" key={observation}><CheckCircle2/>{observation}</p>)}
+                {finding?.limitations.map(limitation => <p className="evidence-observation limitation" key={limitation}><Info/>{limitation}</p>)}
+                {!finding && <p className="source-empty">No automated content observation is attached. The original item remains available for human review.</p>}
+              </div>
+            </article>;
+          })}</div> : <div className="empty-ledger"><FileText size={20}/><span>No file was attached. The original narrative remains available for review.</span></div>}
+        </section>
+      </div>
 
-      <div className="human-note"><ShieldCheck size={19}/><div><strong>Human check required</strong><span>The system organises the complaint and files. A reviewer must check the source material before making a decision.</span></div></div>
+      <aside className="folio-rail">
+        <section className="folio-section">
+          <div className="folio-section-head"><div><h2>Active signals</h2><p>Factual circumstances surfaced for human attention.</p></div><Activity size={18}/></div>
+          {signals.length ? <div className="active-signal-list">{signals.map((signal, index) => <div className="active-signal" key={`${signal.label}-${index}`}><div><AlertTriangle/><span><strong>{signal.label}</strong><p>{signal.detail}</p><SourceTrace source={signal.source}/></span></div></div>)}</div> : <div className="empty-ledger"><Info size={18}/><span>No active factual signal was surfaced from the current record.</span></div>}
+          <p className="signal-boundary">Signals are not a priority score. Policy and authorised people decide urgency and action.</p>
+        </section>
+
+        <section className="folio-section">
+          <div className="folio-section-head"><div><h2>Missing information</h2><p>Only gaps detected from the current complaint are shown.</p></div><span>{item.missing.length}</span></div>
+          {item.missing.length ? <div className="missing-list">{item.missing.map((missing, index) => <div className="missing-item" key={missing}><span>{index + 1}</span><div><strong>{missing}</strong><p>{missingInformation(missing)}</p></div></div>)}</div> : <div className="empty-ledger"><CheckCircle2 size={18}/><span>The current analysis did not identify a specific missing field. A reviewer may still request clarification.</span></div>}
+        </section>
+
+        <section className="folio-section" id="intake-details">
+          <div className="folio-section-head"><div><h2>Case status</h2><p>Operational context, kept compact.</p></div></div>
+          <div className="status-ledger"><div><span>Status</span><strong>{item.status}</strong></div><div><span>Subject folder</span><strong>{item.category}</strong></div><div><span>Reported location</span><strong>{location || "Not provided"}</strong></div><div><span>Proposed workspace</span><strong>{details?.routing.primaryUnit || item.department[0] || "Needs confirmation"}</strong></div><div><span>Information readiness</span><strong>{details?.routing.status || "Needs review"}</strong></div></div>
+          {location && <p className="human-boundary"><MapPin/>Location is reporter supplied and may be approximate.</p>}
+          <p className="human-boundary"><ShieldCheck/>A reviewer must check the source material, confirm the folder and record every operational decision.</p>
+        </section>
+      </aside>
     </div>
   </div>;
 }
