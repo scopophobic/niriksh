@@ -1,4 +1,6 @@
 from app.modules.connect.normalization import normalize_indicator
+from app.demo import reset_demo, seed_demo
+from app.db.models import Complaint, Report
 
 
 def case_payload(case_id: str, description: str, *, evidence=None, category="financial") -> dict:
@@ -79,3 +81,32 @@ def test_related_incidents_match_only_explicit_normalized_indicators(client, int
 def test_related_incidents_require_officer_access(client):
     response = client.get("/api/v1/complaints/not-visible/related-incidents")
     assert response.status_code == 401
+
+
+def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_headers):
+    database = client.app.state.database
+    with database.session_factory() as db:
+        assert seed_demo(db) == 4
+        assert seed_demo(db) == 4
+        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 4
+        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 4
+
+    response = client.get("/api/v1/complaints/demo-connect-a/related-incidents", headers=internal_headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 2
+    assert {item["complaint_id"] for item in body["related_incidents"]} == {"demo-connect-b", "demo-connect-c"}
+    assert {shared["type"] for item in body["related_incidents"] for shared in item["shared_indicators"]} == {"upi", "domain"}
+
+    with database.session_factory() as db:
+        unrelated = Complaint(
+            id="not-demo-data",
+            reference="CYB-2026-KEEP",
+            description="A non-demo test record that reset must preserve.",
+            case_payload={},
+        )
+        db.add(unrelated)
+        db.commit()
+        assert reset_demo(db) == 4
+        assert db.get(Complaint, "not-demo-data") is not None
+        assert not db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()
