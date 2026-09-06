@@ -665,6 +665,14 @@ Four fixed demo complaint IDs and reserved/example identifiers provide a repeata
 
 Status: accepted and implemented.
 
+### 57. Replace ECS Express with one ARM64 EC2 demo host
+
+The two-service ECS Express deployment created continuously billed Fargate, load-balancer, networking, logging, and image resources that were disproportionate to a small demonstration. The economical handoff instead runs Caddy, Next.js, and FastAPI through Docker Compose on one `t4g.small` EC2 instance. PostgreSQL and private evidence remain in the existing Supabase project.
+
+GitHub Actions verifies pull requests and successful changes to `main`, builds immutable ARM64 images in ECR, and deploys through Systems Manager using GitHub OIDC. The host has no inbound SSH port, and application/provider credentials remain only in root-readable server files. This is intentionally a single point of failure suitable for fictional demo and test data, not a production evidence tier.
+
+Status: accepted and implemented. Supersedes ADR-028 and ADR-044 for the current deployment; retains ADR-029's immutable image principle and ADR-045's HTTPS requirement.
+
 ## Decision index
 
 | ID | Decision | Status |
@@ -696,7 +704,7 @@ Status: accepted and implemented.
 | ADR-025 | Use browser-local storage for demo reliability only | Accepted for prototype |
 | ADR-026 | Retain FastAPI/PostgreSQL as an inactive production-direction boundary | Superseded by ADR-031/033 |
 | ADR-027 | Treat controlled benchmarks as regression tests, not accuracy | Accepted |
-| ADR-028 | Deploy a hardened standalone container to ECS Express Mode | Accepted |
+| ADR-028 | Deploy a hardened standalone container to ECS Express Mode | Superseded by ADR-057 |
 | ADR-029 | Use immutable ECR tags and repeatable create/update automation | Accepted |
 | ADR-030 | Use ACM + Porkbun CNAME for the custom HTTPS domain | Accepted |
 | ADR-031 | Make the top-level FastAPI service the canonical backend | Accepted |
@@ -712,7 +720,7 @@ Status: accepted and implemented.
 | ADR-041 | Run WhatsApp multimodal extraction/transcription in FastAPI | Deferred by ADR-054 |
 | ADR-042 | Process webhook jobs inline for the one-service demo only | Superseded by ADR-046 |
 | ADR-043 | Treat the Niriksh reference as tracking, not an FIR | Accepted |
-| ADR-044 | Deploy separate web and API ECS Express services | Deployed |
+| ADR-044 | Deploy separate web and API ECS Express services | Superseded by ADR-057 |
 | ADR-045 | Redirect HTTP to the canonical HTTPS domain | Deployed |
 | ADR-046 | Keep Meta in Bhumika; send Niriksh a curated, idempotent form/media submission | Deferred by ADR-054 |
 | ADR-047 | Inline ordinary web media to keep connected analysis inside the request window | Accepted |
@@ -725,6 +733,7 @@ Status: accepted and implemented.
 | ADR-054 | Exclude Bhumika/WhatsApp from the current release | Accepted |
 | ADR-055 | Postpone prevention/intelligence-loop expansion | Accepted |
 | ADR-056 | Keep demo correlation isolated and fictional | Accepted |
+| ADR-057 | Replace ECS Express with one ARM64 EC2 demo host | Accepted |
 
 ## Explicitly deferred or rejected scope
 

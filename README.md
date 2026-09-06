@@ -116,14 +116,11 @@ DATABASE_URL=sqlite:////tmp/niriksh-test.db EVIDENCE_STORAGE_BACKEND=local pytes
 
 ## Deployment
 
-The existing deployment uses separate `niriksh` web and `niriksh-api` ECS Express services. Deploy the API first, then the web service:
+The economical demo deployment uses one ARM64 EC2 instance for the Next.js and FastAPI containers. PostgreSQL and private evidence storage remain in the existing Supabase project. Caddy provides HTTPS, and GitHub Actions verifies and deploys every successful change to `main` through short-lived AWS OIDC credentials.
 
-```bash
-AWS_REGION=us-east-1 NIRIKSH_API_SECRET_ARN='<secret-arn>' ./scripts/deploy-ecs-express-api.sh
-AWS_REGION=us-east-1 BACKEND_API_URL='https://<api-endpoint>/api/v1' NIRIKSH_WEB_SECRET_ARN='<secret-arn>' ./scripts/deploy-ecs-express.sh
-```
+The deployment creates no ECS, Fargate, load balancer, RDS, or NAT Gateway resources. Start with the complete friend-handoff instructions in [the EC2 deployment runbook](docs/deployment.md). Legacy ECS Express scripts remain only for historical deployments and are not used by the current workflow.
 
-Secrets belong in AWS Secrets Manager, never in images, Git, documentation, or `NEXT_PUBLIC_*` values. Run Alembic through revision `20260906_0005` before serving the Connect API. Detailed architecture, deployment, and decision records are in [docs/architecture.md](docs/architecture.md), [docs/technical.md](docs/technical.md), [docs/deployment.md](docs/deployment.md), and [docs/decisions.md](docs/decisions.md).
+Production secrets live only in root-readable environment files on the demo host; they never enter images, GitHub, documentation, or `NEXT_PUBLIC_*` values. Detailed architecture and decision records are in [docs/architecture.md](docs/architecture.md), [docs/technical.md](docs/technical.md), [docs/deployment.md](docs/deployment.md), and [docs/decisions.md](docs/decisions.md).
 
 ## WhatsApp and Bhumika boundary
 

@@ -168,14 +168,15 @@ The storage adapter supports local private disk for development and S3-compatibl
 
 ## Deployment
 
-The existing AWS shape has two ECS Express services:
+The economical demo deployment runs three containers on one ARM64 EC2 instance:
 
-- `niriksh`: Next.js web/BFF
-- `niriksh-api`: FastAPI
+- Caddy terminates HTTPS and sends normal traffic to the web container;
+- `niriksh-web` runs the Next.js web/BFF;
+- `niriksh-api` runs FastAPI on the private Compose network.
 
-Supabase can provide PostgreSQL and private S3-compatible storage. AWS Secrets Manager supplies database, storage, connected-analysis, and authentication settings. The web points to the API's `/api/v1` base URL.
+Only Bhumika's key-protected integration path is routed directly to FastAPI. Supabase provides PostgreSQL and private S3-compatible storage. Root-readable environment files on the host supply database, storage, connected-analysis, and authentication settings; those values do not enter GitHub Actions. GitHub OIDC, ECR, and Systems Manager provide automated deployment without permanent AWS access keys or an inbound SSH port.
 
-Alembic migration `20260906_0005` adds `case_indicators` and its lookup indexes. The API image runs migrations during startup under the existing deployment convention.
+Alembic migration `20260906_0005` adds `case_indicators` and its lookup indexes. The API image runs migrations during startup under the deployment convention.
 
 ## Known architectural limits
 

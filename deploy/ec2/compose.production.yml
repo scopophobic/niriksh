@@ -1,0 +1,74 @@
+name: niriksh
+
+services:
+  web:
+    image: ${ECR_REGISTRY}/niriksh-web:${IMAGE_TAG:-not-deployed}
+    container_name: niriksh-web
+    restart: unless-stopped
+    init: true
+    env_file:
+      - /etc/niriksh/web.env
+    environment:
+      APP_VERSION: ${IMAGE_TAG}
+      NODE_ENV: production
+      BACKEND_API_URL: http://api:8000/api/v1
+      BACKEND_ALLOW_DEMO_PROXY: "false"
+      SESSION_COOKIE_SECURE: "true"
+      DISABLE_OFFICER_AUTH: "false"
+    depends_on:
+      api:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging: &container_logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  api:
+    image: ${ECR_REGISTRY}/niriksh-api:${IMAGE_TAG:-not-deployed}
+    container_name: niriksh-api
+    restart: unless-stopped
+    init: true
+    env_file:
+      - /etc/niriksh/api.env
+    environment:
+      APP_ENV: production
+      AUTO_CREATE_TABLES: "false"
+      EVIDENCE_STORAGE_BACKEND: s3
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 6s
+      start_period: 45s
+      retries: 8
+    security_opt:
+      - no-new-privileges:true
+    logging: *container_logging
+
+  proxy:
+    image: caddy:2.10-alpine
+    container_name: niriksh-proxy
+    restart: unless-stopped
+    init: true
+    env_file:
+      - /etc/niriksh/proxy.env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging: *container_logging
+
+volumes:
+  caddy_data:
+  caddy_config:

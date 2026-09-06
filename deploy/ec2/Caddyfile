@@ -1,0 +1,24 @@
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# Bhumika remains a separate service. Only its protected integration surface is
+	# exposed directly; all other browser API traffic continues through Next.js.
+	route {
+		@bhumika path /api/v1/integrations/bhumika /api/v1/integrations/bhumika/*
+		reverse_proxy @bhumika api:8000
+		reverse_proxy web:3000
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
