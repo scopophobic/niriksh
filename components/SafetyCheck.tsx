@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, CheckCircle2, Database, ExternalLink, EyeOff, Search, ShieldAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, Database, ExternalLink, EyeOff, FileAudio, FileImage, FileText, Search, ShieldAlert, Upload, Video, X } from "lucide-react";
 
 interface DirectoryMatch {
   type: string;
@@ -25,6 +25,14 @@ interface MessageResult {
   retention: string;
   official_report_url: string;
   official_lookup_url: string;
+}
+
+interface ContentReview {
+  insight: {
+    situationSummary: string;
+    evidenceFindings: Array<{ fileName: string; observations: string[]; visibleText: string[]; concerningSignals: string[]; limitations: string[] }>;
+    limitations: string[];
+  };
 }
 
 const EXAMPLE = "URGENT: Your bank account will be blocked. Share your OTP and pay the processing fee at demo-payee@upi now.";
@@ -54,14 +62,33 @@ export function SafetyCheck() {
   const [tab, setTab] = useState<"message" | "identifier">("message");
   const [text, setText] = useState("");
   const [identifier, setIdentifier] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
   const [messageResult, setMessageResult] = useState<MessageResult | null>(null);
+  const [contentReview, setContentReview] = useState<ContentReview | null>(null);
   const [lookupResult, setLookupResult] = useState<DirectoryMatch | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const checkMessage = async () => {
-    setLoading(true); setError(""); setMessageResult(null);
-    try { setMessageResult(await postJson<MessageResult>("/api/public/safety/check-message", { text })); }
+    if (text.trim().length < 3 && files.length === 0) return;
+    setLoading(true); setError(""); setMessageResult(null); setContentReview(null);
+    try {
+      const tasks: Promise<void>[] = [];
+      if (text.trim().length >= 3) tasks.push(postJson<MessageResult>("/api/public/safety/check-message", { text }).then(setMessageResult));
+      if (files.length) {
+        const form = new FormData();
+        form.set("description", text || "Please review the attached content for possible cybercrime warning signs.");
+        form.set("details", "{}");
+        form.set("manifest", JSON.stringify(files.map(file => ({ name: file.name, type: file.type, size: file.size }))));
+        files.forEach(file => form.append("evidence", file));
+        tasks.push(fetch("/api/analyze", { method: "POST", body: form }).then(async response => {
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || "The uploaded content could not be reviewed.");
+          setContentReview(payload as ContentReview);
+        }));
+      }
+      await Promise.all(tasks);
+    }
     catch (caught) { setError(caught instanceof Error ? caught.message : "The check could not be completed."); }
     finally { setLoading(false); }
   };
@@ -76,8 +103,8 @@ export function SafetyCheck() {
     <section className="safety-hero">
       <span className="eyebrow">SAFER DIGITAL DECISIONS</span>
       <h1>Check before you trust, click, or pay.</h1>
-      <p>Understand common warning signs in a message and check whether an identifier appears in Niriksh&apos;s privacy-protected directory.</p>
-      <div className="safety-privacy"><EyeOff/><span>Your pasted message is checked in memory and is not saved. This guidance never labels a person guilty.</span></div>
+      <p>Check suspicious text, screenshots, documents, voice notes, video, and more—then look up a known identifier privately.</p>
+      <div className="safety-privacy"><EyeOff/><span>Your pasted text is checked in memory. Uploaded content is reviewed only for this check and is not added to the directory. This guidance never labels a person guilty.</span></div>
     </section>
 
     <section className="safety-tool">
@@ -87,9 +114,14 @@ export function SafetyCheck() {
       </div>
 
       {tab === "message" ? <div className="safety-panel">
-        <div className="safety-panel-head"><div><span>Message, email, or offer</span><h2>What did you receive?</h2></div><button className="text-button" onClick={() => setText(EXAMPLE)}>Use fictional example</button></div>
-        <textarea value={text} onChange={event => setText(event.target.value)} placeholder="Paste the suspicious text here. Remove private information you do not want to analyse." rows={8}/>
-        <button className="primary-action" disabled={loading || text.trim().length < 3} onClick={checkMessage}>{loading ? "Checking…" : "Check warning signs"}<ArrowRight/></button>
+        <div className="safety-panel-head"><div><span>Text or any evidence</span><h2>What did you receive?</h2></div><button className="text-button" onClick={() => setText(EXAMPLE)}>Use fictional example</button></div>
+        <textarea value={text} onChange={event => setText(event.target.value)} placeholder="Paste a suspicious message, caption, transcript, link, or context. You can also upload the content itself below." rows={6}/>
+        <label className="safety-upload">
+          <input type="file" multiple accept="image/*,video/*,audio/*,application/pdf,text/*,.txt,.csv,.json,.doc,.docx" onChange={event => setFiles(previous => [...previous, ...Array.from(event.target.files || [])].slice(0, 12))}/>
+          <span className="safety-upload-icon"><Upload/></span><span><strong>Add content to inspect</strong><small>Screenshots & images · PDFs & documents · voice notes & audio · video · text files</small></span><b>Choose files</b>
+        </label>
+        {files.length > 0 && <div className="safety-file-list">{files.map((file, index) => <div key={`${file.name}-${index}`}><span>{file.type.startsWith("image/") ? <FileImage/> : file.type.startsWith("audio/") ? <FileAudio/> : file.type.startsWith("video/") ? <Video/> : <FileText/>}</span><strong>{file.name}</strong><small>{Math.max(1, Math.round(file.size / 1024))} KB</small><button type="button" aria-label={`Remove ${file.name}`} onClick={() => setFiles(previous => previous.filter((_, fileIndex) => fileIndex !== index))}><X/></button></div>)}</div>}
+        <button className="primary-action" disabled={loading || (text.trim().length < 3 && files.length === 0)} onClick={checkMessage}>{loading ? "Checking…" : files.length ? "Review content" : "Check warning signs"}<ArrowRight/></button>
 
         {messageResult && <div className="safety-results">
           <div className={`safety-assessment ${messageResult.signal_count ? "caution" : "neutral"}`}><ShieldAlert/><div><span>RULE-BASED RESULT</span><h2>{messageResult.assessment}</h2><p>{messageResult.disclaimer}</p></div></div>
@@ -100,6 +132,7 @@ export function SafetyCheck() {
           {messageResult.directory_matches.length > 0 && <section><h3>Identifiers found in the message</h3><div className="safety-match-grid">{messageResult.directory_matches.map((match, index) => <DirectoryResult result={match} key={`${match.type}-${index}`}/>)}</div></section>}
           <div className="safety-official"><a href={messageResult.official_lookup_url} target="_blank" rel="noreferrer">Check the official NCRP suspect repository<ExternalLink/></a><a href={messageResult.official_report_url} target="_blank" rel="noreferrer">Open cybercrime.gov.in<ExternalLink/></a></div>
         </div>}
+        {contentReview && <div className="safety-content-results"><div className="safety-content-head"><FileImage/><div><span>CONTENT REVIEW</span><h2>{contentReview.insight.situationSummary}</h2><p>Observations are source-backed assistance, not a conclusion about a person or content&apos;s authenticity.</p></div></div><div className="safety-content-grid">{contentReview.insight.evidenceFindings.map(finding => <article key={finding.fileName}><strong>{finding.fileName}</strong>{[...finding.observations, ...finding.visibleText.map(value => `Visible text: ${value}`), ...finding.concerningSignals].slice(0, 5).map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}{finding.limitations.map((item, index) => <small key={`${item}-${index}`}>{item}</small>)}</article>)}</div>{contentReview.insight.limitations.length > 0 && <p className="safety-content-limitations">{contentReview.insight.limitations.join(" ")}</p>}</div>}
       </div> : <div className="safety-panel">
         <span>Phone, email, UPI ID, URL, or social handle</span><h2>Search a privacy-protected record</h2>
         <p>Niriksh stores a one-way keyed fingerprint and a masked display value—not a public list of raw identifiers.</p>

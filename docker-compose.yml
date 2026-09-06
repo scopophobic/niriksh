@@ -6,7 +6,9 @@ services:
     environment:
       BACKEND_API_URL: http://api:8000/api/v1
       BACKEND_INTERNAL_API_KEY: ${BACKEND_INTERNAL_API_KEY:-local-development-key}
-      BACKEND_ALLOW_DEMO_PROXY: "false"
+      # Local Compose uses the internal API key for the demo officer workspace.
+      # Production should set this to false and use an authenticated officer session.
+      BACKEND_ALLOW_DEMO_PROXY: "true"
       SESSION_COOKIE_SECURE: "false"
       DISABLE_OFFICER_AUTH: ${DISABLE_OFFICER_AUTH:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}

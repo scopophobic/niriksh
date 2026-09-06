@@ -1,5 +1,5 @@
 from app.modules.connect.normalization import normalize_indicator
-from app.demo import reset_demo, seed_demo
+from app.demo import DEMO_IDS, reset_demo, seed_demo
 from app.db.models import Complaint, Report
 
 
@@ -86,17 +86,25 @@ def test_related_incidents_require_officer_access(client):
 def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_headers):
     database = client.app.state.database
     with database.session_factory() as db:
-        assert seed_demo(db) == 4
-        assert seed_demo(db) == 4
-        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 4
-        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 4
+        assert seed_demo(db) == len(DEMO_IDS)
+        assert seed_demo(db) == len(DEMO_IDS)
+        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == len(DEMO_IDS)
+        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == len(DEMO_IDS)
 
     response = client.get("/api/v1/complaints/demo-connect-a/related-incidents", headers=internal_headers)
     assert response.status_code == 200
     body = response.json()
-    assert body["total"] == 2
-    assert {item["complaint_id"] for item in body["related_incidents"]} == {"demo-connect-b", "demo-connect-c"}
-    assert {shared["type"] for item in body["related_incidents"] for shared in item["shared_indicators"]} == {"upi", "domain"}
+    assert body["total"] >= 4
+    assert {"demo-connect-b", "demo-connect-c", "demo-prevention-e", "demo-prevention-f"}.issubset({item["complaint_id"] for item in body["related_incidents"]})
+    assert {"upi", "domain"}.issubset({shared["type"] for item in body["related_incidents"] for shared in item["shared_indicators"]})
+
+    patterns = client.get("/api/v1/prevention/patterns", headers=internal_headers).json()
+    titles = {item["title"] for item in patterns}
+    assert len(patterns) >= 3
+    assert "Digital arrest and authority-impersonation pattern" in titles
+    assert "Parcel-release fee pattern" in titles
+    assert any(item["complaint_count"] == 4 for item in patterns if item["title"] == "Parcel-release fee pattern")
+    assert all(item["first_seen"] != item["last_seen"] for item in patterns)
 
     with database.session_factory() as db:
         unrelated = Complaint(
@@ -107,6 +115,25 @@ def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_
         )
         db.add(unrelated)
         db.commit()
-        assert reset_demo(db) == 4
+        assert reset_demo(db) == len(DEMO_IDS)
         assert db.get(Complaint, "not-demo-data") is not None
         assert not db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()
+
+
+def test_verified_pattern_creates_an_explainable_future_case_warning(client, internal_headers):
+    with client.app.state.database.session_factory() as db:
+        seed_demo(db)
+    patterns = client.get("/api/v1/prevention/patterns", headers=internal_headers)
+    assert patterns.status_code == 200
+    pattern = next(item for item in patterns.json() if item["complaint_count"] >= 5)
+    assert pattern["status"] == "UNREVIEWED"
+    assert any(item["display_value"] == "demo-invest@upi" for item in pattern["indicators"])
+    shared_upi = next(item for item in pattern["indicators"] if item["display_value"] == "demo-invest@upi")
+    assert set(shared_upi["case_ids"]) == {item["id"] for item in pattern["supporting_cases"]}
+    assert set(shared_upi["case_sources"]) == set(shared_upi["case_ids"])
+    review = client.post(f"/api/v1/prevention/patterns/{pattern['id']}/review", headers=internal_headers, json={"status": "VERIFIED", "note": "Fictional fixture reviewed."})
+    assert review.status_code == 200
+    warning = client.get("/api/v1/prevention/complaints/demo-prevention-f/matches", headers=internal_headers)
+    assert warning.status_code == 200
+    assert warning.json()["matches"][0]["pattern_id"] == pattern["id"]
+    assert "resembles a previously reviewed pattern" in warning.json()["matches"][0]["message"]

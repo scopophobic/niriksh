@@ -178,6 +178,10 @@ Only Bhumika's key-protected integration path is routed directly to FastAPI. Sup
 
 Alembic migration `20260906_0005` adds `case_indicators` and its lookup indexes. The API image runs migrations during startup under the deployment convention.
 
+## Prevention intelligence extension
+
+Migration `20260907_0006` adds reviewable `prevention_patterns` and append-only `prevention_pattern_reviews`. Pattern aggregation reads—rather than duplicates—`case_indicators`, groups complaints connected by exact normalized values, and stores the displayed identifiers/source labels with each candidate. The officer-only prevention API exposes candidates, their support, review history, and verified-pattern matches for a newly opened case. Existing audit infrastructure records review transitions.
+
 ## Known architectural limits
 
 - frontend and backend analysis implementations still overlap;

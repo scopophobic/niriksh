@@ -97,6 +97,34 @@ class CaseIndicator(Base):
 Index("ix_case_indicators_match", CaseIndicator.indicator_type, CaseIndicator.normalized_value)
 
 
+class PreventionPattern(Base):
+    """A human-reviewable, explainable cluster built from existing case indicators."""
+
+    __tablename__ = "prevention_patterns"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    cluster_key: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(240))
+    status: Mapped[str] = mapped_column(String(32), default="UNREVIEWED", index=True)
+    behavioural_pattern: Mapped[str | None] = mapped_column(Text, nullable=True)
+    shared_indicators: Mapped[list] = mapped_column(JSON, default=list)
+    supporting_complaints: Mapped[list] = mapped_column(JSON, default=list)
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class PreventionPatternReview(Base):
+    __tablename__ = "prevention_pattern_reviews"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    pattern_id: Mapped[str] = mapped_column(ForeignKey("prevention_patterns.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(32))
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewer_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 class AnalysisRun(Base):
     __tablename__ = "analysis_runs"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)

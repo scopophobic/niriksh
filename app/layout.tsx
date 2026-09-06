@@ -3,11 +3,15 @@ import "./globals.css";
 import "./ui-refresh.css";
 import "./case-reconstruction.css";
 import "./landing-reconstruction.css";
+import "./prevention.css";
+import "./workspace-redesign.css";
+import "./case-network.css";
+import "./landing-prevention.css";
 import { CaseStoreProvider } from "@/lib/case-store";
 
 export const metadata: Metadata = {
-  title: "Niriksh | Evidence intelligence",
-  description: "Turn scattered cybercrime complaints into structured, source-backed case intelligence.",
+  title: "Niriksh | Prevention intelligence",
+  description: "Turn cybercrime reports into structured intelligence that helps surface recurring patterns earlier.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

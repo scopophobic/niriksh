@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ChevronRight, CircleHelp, Clock3, FileWarning, Filter, FolderOpen, Landmark, MapPin, Plus, Route, Search, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, CircleHelp, Clock3, FileWarning, Filter, FolderOpen, Landmark, MapPin, Route, Search, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useCaseStore } from "@/lib/case-store";
 import { REVIEW_CATEGORIES } from "@/lib/review-policy";
@@ -24,7 +24,6 @@ export function RoutingDashboard() {
   return <div className="page routing-dashboard-page">
     <section className="page-heading product-heading routing-page-heading">
       <div><div className="eyebrow">HUMAN CATEGORY WORKSPACE</div><h1>Subject folders</h1><p>Review cases by the category selected during intake. Received order is preserved; Niriksh does not generate a priority queue.</p></div>
-      <Link className="button button-primary" href="/report"><Plus size={17}/> New complaint</Link>
     </section>
 
     <section className="metric-grid routing-metrics">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FilePlus2, LifeBuoy, MessageSquareWarning, SearchCheck } from "lucide-react";
+import { ArrowRight, LifeBuoy, MessageCircle, MessageSquareWarning, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 import { POVSwitch } from "./POVSwitch";
 
@@ -10,12 +10,12 @@ export function PublicHeader() {
   const path = usePathname();
   return <header className="public-unified-header">
     <Link className="public-brand" href="/" aria-label="Niriksh home"><Logo/></Link>
-    <nav aria-label="Citizen navigation">
-      <Link className={path === "/track" ? "active" : ""} href="/track"><SearchCheck/>My complaints</Link>
-      <Link className={path === "/safety" ? "active" : ""} href="/safety"><MessageSquareWarning/>Check a message</Link>
-      <Link className={path === "/report" ? "active" : ""} href="/report"><FilePlus2/>Register complaint</Link>
+    <nav aria-label="Niriksh navigation">
+      <Link className={path.startsWith("/prevention") ? "active" : ""} href="/prevention"><Sparkles/>Explore intelligence</Link>
+      <Link className={path === "/whatsapp" ? "active" : ""} href="/whatsapp"><MessageCircle/>WhatsApp demo</Link>
+      <Link className={path === "/safety" ? "active" : ""} href="/safety"><MessageSquareWarning/>Safety check</Link>
       <a href="tel:1930"><LifeBuoy/>Get help</a>
     </nav>
-    <div className="public-header-switch"><POVSwitch current="citizen"/></div>
+    <div className="public-header-actions"><Link className="public-header-report" href="/report">Report an incident <ArrowRight/></Link><POVSwitch current="citizen"/></div>
   </header>;
 }

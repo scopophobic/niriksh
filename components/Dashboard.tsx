@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, CheckCircle2, ChevronRight, Clock3, FileCheck2, FolderOpen, Plus, Route, Search } from "lucide-react";
+import { ArrowRight, BrainCircuit, CheckCircle2, ChevronRight, Clock3, FileCheck2, FolderOpen, Route, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useCaseStore } from "@/lib/case-store";
 import { REVIEW_CATEGORIES } from "@/lib/review-policy";
@@ -26,7 +26,7 @@ export function Dashboard() {
     <div className="page dashboard-page product-dashboard">
       <section className="page-heading product-heading">
         <div><div className="eyebrow">EVIDENCE WORKSPACE</div><h1>Overview</h1><p>Understand complaints, organise evidence and prepare clear cases for review.</p></div>
-        <div className="heading-actions"><Link className="button button-ghost" href="/routing"><Route size={16}/> Routing dashboard</Link><Link className="button button-primary" href="/report"><Plus size={17}/> New analysis</Link></div>
+        <div className="heading-actions"><Link className="button button-ghost" href="/routing"><Route size={16}/> Routing dashboard</Link></div>
       </section>
 
       <section className="metric-grid product-metrics">
