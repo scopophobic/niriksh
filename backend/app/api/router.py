@@ -6,6 +6,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.bhumika.router import router as bhumika_router
 from app.modules.complaints.router import router as complaints_router
 from app.modules.connect.router import router as connect_router
+from app.modules.prevention.router import router as prevention_router
 from app.modules.evidence.router import intake_router as intake_evidence_router, router as evidence_router
 from app.modules.reports.router import router as reports_router
 from app.modules.routing.router import router as routing_router
@@ -15,6 +16,7 @@ from app.modules.tracking.router import router as tracking_router
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth_router)
 api_router.include_router(connect_router)
+api_router.include_router(prevention_router)
 api_router.include_router(complaints_router)
 api_router.include_router(evidence_router)
 api_router.include_router(intake_evidence_router)
