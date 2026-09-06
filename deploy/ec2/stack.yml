@@ -1,0 +1,289 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Economical single-instance Niriksh demo host with ECR and GitHub Actions OIDC.
+
+Parameters:
+  GitHubOwner:
+    Type: String
+    Description: GitHub organization or user that owns the repository.
+  GitHubRepository:
+    Type: String
+    Description: GitHub repository name only, without the owner.
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC containing the public subnet.
+  PublicSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public subnet with a route to an internet gateway.
+  InstanceType:
+    Type: String
+    Default: t4g.small
+    AllowedValues:
+      - t4g.small
+      - t4g.medium
+    Description: ARM64 instance type. t4g.small is sufficient for a small demo.
+  RootVolumeSize:
+    Type: Number
+    Default: 30
+    MinValue: 20
+    MaxValue: 100
+  UbuntuAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/arm64/hvm/ebs-gp3/ami-id
+  BillingAlertEmail:
+    Type: String
+    Default: ""
+    Description: Optional email for a USD 25 monthly AWS budget alert.
+
+Conditions:
+  CreateBudget: !Not [!Equals [!Ref BillingAlertEmail, ""]]
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      Tags:
+        - Key: Application
+          Value: Niriksh
+
+  WebRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: niriksh-web
+      EmptyOnDelete: true
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: >-
+          {"rules":[{"rulePriority":1,"description":"Keep the ten newest images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},"action":{"type":"expire"}}]}
+
+  ApiRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: niriksh-api
+      EmptyOnDelete: true
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: >-
+          {"rules":[{"rulePriority":1,"description":"Keep the ten newest images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},"action":{"type":"expire"}}]}
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: niriksh-demo-instance
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+        - Key: Application
+          Value: Niriksh
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Public HTTPS for the Niriksh demo; administration uses Session Manager.
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP for redirect and certificate issuance
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS
+        - IpProtocol: udp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTP/3
+      Tags:
+        - Key: Name
+          Value: niriksh-demo
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref UbuntuAmiId
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref PublicSubnetId
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      IamInstanceProfile: !Ref InstanceProfile
+      SourceDestCheck: true
+      MetadataOptions:
+        HttpTokens: required
+        HttpEndpoint: enabled
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: gp3
+            VolumeSize: !Ref RootVolumeSize
+            Encrypted: true
+            DeleteOnTermination: true
+      UserData:
+        Fn::Base64: |
+          #!/usr/bin/env bash
+          set -euxo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y ca-certificates curl git jq unzip docker.io docker-compose-v2 unattended-upgrades
+          systemctl enable --now docker
+
+          if ! command -v aws >/dev/null 2>&1; then
+            curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/awscliv2.zip
+            unzip -q /tmp/awscliv2.zip -d /tmp
+            /tmp/aws/install
+          fi
+
+          if ! id niriksh >/dev/null 2>&1; then
+            useradd --create-home --shell /bin/bash niriksh
+          fi
+          install -d -o niriksh -g niriksh -m 0755 /opt/niriksh/source
+          install -d -m 0755 /opt/niriksh/runtime
+          install -d -m 0700 /etc/niriksh
+          install -d -o niriksh -g niriksh -m 0700 /home/niriksh/.ssh
+
+          if [ ! -f /swapfile ]; then
+            fallocate -l 2G /swapfile
+            chmod 600 /swapfile
+            mkswap /swapfile
+            swapon /swapfile
+            echo '/swapfile none swap sw 0 0' >> /etc/fstab
+          fi
+
+          if snap list amazon-ssm-agent >/dev/null 2>&1; then
+            snap start amazon-ssm-agent || true
+          fi
+      Tags:
+        - Key: Name
+          Value: niriksh-demo
+        - Key: Application
+          Value: Niriksh
+
+  ElasticIp:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: niriksh-demo
+
+  ElasticIpAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt ElasticIp.AllocationId
+      InstanceId: !Ref Instance
+
+  GitHubActionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: niriksh-github-deploy
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOwner}/${GitHubRepository}:ref:refs/heads/main
+      Policies:
+        - PolicyName: PushImagesAndDeployNiriksh
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:CompleteLayerUpload
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:InitiateLayerUpload
+                  - ecr:PutImage
+                  - ecr:UploadLayerPart
+                Resource:
+                  - !GetAtt WebRepository.Arn
+                  - !GetAtt ApiRepository.Arn
+              - Effect: Allow
+                Action: ssm:SendCommand
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}::document/AWS-RunShellScript
+                  - !Sub arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/${Instance}
+              - Effect: Allow
+                Action:
+                  - ssm:GetCommandInvocation
+                  - ssm:ListCommandInvocations
+                Resource: "*"
+      Tags:
+        - Key: Application
+          Value: Niriksh
+
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Condition: CreateBudget
+    Properties:
+      Budget:
+        BudgetName: niriksh-demo-monthly
+        BudgetLimit:
+          Amount: 25
+          Unit: USD
+        BudgetType: COST
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: FORECASTED
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref BillingAlertEmail
+              SubscriptionType: EMAIL
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref BillingAlertEmail
+              SubscriptionType: EMAIL
+
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  ElasticIp:
+    Value: !Ref ElasticIp
+  GitHubActionsRoleArn:
+    Value: !GetAtt GitHubActionsRole.Arn
+  EcrRegistry:
+    Value: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}
+  SessionManagerUrl:
+    Value: !Sub https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${Instance}
