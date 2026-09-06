@@ -19,12 +19,17 @@ export default function Home() {
           <h1>Every complaint should make the next one safer.</h1>
           <p className="story-deck">Niriksh turns cybercrime reports into structured intelligence, learns recurring patterns across incidents, and helps surface threats earlier—under human review.</p>
           <div className="prevention-chips"><span>Prevention-first</span><span>Learns across incidents</span><span>Human-reviewed</span><span>Source-backed</span></div>
-          <Link className="hero-whatsapp-note" href="/whatsapp"><span><WhatsAppMark/></span><div><strong>You can file a complaint on WhatsApp</strong><small>Try Bhumika&apos;s guided reporting demo</small></div><ArrowRight/></Link>
           <div className="story-actions"><Link className="story-primary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link><Link className="story-secondary" href="/report">Report an incident</Link></div>
           <p className="story-boundary"><ShieldCheck/>People verify patterns and decide every operational action.</p>
         </div>
 
-        <div className="transformation" aria-label="Raw complaint material transformed into a structured case">
+        <div className="hero-right-column">
+          <Link className="hero-whatsapp-note hero-whatsapp-funk" href="/whatsapp" aria-label="Open Bhumika's guided WhatsApp reporting demo">
+            <span><WhatsAppMark/></span>
+            <div><small>Bhumika&apos;s guided demo</small><strong>File a complaint<br/>on WhatsApp</strong><em>Say it your way. We&apos;ll help shape the details.</em></div>
+            <ArrowRight/>
+          </Link>
+          <div className="transformation" aria-label="Raw complaint material transformed into a structured case">
           <div className="raw-material">
             <span className="transformation-label">Structured report</span>
             <div className="raw-slip raw-message"><FileText/><span><strong>Source-backed case</strong><small>Timeline and indicators</small></span></div>
@@ -37,6 +42,7 @@ export default function Home() {
             <div className="case-sheet-summary"><small>5 related incidents</small><strong>Recurring payment identifier and domain.</strong></div>
             <div className="case-sheet-event"><time>WHY</time><i/><span><strong>Same UPI ID in 5 reports</strong><small><Link2/>Source-backed indicators</small></span></div>
             <div className="case-sheet-indicator"><Fingerprint/><span><small>Recurring domain</small><strong translate="no">wealth-demo.example</strong></span><b>5 cases</b></div>
+          </div>
           </div>
         </div>
       </section>

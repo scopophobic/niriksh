@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Cloud, CloudOff, FilePlus2, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, Video, X } from "lucide-react";
+import { Cloud, CloudOff, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, Video, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { POVSwitch } from "./POVSwitch";
@@ -15,7 +15,6 @@ const navGroups = [
   ]},
   { label: "Casework", items: [
     { href: "/dashboard", label: "Cases", icon: LayoutDashboard },
-    { href: "/report", label: "New complaint", icon: FilePlus2 },
   ]},
   { label: "Operations", items: [
     { href: "/routing", label: "Routing desk", icon: Route },

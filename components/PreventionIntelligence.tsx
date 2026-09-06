@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { AlertTriangle, ArrowRight, CheckCircle2, CircleDot, Fingerprint, LoaderCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { PreventionPattern } from "@/lib/prevention-graph";
 
-type Pattern = { id: string; title: string; status: string; behavioural_pattern?: string; complaint_count: number; first_seen: string; last_seen: string; indicators: { type_label: string; display_value: string; case_count: number }[]; reasons: string[] };
+const CaseConnectionGraph = dynamic(
+  () => import("./CaseConnectionGraph").then(module => module.CaseConnectionGraph),
+  { loading: () => <div className="case-network-lazy"><LoaderCircle/>Preparing the interactive connection map…</div> },
+);
+
+type Pattern = PreventionPattern;
 const date = (value: string) => new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 const label = (status: string) => status.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, letter => letter.toUpperCase());
 
@@ -22,6 +29,7 @@ export function PreventionIntelligence() {
     {!patterns && !error && <div className="prevention-loading"><LoaderCircle/>Building explainable patterns from exact shared indicators…</div>}
     {patterns && <>
       <section className="pattern-overview"><div><small>Patterns to review</small><strong>{emerging.length}</strong><span>Candidate signals needing a human decision</span></div><div><small>Verified intelligence</small><strong>{verified.length}</strong><span>Eligible for future warnings</span></div><div><small>Recurring signals</small><strong>{recurringIndicators}</strong><span>Exact identifiers across {linkedCases} linked case views</span></div></section>
+      <CaseConnectionGraph patterns={patterns}/>
       <section className="impact-loop"><div className="impact-loop-heading"><div><p>THE PREVENTION LOOP</p><h2>Make impact visible without making it up.</h2><span>These are evidence checkpoints. They show what the system did and what still needs an outcome signal.</span></div></div><div className="impact-steps"><div className="impact-step complete"><CircleDot/><small>Observed</small><strong>{recurringIndicators} recurring signals</strong><span>Exact indicators found across cases.</span></div><div className="impact-connector"/><div className={`impact-step ${verified.length ? "complete" : "current"}`}><ShieldCheck/><small>Decided</small><strong>{verified.length} verified patterns</strong><span>Human review controls promotion.</span></div><div className="impact-connector"/><div className="impact-step"><LockKeyhole/><small>Acted</small><strong>Warnings and follow-up</strong><span>Measure matches reviewed and interventions recorded.</span></div><div className="impact-connector"/><div className="impact-step"><CircleDot/><small>Learned</small><strong>Outcome evidence</strong><span>Collect acknowledgement, intervention, or reduced repeat harm.</span></div></div><div className="impact-proof"><strong>What you can prove today</strong><span>Linked cases, shared indicators, review decisions, and warning matches.</span><strong>What you should measure next</strong><span>Was the warning reviewed? Was action taken? Did the same signal recur after intervention?</span></div></section>
       <section className="pattern-section"><header><div><p>EMERGING PATTERNS</p><h2>Connections with their evidence visible</h2><span>Every card begins with exact shared identifiers. Behavioural context adds explanation; it does not prove a relationship.</span></div></header>
         {emerging.length ? <div className="pattern-grid">{emerging.map(pattern => <PatternCard key={pattern.id} pattern={pattern}/>)}</div> : <div className="pattern-empty"><CheckCircle2/>No unreviewed candidate currently needs attention.</div>}

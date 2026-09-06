@@ -12,7 +12,12 @@ from app.db.session import build_database
 from app.modules.complaints.service import sync_case
 
 
-DEMO_IDS = ("demo-connect-a", "demo-connect-b", "demo-connect-c", "demo-connect-d", "demo-prevention-e", "demo-prevention-f")
+DEMO_IDS = (
+    "demo-connect-a", "demo-connect-b", "demo-connect-c", "demo-connect-d",
+    "demo-prevention-e", "demo-prevention-f",
+    "demo-arrest-g", "demo-arrest-h", "demo-arrest-i", "demo-arrest-j",
+    "demo-parcel-k", "demo-parcel-l", "demo-parcel-m", "demo-parcel-n",
+)
 
 
 def evidence(name: str, extracted_text: str) -> dict:
@@ -105,6 +110,80 @@ def analysis(
     }
 
 
+def compact_demo_case(
+    *,
+    case_id: str,
+    reference: str,
+    description: str,
+    summary: str,
+    review_category: str,
+    category: str,
+    status: str,
+    created_at: str,
+    created_label: str,
+    platform: str,
+    state: str,
+    team: str,
+    entities: list[dict],
+    evidence_name: str,
+    evidence_text: str,
+) -> dict:
+    evidence_items = [evidence(evidence_name, evidence_text)]
+    facts = [
+        {"label": item["type"], "value": item["value"], "source": f"Evidence: {evidence_name}"}
+        for item in entities
+    ]
+    return {
+        "id": case_id,
+        "reference": reference,
+        "description": description,
+        "summary": summary,
+        "reviewCategory": review_category,
+        "category": category,
+        "secondary": [],
+        "severity": "Needs review",
+        "severityScore": 0,
+        "status": status,
+        "completeness": 88,
+        "aiSuspected": False,
+        "createdAt": created_at,
+        "createdLabel": created_label,
+        "platform": platform,
+        "location": f"Demo district, {state}",
+        "department": [team],
+        "entities": entities,
+        "evidence": evidence_items,
+        "missing": [],
+        "riskFactors": [],
+        "confidence": 0,
+        "analysisDetails": analysis(
+            summary=summary,
+            category=category,
+            team=team,
+            entities=entities,
+            facts=facts,
+            timeline=[{
+                "when": created_label.replace("Demo · ", ""),
+                "what": "Fictional suspicious contact received",
+                "source": f"Evidence: {evidence_name}",
+                "precision": "Approximate",
+            }],
+            highlights=[],
+            missing=[],
+            evidence_items=evidence_items,
+            incident_status="Not sure",
+        ),
+        "complaintDetails": {
+            "selectedCategory": review_category,
+            "state": state,
+            "channel": platform,
+            "incidentStatus": "Not sure",
+            "reporterRole": "Person affected",
+            "declarationConfirmed": True,
+        },
+    }
+
+
 def build_cases() -> list[dict]:
     case_a_evidence = [
         evidence("login-notification.txt", "09:12 — New login notification received for the social account."),
@@ -186,6 +265,89 @@ def build_cases() -> list[dict]:
         "category": "Financial fraud", "platform": "Telegram",
     })
     cases.extend([case_e, case_f])
+
+    cases.extend([
+        compact_demo_case(
+            case_id="demo-arrest-g", reference="CYB-2026-D007",
+            description="A caller claiming to be from a court said my identity was linked to a crime. They called from +91 91111 12222 and directed me to https://secure-court-demo.example/notice before demanding a verification payment.",
+            summary="A fictional authority-impersonation call used a recurring phone number and court-lookalike domain.",
+            review_category="financial", category="Financial fraud", status="In review",
+            created_at="2026-09-01T14:30:00+05:30", created_label="Demo · 5 days ago",
+            platform="Phone / Web", state="Tamil Nadu", team="Financial complaint review",
+            entities=[{"type": "Phone", "value": "+91 91111 12222"}, {"type": "URL", "value": "https://secure-court-demo.example/notice"}],
+            evidence_name="court-call-note.txt", evidence_text="Caller +91 91111 12222 directed the reporter to https://secure-court-demo.example/notice and requested a verification fee.",
+        ),
+        compact_demo_case(
+            case_id="demo-arrest-h", reference="CYB-2026-D008",
+            description="A fictional police officer called from +91-91111-12222, claimed a parcel contained illegal documents, and pressured me to remain on a video call.",
+            summary="A second fictional authority-pressure report contains the same normalized caller number.",
+            review_category="financial", category="Financial fraud", status="Awaiting review",
+            created_at="2026-08-31T11:05:00+05:30", created_label="Demo · 6 days ago",
+            platform="Phone", state="Telangana", team="Financial complaint review",
+            entities=[{"type": "Phone", "value": "+91-91111-12222"}],
+            evidence_name="caller-number.txt", evidence_text="Incoming caller shown as +91-91111-12222 during the fictional authority-pressure call.",
+        ),
+        compact_demo_case(
+            case_id="demo-arrest-i", reference="CYB-2026-D009",
+            description="A message containing a fake legal notice asked me to upload identity documents at https://secure-court-demo.example/upload. I closed the page without uploading anything.",
+            summary="A fictional legal-notice message shares the court-lookalike domain but not the recurring caller number.",
+            review_category="access", category="Account access and phishing", status="Routed",
+            created_at="2026-08-30T18:45:00+05:30", created_label="Demo · 7 days ago",
+            platform="SMS / Web", state="Gujarat", team="Account and phishing review",
+            entities=[{"type": "URL", "value": "https://secure-court-demo.example/upload"}],
+            evidence_name="legal-notice-link.txt", evidence_text="The fictional notice displayed https://secure-court-demo.example/upload as an identity-verification portal.",
+        ),
+        compact_demo_case(
+            case_id="demo-arrest-j", reference="CYB-2026-D010",
+            description="A caller using +919111112222 claimed to be an investigator and sent https://secure-court-demo.example/hearing during the call. They requested a refundable security deposit.",
+            summary="A fictional recent report bridges the recurring phone number and court-lookalike domain.",
+            review_category="financial", category="Financial fraud", status="Awaiting review",
+            created_at="2026-09-06T19:20:00+05:30", created_label="Demo · today, 19:20",
+            platform="Phone / WhatsApp", state="Delhi", team="Financial complaint review",
+            entities=[{"type": "Phone", "value": "+919111112222"}, {"type": "URL", "value": "https://secure-court-demo.example/hearing"}],
+            evidence_name="hearing-message.txt", evidence_text="Caller +919111112222 shared https://secure-court-demo.example/hearing and requested a fictional security deposit.",
+        ),
+        compact_demo_case(
+            case_id="demo-parcel-k", reference="CYB-2026-D011",
+            description="A courier caller from +91 93333 34444 said my parcel was held and sent https://parcel-release-demo.example/track for a small release fee.",
+            summary="A fictional parcel-release approach contains a recurring phone number and delivery-lookalike domain.",
+            review_category="financial", category="Financial fraud", status="Awaiting review",
+            created_at="2026-08-29T09:10:00+05:30", created_label="Demo · 8 days ago",
+            platform="Phone / SMS", state="West Bengal", team="Financial complaint review",
+            entities=[{"type": "Phone", "value": "+91 93333 34444"}, {"type": "URL", "value": "https://parcel-release-demo.example/track"}],
+            evidence_name="parcel-tracking-message.txt", evidence_text="Call from +91 93333 34444 was followed by https://parcel-release-demo.example/track.",
+        ),
+        compact_demo_case(
+            case_id="demo-parcel-l", reference="CYB-2026-D012",
+            description="A caller using +919333334444 requested a customs charge through parcel-release@upi. I saved the payment message and did not pay.",
+            summary="A fictional customs-fee report shares the parcel caller and a recurring payment identifier.",
+            review_category="financial", category="Financial fraud", status="In review",
+            created_at="2026-08-28T13:55:00+05:30", created_label="Demo · 9 days ago",
+            platform="Phone", state="Rajasthan", team="Financial complaint review",
+            entities=[{"type": "Phone", "value": "+919333334444"}, {"type": "UPI ID", "value": "parcel-release@upi"}],
+            evidence_name="customs-payment.txt", evidence_text="Caller +919333334444 requested the fictional customs charge at parcel-release@upi.",
+        ),
+        compact_demo_case(
+            case_id="demo-parcel-m", reference="CYB-2026-D013",
+            description="An SMS linked to https://parcel-release-demo.example/fee and asked for payment to PARCEL-RELEASE@UPI to avoid returning a delivery.",
+            summary="A fictional delivery-fee message shares the recurring domain and payment identifier.",
+            review_category="financial", category="Financial fraud", status="Routed",
+            created_at="2026-08-27T16:25:00+05:30", created_label="Demo · 10 days ago",
+            platform="SMS / Web", state="Maharashtra", team="Financial complaint review",
+            entities=[{"type": "URL", "value": "https://parcel-release-demo.example/fee"}, {"type": "UPI ID", "value": "PARCEL-RELEASE@UPI"}],
+            evidence_name="delivery-fee.txt", evidence_text="The message used https://parcel-release-demo.example/fee and requested PARCEL-RELEASE@UPI.",
+        ),
+        compact_demo_case(
+            case_id="demo-parcel-n", reference="CYB-2026-D014",
+            description="A caller from +91-93333-34444 sent https://parcel-release-demo.example/pay and asked for parcel-release@upi after claiming a shipment required clearance.",
+            summary="A fictional report bridges all three recurring parcel-release identifiers.",
+            review_category="financial", category="Financial fraud", status="Awaiting review",
+            created_at="2026-09-05T08:35:00+05:30", created_label="Demo · yesterday, 08:35",
+            platform="WhatsApp", state="Karnataka", team="Financial complaint review",
+            entities=[{"type": "Phone", "value": "+91-93333-34444"}, {"type": "URL", "value": "https://parcel-release-demo.example/pay"}, {"type": "UPI ID", "value": "parcel-release@upi"}],
+            evidence_name="parcel-clearance-chat.txt", evidence_text="Chat from +91-93333-34444 linked to https://parcel-release-demo.example/pay and requested parcel-release@upi.",
+        ),
+    ])
     for case in cases:
         case["audit"] = [
             {"label": "Fictional demo complaint loaded", "detail": "Safe fixture data was loaded for the Report → Understand → Connect walkthrough.", "time": "Demo seed", "actor": "Demo utility"},
@@ -211,6 +373,7 @@ def seed_demo(db) -> int:
     reset_demo(db)
     for case in build_cases():
         complaint = sync_case(db, case, source_channel="demo_seed", event_type="demo.seeded")
+        complaint.created_at = datetime.fromisoformat(case["createdAt"])
         db.flush()
         db.add(Report(
             complaint_id=complaint.id,

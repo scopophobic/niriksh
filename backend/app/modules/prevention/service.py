@@ -19,6 +19,10 @@ def _id(value: str) -> str:
 
 def _behaviour(cases: list[Complaint]) -> str | None:
     text = " ".join(f"{case.description} {case.summary}".casefold() for case in cases)
+    if "court" in text or "investigator" in text or "police officer" in text:
+        return "Authority impersonation → isolation or verification pressure → payment demand"
+    if "parcel" in text or "courier" in text or "customs" in text:
+        return "Parcel or delivery claim → release-fee pressure → payment request"
     if "investment" in text or "high return" in text or "trading" in text:
         return "Investment or high-return wording → contact or messaging channel → payment request"
     if "impersonat" in text and ("payment" in text or "money" in text):
@@ -30,6 +34,10 @@ def _behaviour(cases: list[Complaint]) -> str | None:
 
 def _title(cases: list[Complaint], behaviour: str | None) -> str:
     text = " ".join(f"{case.category} {case.description}".casefold() for case in cases)
+    if "court" in text or "investigator" in text or "police officer" in text:
+        return "Digital arrest and authority-impersonation pattern"
+    if "parcel" in text or "courier" in text or "customs" in text:
+        return "Parcel-release fee pattern"
     if "investment" in text or "high return" in text or "trading" in text:
         return "Investment impersonation / high-return pattern"
     if "impersonat" in text:
@@ -84,7 +92,21 @@ def aggregate_patterns(db: Session) -> list[PreventionPattern]:
             matching_ids = {case.id for _, case in values}
             if len(matching_ids & ids) >= 2:
                 sample = next(row for row, case in values if case.id in ids)
-                indicator_items.append({"type": kind, "type_label": DISPLAY_TYPES[kind], "display_value": sample.raw_value, "normalized_value": normalized, "case_count": len(matching_ids & ids), "sources": sorted({row.source_label for row, case in values if case.id in ids})})
+                connected_case_ids = sorted(matching_ids & ids)
+                case_sources = {
+                    case_id: sorted({row.source_label for row, case in values if case.id == case_id})
+                    for case_id in connected_case_ids
+                }
+                indicator_items.append({
+                    "type": kind,
+                    "type_label": DISPLAY_TYPES[kind],
+                    "display_value": sample.raw_value,
+                    "normalized_value": normalized,
+                    "case_count": len(connected_case_ids),
+                    "case_ids": connected_case_ids,
+                    "case_sources": case_sources,
+                    "sources": sorted({row.source_label for row, case in values if case.id in ids}),
+                })
         indicator_items.sort(key=lambda item: (-item["case_count"], item["type_label"], item["normalized_value"]))
         cluster_key = sha256("|".join(f"{item['type']}:{item['normalized_value']}" for item in indicator_items).encode()).hexdigest()
         pattern = db.scalar(select(PreventionPattern).where(PreventionPattern.cluster_key == cluster_key))
