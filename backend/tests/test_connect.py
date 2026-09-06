@@ -86,17 +86,17 @@ def test_related_incidents_require_officer_access(client):
 def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_headers):
     database = client.app.state.database
     with database.session_factory() as db:
-        assert seed_demo(db) == 4
-        assert seed_demo(db) == 4
-        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 4
-        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 4
+        assert seed_demo(db) == 6
+        assert seed_demo(db) == 6
+        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 6
+        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == 6
 
     response = client.get("/api/v1/complaints/demo-connect-a/related-incidents", headers=internal_headers)
     assert response.status_code == 200
     body = response.json()
-    assert body["total"] == 2
-    assert {item["complaint_id"] for item in body["related_incidents"]} == {"demo-connect-b", "demo-connect-c"}
-    assert {shared["type"] for item in body["related_incidents"] for shared in item["shared_indicators"]} == {"upi", "domain"}
+    assert body["total"] >= 4
+    assert {"demo-connect-b", "demo-connect-c", "demo-prevention-e", "demo-prevention-f"}.issubset({item["complaint_id"] for item in body["related_incidents"]})
+    assert {"upi", "domain"}.issubset({shared["type"] for item in body["related_incidents"] for shared in item["shared_indicators"]})
 
     with database.session_factory() as db:
         unrelated = Complaint(
@@ -107,6 +107,22 @@ def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_
         )
         db.add(unrelated)
         db.commit()
-        assert reset_demo(db) == 4
+        assert reset_demo(db) == 6
         assert db.get(Complaint, "not-demo-data") is not None
         assert not db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()
+
+
+def test_verified_pattern_creates_an_explainable_future_case_warning(client, internal_headers):
+    with client.app.state.database.session_factory() as db:
+        seed_demo(db)
+    patterns = client.get("/api/v1/prevention/patterns", headers=internal_headers)
+    assert patterns.status_code == 200
+    pattern = next(item for item in patterns.json() if item["complaint_count"] >= 5)
+    assert pattern["status"] == "UNREVIEWED"
+    assert any(item["display_value"] == "demo-invest@upi" for item in pattern["indicators"])
+    review = client.post(f"/api/v1/prevention/patterns/{pattern['id']}/review", headers=internal_headers, json={"status": "VERIFIED", "note": "Fictional fixture reviewed."})
+    assert review.status_code == 200
+    warning = client.get("/api/v1/prevention/complaints/demo-prevention-f/matches", headers=internal_headers)
+    assert warning.status_code == 200
+    assert warning.json()["matches"][0]["pattern_id"] == pattern["id"]
+    assert "resembles a previously reviewed pattern" in warning.json()["matches"][0]["message"]

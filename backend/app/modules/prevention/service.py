@@ -102,6 +102,8 @@ def aggregate_patterns(db: Session) -> list[PreventionPattern]:
 
 def list_patterns(db: Session) -> list[dict]:
     aggregate_patterns(db)
+    # Candidates are durable so a later human review addresses the same explainable cluster.
+    db.commit()
     cases = {item.id: item for item in db.scalars(select(Complaint)).all()}
     patterns = db.scalars(select(PreventionPattern).order_by(PreventionPattern.updated_at.desc())).all()
     return [_serialize(pattern, cases) for pattern in patterns]
@@ -109,6 +111,7 @@ def list_patterns(db: Session) -> list[dict]:
 
 def get_pattern(db: Session, pattern_id: str) -> dict:
     aggregate_patterns(db)
+    db.commit()
     pattern = db.get(PreventionPattern, pattern_id)
     if not pattern: raise LookupError("Pattern not found")
     cases = {item.id: item for item in db.scalars(select(Complaint)).all()}

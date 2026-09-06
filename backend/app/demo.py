@@ -1,6 +1,7 @@
 """Seed or reset the fictional Report → Understand → Connect demo scenario."""
 
 import argparse
+import copy
 from datetime import datetime, timezone
 
 from sqlalchemy import select
@@ -11,7 +12,7 @@ from app.db.session import build_database
 from app.modules.complaints.service import sync_case
 
 
-DEMO_IDS = ("demo-connect-a", "demo-connect-b", "demo-connect-c", "demo-connect-d")
+DEMO_IDS = ("demo-connect-a", "demo-connect-b", "demo-connect-c", "demo-connect-d", "demo-prevention-e", "demo-prevention-f")
 
 
 def evidence(name: str, extracted_text: str) -> dict:
@@ -164,6 +165,27 @@ def build_cases() -> list[dict]:
             "complaintDetails": {"selectedCategory": "financial", "state": "Kerala", "channel": "Web", "incidentStatus": "Not sure", "reporterRole": "Person affected", "declarationConfirmed": True},
         },
     ]
+    # The prevention demo remains fictional. Five reports share exact reserved identifiers;
+    # the sixth deliberately does not, proving category similarity is not enough.
+    shared_sentence = " This fictional high-return investment message directed the reporter to Telegram and requested payment to demo-invest@upi through https://wealth-demo.example/join."
+    for case in cases[:3]:
+        case["description"] += shared_sentence
+        case["entities"].extend([{"type": "UPI ID", "value": "demo-invest@upi"}, {"type": "URL", "value": "https://wealth-demo.example/join"}])
+    case_e = copy.deepcopy(cases[1])
+    case_e.update({
+        "id": "demo-prevention-e", "reference": "CYB-2026-D005", "createdAt": "2026-09-02T10:00:00+05:30", "createdLabel": "Demo · 4 days ago",
+        "description": "A fictional recruiter promised guaranteed training returns, moved the conversation to Telegram, and requested a fee at demo-invest@upi using https://wealth-demo.example/join.",
+        "summary": "A fictional recruitment-style investment offer contains recurring payment and domain identifiers.",
+        "category": "Financial fraud", "platform": "Telegram",
+    })
+    case_f = copy.deepcopy(cases[1])
+    case_f.update({
+        "id": "demo-prevention-f", "reference": "CYB-2026-D006", "createdAt": "2026-09-06T17:10:00+05:30", "createdLabel": "Demo · today, 17:10",
+        "description": "A fictional investment dashboard offered high returns and asked for payment to demo-invest@upi after a Telegram conversation. The link shown was https://wealth-demo.example/join.",
+        "summary": "A fictional recent report can demonstrate a future match once the recurring pattern is verified.",
+        "category": "Financial fraud", "platform": "Telegram",
+    })
+    cases.extend([case_e, case_f])
     for case in cases:
         case["audit"] = [
             {"label": "Fictional demo complaint loaded", "detail": "Safe fixture data was loaded for the Report → Understand → Connect walkthrough.", "time": "Demo seed", "actor": "Demo utility"},
