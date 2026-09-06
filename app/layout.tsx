@@ -5,6 +5,7 @@ import "./case-reconstruction.css";
 import "./landing-reconstruction.css";
 import "./prevention.css";
 import "./workspace-redesign.css";
+import "./landing-prevention.css";
 import { CaseStoreProvider } from "@/lib/case-store";
 
 export const metadata: Metadata = {
