@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import time
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 
@@ -25,16 +26,62 @@ def test_login_and_database_health(client):
     assert me.json()["email"] == "triage@example.local"
 
 
+def test_message_checker_is_rule_based_private_and_non_judgmental(client):
+    checked = client.post("/api/v1/safety/check-message", json={
+        "text": "URGENT: Share your OTP and pay a processing fee to unknown-payee@upi now."
+    })
+    assert checked.status_code == 200
+    result = checked.json()
+    assert result["signal_count"] >= 3
+    assert result["retention"].endswith("not saved by this checker.")
+    assert "not a finding" in result["disclaimer"].lower()
+    assert result["directory_matches"][0]["found"] is False
+
+
+def test_identifier_directory_hashes_values_and_requires_officer_to_publish(client, internal_headers):
+    unauthorized = client.post("/api/v1/safety/identifiers", json={"value": "review-payee@upi"})
+    assert unauthorized.status_code == 401
+
+    recorded = client.post("/api/v1/safety/identifiers", headers=internal_headers, json={
+        "value": "review-payee@upi",
+        "type": "upi",
+        "status": "reviewed_concern",
+        "review_note": "Fictional test record reviewed by an officer.",
+    })
+    assert recorded.status_code == 201
+    assert recorded.json()["masked_value"] != "review-payee@upi"
+
+    lookup = client.post("/api/v1/safety/lookup", json={"value": "REVIEW-PAYEE@UPI", "type": "upi"})
+    assert lookup.status_code == 200
+    assert lookup.json()["found"] is True
+    assert lookup.json()["status"] == "reviewed_concern"
+    assert "proof" in lookup.json()["meaning"].lower()
+
+    missing = client.post("/api/v1/safety/lookup", json={"value": "unknown-demo@upi", "type": "upi"})
+    assert missing.json()["found"] is False
+    assert "does not mean" in missing.json()["meaning"].lower()
+
+
+def test_category_catalog_states_human_decision_policy(client):
+    response = client.get("/api/v1/safety/categories")
+    assert response.status_code == 200
+    assert len(response.json()["categories"]) == 7
+    assert "does not assign priority" in response.json()["policy"]
+
+
 def test_complaint_is_analyzed_persisted_and_versioned(client, internal_headers):
     created = client.post("/api/v1/complaints", json={
         "description": "Yesterday an AI fake video used my identity on Instagram for a scam and a victim transferred money.",
-        "complaint_details": {"channel": "Instagram", "state": "Delhi", "incidentDate": "2026-09-02"},
+        "complaint_details": {"selectedCategory": "social", "channel": "Instagram", "state": "Delhi", "incidentDate": "2026-09-02"},
         "evidence": [{"name": "screen.png", "type": "Image", "size": "120 KB", "mimeType": "image/png"}],
     })
     assert created.status_code == 201
     case = created.json()
     assert case["reference"].startswith("CYB-")
-    assert case["category"] == "Synthetic media impersonation"
+    assert case["category"] == "Social media and identity misuse"
+    assert case["severity"] == "Needs review"
+    assert case["severityScore"] == 0
+    assert case["confidence"] == 0
 
     listing = client.get("/api/v1/complaints", headers=internal_headers)
     assert listing.status_code == 200
@@ -56,6 +103,8 @@ def test_complaint_is_analyzed_persisted_and_versioned(client, internal_headers)
 
 
 def test_guided_form_intake_gets_backend_reference_and_cannot_overwrite(client, internal_headers):
+    evidence_bytes = b"browser evidence bytes"
+    evidence_sha256 = hashlib.sha256(evidence_bytes).hexdigest()
     raw = {
         "id": "submitted-browser-1",
         "reference": "CLIENT-TEMP",
@@ -71,7 +120,13 @@ def test_guided_form_intake_gets_backend_reference_and_cannot_overwrite(client, 
         "createdLabel": "Just now",
         "department": ["General Cybercrime Review"],
         "entities": [],
-        "evidence": [],
+        "evidence": [{
+            "name": "browser-proof.txt",
+            "type": "Document",
+            "size": "22 bytes",
+            "mimeType": "text/plain",
+            "sha256": evidence_sha256,
+        }],
         "missing": [],
         "riskFactors": ["Threat"],
         "audit": [],
@@ -85,14 +140,22 @@ def test_guided_form_intake_gets_backend_reference_and_cannot_overwrite(client, 
     uploaded = client.post(
         "/api/v1/complaints/submitted-browser-1/intake-evidence",
         headers={"X-Complaint-Token": created.json()["_uploadToken"]},
-        files={"evidence": ("browser-proof.txt", b"browser evidence bytes", "text/plain")},
-        data={"evidence_type": "Document"},
+        files={"evidence": ("browser-proof.txt", evidence_bytes, "text/plain")},
+        data={"evidence_type": "Document", "expected_sha256": evidence_sha256},
     )
     assert uploaded.status_code == 201
     assert len(uploaded.json()["sha256"]) == 64
     downloaded = client.get(uploaded.json()["download_url"], headers=internal_headers)
     assert downloaded.status_code == 200
-    assert downloaded.content == b"browser evidence bytes"
+    assert downloaded.content == evidence_bytes
+    repeated_upload = client.post(
+        "/api/v1/complaints/submitted-browser-1/intake-evidence",
+        headers={"X-Complaint-Token": created.json()["_uploadToken"]},
+        files={"evidence": ("browser-proof.txt", evidence_bytes, "text/plain")},
+        data={"evidence_type": "Document", "expected_sha256": evidence_sha256},
+    )
+    assert repeated_upload.status_code == 201
+    assert repeated_upload.json()["id"] == uploaded.json()["id"]
     duplicate = client.post("/api/v1/complaints/intake", json={**raw, "summary": "overwrite"})
     assert duplicate.status_code == 409
 
@@ -121,7 +184,7 @@ def test_evidence_hash_report_routing_and_audit(client, internal_headers):
     routed = client.post(
         f"/api/v1/triage/{case['id']}/decision",
         headers=internal_headers,
-        json={"action": "approve", "departments": ["Financial Fraud Unit"]},
+        json={"action": "approve", "departments": ["Financial complaint review"], "reason": "Officer reviewed the complaint and confirmed the destination."},
     )
     assert routed.status_code == 201
     audit = client.get(f"/api/v1/audit/complaints/{case['id']}", headers=internal_headers)
@@ -284,6 +347,11 @@ def test_bhumika_curated_intake_is_authenticated_idempotent_and_creates_report(c
     assert result["case_status"] == "Awaiting review"
     assert result["report"]["version"] == 1
     assert result["analysis"]["category"]
+    assert result["tracking_url"].startswith("http://localhost:3000/track?token=")
+    assert result["tracking_number"] in result["message_for_victim"]
+    assert result["tracking_url"] in result["message_for_victim"]
+    assert result["updates_path"].endswith("/updates")
+    assert result["supplements_path"].endswith("/supplements")
 
     duplicate = client.post("/api/v1/integrations/bhumika/intakes", headers=bhumika_headers(), json=bhumika_payload())
     assert duplicate.status_code == 200
@@ -295,6 +363,136 @@ def test_bhumika_curated_intake_is_authenticated_idempotent_and_creates_report(c
     conflict_payload["description"] += " This payload is different."
     conflict = client.post("/api/v1/integrations/bhumika/intakes", headers=bhumika_headers(), json=conflict_payload)
     assert conflict.status_code == 409
+
+
+def test_bhumika_tracking_link_is_public_but_exposes_only_safe_status(client):
+    created = client.post(
+        "/api/v1/integrations/bhumika/intakes",
+        headers=bhumika_headers(),
+        json=bhumika_payload("submission-tracking-1"),
+    )
+    assert created.status_code == 201
+    result = created.json()
+    token = parse_qs(urlparse(result["tracking_url"]).query)["token"][0]
+
+    tracked = client.get(f"/api/v1/public/tracking/{token}")
+    assert tracked.status_code == 200
+    public = tracked.json()
+    assert public["tracking_number"] == result["tracking_number"]
+    assert public["case_status"] == "Awaiting review"
+    assert public["report_prepared"] is True
+    assert public["report_version"] == 1
+    assert public["updates"]
+    assert "complaint_id" not in public
+    assert "description" not in public
+    assert "evidence" not in public
+    assert "report" not in public
+    assert client.get("/api/v1/public/tracking/not-a-token").status_code == 401
+
+    updates = client.get(result["updates_path"], headers=bhumika_headers())
+    assert updates.status_code == 200
+    assert updates.json()["tracking_url"] == result["tracking_url"]
+    assert updates.json()["updates"]
+
+
+def test_bhumika_supplement_updates_same_case_and_versions_report(client):
+    created = client.post(
+        "/api/v1/integrations/bhumika/intakes",
+        headers=bhumika_headers(),
+        json=bhumika_payload("submission-supplement-1"),
+    )
+    assert created.status_code == 201
+    original = created.json()
+
+    supplement_payload = {
+        "schema_version": "1.0",
+        "supplement_id": "supplement-message-1",
+        "description_addendum": "The victim later supplied the receiving UPI ID demo-payee@example.",
+        "complaint_details": {
+            "financial": {"bankOrWallet": "UPI", "beneficiary": "demo-payee@example"},
+        },
+        "evidence": [],
+        "finalize": True,
+    }
+    supplemented = client.post(
+        original["supplements_path"],
+        headers=bhumika_headers(),
+        json=supplement_payload,
+    )
+    assert supplemented.status_code == 201
+    result = supplemented.json()
+    assert result["complaint_id"] == original["complaint_id"]
+    assert result["tracking_number"] == original["tracking_number"]
+    assert result["tracking_url"] == original["tracking_url"]
+    assert result["report"]["version"] == 2
+    assert result["supplement"]["processing_status"] == "completed"
+
+    duplicate = client.post(
+        original["supplements_path"],
+        headers=bhumika_headers(),
+        json=supplement_payload,
+    )
+    assert duplicate.status_code == 200
+    assert duplicate.json()["duplicate"] is True
+    assert duplicate.json()["report"]["version"] == 2
+
+    changed = {
+        **supplement_payload,
+        "description_addendum": "A different retry must not overwrite the accepted supplement.",
+    }
+    conflict = client.post(original["supplements_path"], headers=bhumika_headers(), json=changed)
+    assert conflict.status_code == 409
+
+
+def test_bhumika_media_supplement_upload_is_idempotent_and_finalizes_once(client):
+    original = client.post(
+        "/api/v1/integrations/bhumika/intakes",
+        headers=bhumika_headers(),
+        json=bhumika_payload("submission-media-supplement-1"),
+    ).json()
+    supplement = client.post(
+        original["supplements_path"],
+        headers=bhumika_headers(),
+        json={
+            "schema_version": "1.0",
+            "supplement_id": "supplement-media-1",
+            "evidence": [{
+                "name": "follow-up.txt",
+                "type": "Document",
+                "size": "23 bytes",
+                "mimeType": "text/plain",
+            }],
+            "finalize": False,
+        },
+    )
+    assert supplement.status_code == 201
+    paths = supplement.json()["supplement"]
+
+    upload = client.post(
+        paths["evidence_upload_path"],
+        headers=bhumika_headers(),
+        files={"evidence": ("follow-up.txt", b"fictional follow-up data", "text/plain")},
+        data={"external_evidence_id": "wa-media-follow-up-1", "evidence_type": "Document"},
+    )
+    assert upload.status_code == 201
+    assert upload.json()["evidence"]["status"] == "stored"
+
+    duplicate_upload = client.post(
+        paths["evidence_upload_path"],
+        headers=bhumika_headers(),
+        files={"evidence": ("follow-up.txt", b"fictional follow-up data", "text/plain")},
+        data={"external_evidence_id": "wa-media-follow-up-1", "evidence_type": "Document"},
+    )
+    assert duplicate_upload.status_code == 200
+    assert duplicate_upload.json()["duplicate"] is True
+
+    finalized = client.post(paths["finalize_path"], headers=bhumika_headers())
+    assert finalized.status_code == 200
+    assert finalized.json()["report"]["version"] == 2
+    finalized_again = client.post(paths["finalize_path"], headers=bhumika_headers())
+    assert finalized_again.status_code == 200
+    assert finalized_again.json()["duplicate"] is True
+    assert finalized_again.json()["report"]["version"] == 2
 
 
 def test_bhumika_evidence_upload_then_finalize_runs_media_analysis(client):

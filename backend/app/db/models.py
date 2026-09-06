@@ -50,6 +50,7 @@ class Complaint(Base):
 
     evidence: Mapped[list["EvidenceItem"]] = relationship(back_populates="complaint", cascade="all, delete-orphan")
     analyses: Mapped[list["AnalysisRun"]] = relationship(back_populates="complaint", cascade="all, delete-orphan")
+    indicators: Mapped[list["CaseIndicator"]] = relationship(back_populates="complaint", cascade="all, delete-orphan")
 
 
 class EvidenceItem(Base):
@@ -71,6 +72,29 @@ class EvidenceItem(Base):
     metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     complaint: Mapped[Complaint] = relationship(back_populates="evidence")
+
+
+class CaseIndicator(Base):
+    """An explicit submitted or extracted identifier used for deterministic correlation."""
+
+    __tablename__ = "case_indicators"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("complaints.id", ondelete="CASCADE"), index=True)
+    indicator_type: Mapped[str] = mapped_column(String(40))
+    raw_value: Mapped[str] = mapped_column(String(700))
+    normalized_value: Mapped[str] = mapped_column(String(500))
+    source_evidence_id: Mapped[str | None] = mapped_column(
+        ForeignKey("evidence_items.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    extraction_source: Mapped[str] = mapped_column(String(40), default="deterministic")
+    source_label: Mapped[str] = mapped_column(String(500), default="Complaint record")
+    metadata_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+    complaint: Mapped[Complaint] = relationship(back_populates="indicators")
+
+
+Index("ix_case_indicators_match", CaseIndicator.indicator_type, CaseIndicator.normalized_value)
 
 
 class AnalysisRun(Base):
@@ -108,6 +132,24 @@ class RoutingDecision(Base):
     recommendation: Mapped[dict] = mapped_column(JSON, default=dict)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     actor_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class SuspectIdentifier(Base):
+    """Privacy-preserving aggregate; the original identifier is never stored."""
+
+    __tablename__ = "suspect_identifiers"
+    __table_args__ = (UniqueConstraint("identifier_type", "value_hash", name="uq_suspect_identifier_hash"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    identifier_type: Mapped[str] = mapped_column(String(32), index=True)
+    value_hash: Mapped[str] = mapped_column(String(64), index=True)
+    masked_value: Mapped[str] = mapped_column(String(320))
+    status: Mapped[str] = mapped_column(String(32), default="reported", index=True)
+    report_count: Mapped[int] = mapped_column(Integer, default=1)
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    first_reported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    last_reported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
@@ -186,6 +228,24 @@ class IntegrationSubmission(Base):
     external_submission_id: Mapped[str] = mapped_column(String(250), index=True)
     external_conversation_id: Mapped[str] = mapped_column(String(250), index=True)
     complaint_id: Mapped[str | None] = mapped_column(ForeignKey("complaints.id", ondelete="SET NULL"), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(30), default="received", index=True)
+    request_payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class IntegrationSupplement(Base):
+    __tablename__ = "integration_supplements"
+    __table_args__ = (
+        UniqueConstraint("integration_submission_id", "external_supplement_id", name="uq_integration_supplement"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    integration_submission_id: Mapped[str] = mapped_column(
+        ForeignKey("integration_submissions.id", ondelete="CASCADE"), index=True
+    )
+    external_supplement_id: Mapped[str] = mapped_column(String(250), index=True)
     status: Mapped[str] = mapped_column(String(30), default="received", index=True)
     request_payload: Mapped[dict] = mapped_column(JSON, default=dict)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)

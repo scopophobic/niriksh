@@ -45,10 +45,6 @@ export interface MultimodalInsight {
   provider: "OpenAI" | "Gemini";
   model: string;
   situationSummary: string;
-  category: string;
-  severity: Severity;
-  confidence: number;
-  suspectedAiManipulation: boolean;
   importantIndicators: AnalysisHighlight[];
   evidenceFindings: Array<{
     fileName: string;
@@ -166,6 +162,7 @@ export interface AuditEvent {
 }
 
 export interface TriageCase {
+  reviewCategory?: string;
   id: string;
   reference: string;
   summary: string;
@@ -197,6 +194,40 @@ export interface TriageCase {
     totalEntities: number;
     confirmedAt?: string;
   };
+}
+
+export interface IndicatorSource {
+  label: string;
+  evidence_id?: string | null;
+  evidence_name?: string | null;
+}
+
+export interface SharedIndicator {
+  type: string;
+  type_label: string;
+  display_value: string;
+  normalized_value: string;
+  current_sources: IndicatorSource[];
+  related_sources: IndicatorSource[];
+}
+
+export interface RelatedIncident {
+  complaint_id: string;
+  reference: string;
+  summary: string;
+  category: string;
+  status: CaseStatus;
+  created_at: string;
+  matched_indicator_count: number;
+  shared_indicators: SharedIndicator[];
+}
+
+export interface RelatedIncidentsResponse {
+  complaint_id: string;
+  reference: string;
+  total: number;
+  related_incidents: RelatedIncident[];
+  disclaimer: string;
 }
 
 export interface AnalysisResult {

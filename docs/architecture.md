@@ -1,118 +1,188 @@
-# Niriksh backend architecture
+# Niriksh architecture
 
-Last updated: 4 September 2026
+Last verified: 6 September 2026
 
-## System boundary
+## Product and system boundary
 
 ```text
-Citizen web form ──> Next.js BFF ────────────────┐
-                                                  v
-Victim <─> WhatsApp/Meta <─> Bhumika ──HTTPS──> FastAPI modular monolith
-                                                  |-- auth/RBAC
-                                                  |-- Bhumika integration
-                                                  |-- complaints
-                                                  |-- evidence
-                                                  |-- analysis
-                                                  |-- reports
-                                                  |-- routing
-                                                  `-- audit
-                                                    |-- Supabase PostgreSQL
-                                                    |-- private Supabase Storage
-                                                    `-- Gemini
+Reporter
+  │
+  │ complaint + evidence
+  ▼
+Next.js web application and same-origin BFF
+  │
+  ▼
+FastAPI modular monolith
+  ├── authentication and RBAC
+  ├── complaints and case status
+  ├── evidence and provenance
+  ├── deterministic/connected analysis
+  ├── reports
+  ├── human routing
+  ├── Connect indicator matching
+  ├── tracking and safety
+  └── audit
+       │
+       ├── PostgreSQL / Supabase PostgreSQL
+       ├── private filesystem or S3-compatible object storage
+       └── optional Gemini analysis
 ```
 
-Bhumika owns the entire WhatsApp product surface: Meta webhook, session, language, questions, media download, and outbound responses. It sends Niriksh one curated form submission plus optional original file bytes. Niriksh owns case creation, evidence preservation, analysis, reports, tracking numbers, officer workflow, and audit records.
+The product flow is:
 
-The direct Niriksh Meta webhook is deliberately not mounted. Niriksh therefore needs no Meta credentials and cannot interfere with Bhumika's live callback.
+```text
+REPORT                    UNDERSTAND                         CONNECT
+complaint + evidence  →   source-backed case reconstruction → exact shared indicators
+```
+
+Niriksh is a preparation and intelligence layer that can complement an existing complaint workflow. It does not file an FIR, replace a government system, determine guilt, prove authenticity, assign priority, or take enforcement action.
+
+Bhumika/WhatsApp is excluded from the current release and demo. Historical integration code may remain for traceability, but it is not required, advertised, or modified. A later intake adapter can use the canonical complaint boundary without changing the case or Connect model.
 
 ## Why a modular monolith
 
-The domain needs clear code and data ownership but does not yet need distributed transactions or independently operated microservices. One FastAPI deployment and PostgreSQL database provide transactional complaint/report creation, simpler deployment, and faster iteration. Domain modules remain isolated so a high-load analysis worker or integration gateway can be extracted later without redesigning the contracts.
+The current scale needs transactional data ownership and understandable operations more than independent services. One FastAPI deployment and PostgreSQL database keep complaint, evidence, indicator, report, routing, and audit writes consistent. Domain modules remain separate in code so a high-load analysis worker or future intake adapter can be extracted later.
+
+No graph database, vector database, Elasticsearch cluster, or microservice mesh is needed for exact indicator correlation.
 
 ## Module ownership
 
-| Module | Owns | Invariant |
+| Module | Owns | Important invariant |
 |---|---|---|
-| `auth` | users, password verification, JWTs, roles | Protected routes require an officer/admin token or narrowly scoped service credential |
-| `bhumika` | external submission contract, idempotency, finalize orchestration | One Bhumika `submission_id` creates at most one complaint and report |
-| `complaints` | canonical case and compatibility payload | Every complaint has one unique `CYB-YYYY-NNNNNN` reference and increasing version |
-| `evidence` | metadata, private bytes, hashes | Files are size-bounded, path-safe, private, and SHA-256 hashed during ingestion |
-| `analysis` | deterministic policy, connected provider, immutable runs | Provider failure never discards the complaint; automated output remains advisory |
-| `reports` | immutable report versions | Re-finalization of one completed integration submission returns the existing report |
-| `routing` | human approval/override | Overrides require a reason and append an audit event |
-| `audit` | cross-module event history | Ordinary APIs append events rather than rewriting history |
+| `auth` | users, password verification, JWTs, roles | Protected routes require an authorised officer/admin or internal credential |
+| `complaints` | canonical complaint record and compatibility payload | Every complaint has one reference and monotonically increasing version |
+| `evidence` | metadata, private bytes, hashes, extracted text | Bytes stay private; source identity is preserved |
+| `analysis` | deterministic policy, optional connected extraction, immutable runs | Provider failure never discards the complaint; output is advisory |
+| `connect` | indicator extraction, normalization, persistence, related-incident query | Only equal type + normalized value creates a match |
+| `reports` | immutable report versions | A new version does not rewrite an earlier snapshot |
+| `routing` | human approval/override | An override requires a reason and creates an audit event |
+| `tracking` | signed links and allow-listed status projection | Public tracking never exposes narrative, evidence, or internal report data |
+| `safety` | rule-based message guidance and keyed identifier directory | A directory match is a lead, never proof of guilt |
+| `audit` | append-only activity history | Normal application flows append events rather than rewrite history |
 
-The old `whatsapp` parser/transport code remains in the repository only as inactive rollback/reference code; it is absent from the public API router and deployment configuration.
-
-## Data model
+## Canonical data model
 
 ```text
-integration_submissions
-  └── complaint_id
+users
+  └── complaints.reporter_id
 
 complaints
   ├── evidence_items
+  ├── case_indicators ── optional source_evidence_id ──> evidence_items
   ├── analysis_runs
   ├── reports
   ├── routing_decisions
   └── audit_events
-
-users
-  └── complaints.reporter_id
 ```
 
-`integration_submissions` stores the Bhumika submission/conversation IDs, original normalized request, processing state, complaint link, and completion time. A unique `(source, external_submission_id)` constraint is the final duplicate barrier even if Bhumika retries after a network timeout.
+`complaints.case_payload` is a compatibility bridge for the current frontend contract. Searchable or security-relevant data also has relational columns. Binary evidence never enters the JSON payload.
 
-`complaints.case_payload` is a compatibility bridge for the current frontend; searchable/security-relevant fields also have relational columns. Binary evidence never enters that JSON document.
+`case_indicators` preserves:
 
-## Bhumika intake lifecycle
+- `indicator_type`
+- the submitted/extracted `raw_value`
+- a conservative `normalized_value`
+- the complaint
+- optional source-evidence ID
+- extraction source, source label, metadata, and creation time
+
+Indexes on `complaint_id`, `source_evidence_id`, and `(indicator_type, normalized_value)` support provenance and exact cross-case lookup.
+
+## Report flow
+
+1. The reporter supplies a narrative, structured fields, and evidence.
+2. Browser-side parsing creates an immediate, disclosed fallback result.
+3. If configured and consented, connected analysis adds structured, source-labelled observations.
+4. The reporter can inspect and correct the prepared material.
+5. The Next.js BFF imports the case into FastAPI without exposing its internal credential.
+6. FastAPI stores complaint state, evidence metadata, an analysis run, indicators, and an audit event.
+7. Original bytes are streamed to private storage and hashed.
+8. A report version and tracking reference support the downstream human workflow.
+
+The frontend browser cache improves demo resilience but is not canonical. A failed backend sync must not be interpreted as a production submission.
+
+## Understand flow
+
+The case page presents information in this order:
+
+1. concise reconstruction
+2. chronology with precision and source
+3. extracted explicit indicators
+4. evidence/source trace
+5. conflicts or uncertainty
+6. original narrative and evidence ledger
+7. factual active signals
+8. missing information with a reason
+9. current case status
+
+Three layers stay visually distinct:
+
+- original evidence or reporter narrative
+- extracted fact
+- analysis-assisted observation
+
+A model must not invent evidence IDs or timestamps. Uncertain chronology is labelled approximate or uncertain.
+
+## Connect flow
 
 ```text
-Text/transcript only:
-  POST intake(finalize=true)
-    -> validate key/schema/idempotency
-    -> create complaint
-    -> deterministic + connected text analysis
-    -> report v1
-    -> completed + tracking number
-
-Original media:
-  POST intake(finalize=false)
-    -> evidence_pending + tracking number
-  POST evidence (once per stable external_evidence_id)
-    -> private storage + SHA-256
-  POST finalize
-    -> multimodal analysis/transcription
-    -> report v1
-    -> completed
+stored complaint/evidence
+  → deterministic candidate extraction
+  → conservative normalization
+  → case_indicators persistence
+  → SQL equality on indicator_type + normalized_value
+  → related complaints grouped by exact matches
 ```
 
-`GET /integrations/bhumika/intakes/{submission_id}` is the recovery check after timeouts. Identical retries return the original result. A different payload under an existing ID returns `409 Conflict`. Evidence uploads are independently idempotent by Bhumika's stable external evidence ID.
+The related-incidents service:
 
-## Analysis boundary
+1. loads the current complaint indicators;
+2. finds equal normalized indicators on other complaints;
+3. excludes the current complaint;
+4. groups matches by complaint;
+5. lists every exact indicator responsible;
+6. deduplicates repeated source rows;
+7. preserves current and related source labels/evidence IDs; and
+8. orders multiple exact matches before single matches.
 
-The deterministic engine runs first and supplies transparent safety/category/completeness behavior. Gemini receives the curated narrative, structured fields, transcripts, and up to eight stored evidence items. It can add source-labelled observations, transcription, extracted details, questions, and a situation summary.
+Category, date, location, narrative similarity, images, and embeddings are never sufficient to connect two cases. The response and UI always state:
 
-Three distinct model pools are tried within a bounded request budget. Gemini 2.5 uses `thinkingBudget`; Gemini 3.x uses `thinkingLevel`. If every provider attempt fails, the deterministic result is retained, the failure is recorded, and report creation continues.
+> Shared identifiers indicate a potential connection only and do not establish common ownership, identity, guilt or offender.
 
-Automated analysis does not determine guilt, prove authenticity, identify an unknown offender, create an FIR, or confirm a government filing.
+## Analysis and evidence boundaries
 
-## Evidence boundary
+Connected analysis may extract information, transcribe supported media, organise facts, reconstruct supported chronology, identify missing information, and surface factual signals. It cannot assign priority, determine guilt or authenticity, select a final legal category, file an FIR, or initiate action.
 
-The storage adapter supports private local disk for development and S3-compatible storage in deployment. Supabase Storage is the current private demo bucket. PostgreSQL stores the object key, byte size, MIME type, SHA-256, provenance, transcript/extracted text, and analysis metadata.
+Evidence is untrusted input. Text contained in a document, screenshot, transcript, or message is evidence content—not an application command or model-policy instruction.
 
-The 10 MB application cap bounds memory and provider latency. Supabase Storage is not immutable forensic storage: a later production tier needs object lock/versioning, KMS, quarantine/malware scanning, legal-hold/retention rules, access logs, derivative separation, and recovery tests.
+The storage adapter supports local private disk for development and S3-compatible storage for deployment. PostgreSQL stores object keys, byte sizes, MIME types, SHA-256 digests, provenance, extracted text, and analysis metadata. Supabase Storage is suitable for the competition demo, but it is not represented as immutable forensic storage.
 
-## Authentication boundary
+## Authentication and privacy boundaries
 
-- Browser officer flows use an HTTP-only secure session whose JWT is validated by FastAPI.
-- The Next.js BFF uses `INTERNAL_API_KEY`; it is never sent to browser JavaScript.
-- Bhumika uses a different `BHUMIKA_INTEGRATION_KEY` accepted only by `/integrations/bhumika/*`.
-- Public citizen intake cannot call officer or Bhumika integration routes.
+- Officers use an HTTP-only web session whose JWT is validated by FastAPI.
+- The BFF uses `INTERNAL_API_KEY`; browser JavaScript never receives it.
+- Victim tracking uses a scoped, expiring signed token and an allow-listed response.
+- Public intake cannot call officer routes.
 - Production rejects known development JWT/internal-key defaults.
-
-The Bhumika key is a demo-ready shared secret. A production integration should add secret rotation, IP/network controls or workload identity, request timestamps/signatures, rate limiting, metrics, and alerting.
+- Private evidence URLs and storage keys are never returned through the public tracking projection.
 
 ## Deployment
 
-The existing `niriksh` Next.js ECS Express service calls the separate `niriksh-api` FastAPI ECS Express service. Supabase provides PostgreSQL and private object storage. AWS Secrets Manager injects database, storage, Gemini, authentication, and Bhumika integration credentials. Bhumika remains independently deployed and keeps its Meta configuration unchanged.
+The existing AWS shape has two ECS Express services:
+
+- `niriksh`: Next.js web/BFF
+- `niriksh-api`: FastAPI
+
+Supabase can provide PostgreSQL and private S3-compatible storage. AWS Secrets Manager supplies database, storage, connected-analysis, and authentication settings. The web points to the API's `/api/v1` base URL.
+
+Alembic migration `20260906_0005` adds `case_indicators` and its lookup indexes. The API image runs migrations during startup under the existing deployment convention.
+
+## Known architectural limits
+
+- frontend and backend analysis implementations still overlap;
+- browser-local fallback needs a clearer production sync/outbox state;
+- long media analysis remains synchronous;
+- officer/admin roles are coarse and not jurisdiction scoped;
+- object storage lacks immutable retention, malware quarantine, legal hold, and evidentiary export controls;
+- exact matching has false-positive risk for recycled/shared identifiers and false-negative risk when extraction misses an identifier;
+- indicator access policy, retention, correction, and dispute workflows need formal governance before real government use.

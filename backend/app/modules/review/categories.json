@@ -1,0 +1,9 @@
+[
+  {"id":"financial","label":"Financial fraud","team":"Financial complaint review","examples":"UPI, cards, banking, investment, shopping and payment fraud"},
+  {"id":"social","label":"Social media and identity misuse","team":"Social media and identity review","examples":"Impersonation, fake profiles and misuse of identity or media"},
+  {"id":"harassment","label":"Threats, harassment and extortion","team":"Harassment and extortion review","examples":"Threatening messages, stalking, bullying and blackmail"},
+  {"id":"sensitive","label":"Sexual exploitation and child safety","team":"Sensitive complaint review","examples":"Non-consensual intimate material and child exploitation; restricted handling"},
+  {"id":"access","label":"Account access and phishing","team":"Account and phishing review","examples":"Credential requests, account takeover and unauthorised access"},
+  {"id":"systems","label":"Malware, ransomware and data incidents","team":"Technical incident review","examples":"Malware, ransomware, system intrusion and data theft"},
+  {"id":"other","label":"Other / needs category review","team":"General complaint review","examples":"Uncertain, mixed or other cyber incidents"}
+]

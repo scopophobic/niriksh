@@ -32,6 +32,7 @@ class CasePayload(BaseModel):
     reference: str = Field(min_length=3, max_length=32)
     description: str = Field(min_length=1, max_length=100_000)
     summary: str = ""
+    reviewCategory: str | None = None
     category: str = "Needs review"
     secondary: list[str] = Field(default_factory=list)
     severity: str = "Needs review"
@@ -60,10 +61,8 @@ class ComplaintPatch(BaseModel):
 
     status: str | None = None
     summary: str | None = None
+    reviewCategory: str | None = None
     category: str | None = None
-    severity: str | None = None
-    severityScore: int | None = Field(default=None, ge=0, le=100)
     completeness: int | None = Field(default=None, ge=0, le=100)
     department: list[str] | None = None
     audit: list[dict[str, Any]] | None = None
-

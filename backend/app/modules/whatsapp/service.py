@@ -72,8 +72,6 @@ def immediate_guidance(case: dict) -> str:
     financial = details.get("financial") or {}
     if financial.get("involved") or "financial" in case.get("category", "").lower():
         return "For recent financial cyber fraud in India, contact your bank/payment provider and call 1930 immediately."
-    if case.get("severity") == "Critical":
-        return "If anyone is in immediate danger in India, call 112 or contact local police now."
     return "If anyone is in immediate danger, contact local emergency services."
 
 
@@ -85,9 +83,9 @@ def compose_prompt(case: dict) -> str:
         ask = "Helpful next detail: " + missing[0] + ". Reply with it, attach evidence, or submit now."
     return (
         f"Niriksh saved this as {case['reference']}.\n"
-        f"Working category: {case['category']}\n"
-        f"Priority: {case['severity']} · completeness {case['completeness']}%\n\n{ask}\n\n"
-        f"Automated triage is not a final finding. {immediate_guidance(case)}"
+        f"Subject folder: {case['category']}\n"
+        f"Information checklist: {case['completeness']}% complete\n\n{ask}\n\n"
+        f"The folder is selected by a person and requires officer confirmation. {immediate_guidance(case)}"
     )
 
 

@@ -1,258 +1,291 @@
 # Niriksh technical reference
 
-Last verified against the repository: 4 September 2026
+Last verified against the repository: 6 September 2026
 
-## What the project is now
+## Current product
 
-Niriksh is a working Next.js cybercrime complaint and evidence-triage application backed by a modular FastAPI service. The backend is no longer a placeholder: it persists complaint state, evidence records, analysis runs, report versions, routing decisions, users, idempotent Bhumika submissions, and audit events in a real SQL database.
+Niriksh is a working Next.js application backed by a modular FastAPI service. PostgreSQL is the canonical store for complaints, evidence metadata, structured analysis, reports, routing decisions, audit events, tracking state, and exact cross-case indicators.
 
-The product remains a triage aid. It does not prove authenticity, identify offenders, determine guilt, create an FIR, submit to a government portal, or replace an authorised human decision.
+The product is organised around:
 
-## Technology
+- **Report:** collect a complaint and supporting evidence without overwhelming the reporter.
+- **Understand:** reconstruct a source-backed case with chronology, indicators, uncertainty, active signals, and missing information.
+- **Connect:** show when the same explicit normalized identifier occurs in another complaint.
+
+Niriksh is not an autonomous investigator or government filing system. It does not determine guilt, authenticity, priority, an FIR decision, final classification, routing, or enforcement.
+
+## Implementation audit
+
+| Area | Current state | Notes |
+|---|---|---|
+| Complaint intake | Implemented | Guided web form, narrative, structured fields, evidence selection, review, and report preparation |
+| Canonical backend | Implemented | FastAPI, SQLAlchemy, PostgreSQL, migrations, authentication, audit, reports, routing, tracking, and safety APIs |
+| Evidence bytes | Implemented with environment dependency | Private local/S3 storage and hashes; connected interpretation requires configuration and supported media |
+| Case reconstruction | Implemented | Summary, source-backed timeline, facts, provenance, indicators, active signals, missing information, evidence ledger, and status |
+| Connect | Implemented | Persisted normalized indicators and deterministic related-incident endpoint/UI |
+| Officer authentication | Implemented | JWT backend plus HTTP-only BFF session; local bypass is development-only |
+| Browser cache | Demo fallback | Useful offline copy, but not canonical and not a production submission guarantee |
+| Seeded cases | Demo-only | Clearly fictional, isolated, resettable, and not required by the app |
+| Admin staffing/service controls | Illustrative | Case counts are derived; staffing and integration controls are not live telemetry |
+| Connected analysis | Optional | Bounded provider attempt with visible deterministic fallback |
+| Government integration | Not implemented | Niriksh is positioned as a complementary preparation layer only |
+| Bhumika/WhatsApp | Excluded from this release | Historical code may remain, but it is not required or advertised |
+
+## Stack
 
 | Layer | Technology | Responsibility |
 |---|---|---|
-| Web | Next.js 16, React 19, TypeScript | Citizen/officer experience and server-side BFF |
-| Local analysis | TypeScript policy/context engine | Rich source-aware analysis and offline fallback |
-| Connected analysis | backend Gemini REST adapter; existing web adapter retained | Structured extraction, image/document observations, and audio transcription |
-| API | FastAPI, Pydantic | Typed HTTP boundary and modular domain routers |
-| Persistence | SQLAlchemy 2 | Repositories/unit-of-work through scoped sessions |
-| Database | Supabase PostgreSQL in production; PostgreSQL in Compose; SQLite test fallback | Canonical structured records |
-| Migrations | Alembic | Reproducible schema baseline and future revisions |
-| Authentication | salted scrypt + signed JWT | Officer/admin identities and server-to-server access |
-| Integration | Protected Bhumika service API | Curated WhatsApp-form intake, evidence transfer, idempotency, finalize/recovery |
-| Evidence | private filesystem or S3 adapter | Streaming storage, SHA-256, and authenticated download |
-| Tests | Node test runner + Pytest | Analysis regression and backend integration coverage |
+| Web | Next.js 16, React 19, TypeScript | Public/officer UI and server-only BFF |
+| Local analysis | TypeScript deterministic organiser | Immediate source-aware fallback |
+| Connected analysis | Gemini adapter with structured output | Optional extraction, media understanding, transcription, and supported reconstruction |
+| API | FastAPI and Pydantic | Typed domain boundary |
+| Persistence | SQLAlchemy 2 | Transactional ORM and repositories/services |
+| Database | PostgreSQL/Supabase PostgreSQL | Canonical structured state and exact indicator matching |
+| Migrations | Alembic | Reproducible schema history |
+| Evidence | private local or S3-compatible adapter | Streamed objects and SHA-256 hashes |
+| Authentication | salted scrypt, JWT, HTTP-only cookies | Officer/admin and internal service access |
+| Tests | Node test runner and Pytest | Frontend analysis and backend integration regressions |
+
+SQLite is supported for isolated tests. It is not the multi-user production store.
 
 ## Repository map
 
 ```text
 app/
-  api/analyze/                 existing connected Gemini endpoint
-  api/cases/                   server-only backend proxy
-  report/, dashboard/, ...    product routes
+  api/                            same-origin BFF routes
+  report/                         reporter intake
+  dashboard/, routing/, admin/    authorised workspaces
+  cases/[id]/                     case reconstruction
+  track/, safety/                 victim/public tools
 
-backend/
-  app/main.py                  application factory, health, middleware
-  app/core/                    configuration and cryptography
-  app/db/                      SQLAlchemy base, session, models
-  app/api/                     shared dependencies and root router
-  app/modules/
-    auth/                      login/JWT
-    complaints/                create/import/list/read/update
-    evidence/                  private upload/list/download
-    analysis/                  policy engine and immutable runs
-    reports/                   versioned snapshots
-    routing/                   human decisions
-    audit/                     event history
-    bhumika/                   curated intake contract and finalize orchestration
-    whatsapp/                  inactive legacy direct-Meta adapter (not mounted)
-  migrations/                  Alembic schema history
-  tests/                       API/database/channel integration tests
+components/
+  CaseReview.tsx                  reconstruction and evidence experience
+  RelatedIncidents.tsx            Connect experience
+  ReportFlow.tsx                  guided reporting
 
 lib/
-  analyzer.ts                  detailed frontend policy/context engine
-  multimodal.ts                local/connected result merge
-  backend.ts                   server-only FastAPI client
-  case-store.tsx               backend-backed UI repository + offline cache
-  types.ts                     frontend domain contracts
+  analyzer.ts                     deterministic case preparation
+  case-intelligence.ts            indicator display and provenance helpers
+  case-store.tsx                  backend-backed UI store + browser fallback
+  backend.ts                      server-only API client
+  types.ts                        frontend contracts
 
-docker-compose.yml             web + API + PostgreSQL
-docs/                          architecture and decision history
+backend/
+  app/main.py                     app lifecycle, middleware, health
+  app/api/                        dependency and root-router composition
+  app/core/                       configuration and cryptography
+  app/db/                         SQLAlchemy models/session
+  app/modules/
+    auth/                         officer/admin identity
+    complaints/                   canonical case lifecycle
+    evidence/                     private evidence
+    analysis/                     policy and connected analysis runs
+    connect/                      normalization, indicators, related cases
+    reports/                      immutable report versions
+    routing/                      human decisions
+    tracking/                     victim-safe status
+    safety/                       deterministic public safety checks
+    audit/                        activity history
+  app/demo.py                     fictional seed/reset utility
+  migrations/                    Alembic revisions
+  tests/                         backend tests
+
+scripts/demo-data.sh              Docker demo helper
 ```
 
-The retired demo service under `apps/api` was removed to prevent two FastAPI implementations from drifting.
+Historical Bhumika/WhatsApp modules are outside this release. They are not mounted into the current product story, required by the demo, or modified by this work.
 
-## Runtime data flow
+## Web complaint persistence
 
-### Web submission
+1. `ReportFlow` gathers structured details, narrative, and up to the configured evidence count.
+2. Browser Web Crypto calculates evidence digests. Readable evidence text and reporter notes stay source-labelled.
+3. The deterministic organiser prepares the immediate result. When configured, connected analysis may add supported observations.
+4. The reporter reviews/corrects the prepared result.
+5. `CaseStoreProvider.addCase` updates the browser view and POSTs to `/api/cases`.
+6. The BFF forwards to FastAPI `/api/v1/complaints/import` using a server-only credential.
+7. `sync_case` persists the complaint and compatibility payload, evidence metadata, analysis state, audit event, and normalized indicators.
+8. The evidence-ingestion token allows original bytes to be streamed to private storage.
 
-1. `ReportFlow` collects narrative, structured details, and up to six evidence items.
-2. Browser Web Crypto computes evidence hashes; readable text remains source-labelled.
-3. The TypeScript policy engine runs. If configured, the Next.js Gemini route adds structured media observations. Attachments up to 8 MB are sent inline to avoid a second provider-processing round trip; larger files use the provider file API. Model attempts have a bounded `25s + 18s + 10s` budget so the request remains inside the ECS load-balancer window.
-4. The reporter reviews and confirms the output.
-5. `CaseStoreProvider.addCase` updates the local UI immediately and POSTs the case to `/api/cases`.
-6. The Next.js route forwards it to `/api/v1/complaints/import` with the internal service key.
-7. FastAPI stores searchable complaint columns, the compatibility payload, evidence metadata, an analysis run, and an audit event in one transaction.
-8. The response includes a short-lived token scoped only to that complaint's evidence ingestion; `ReportFlow` then streams the original selected files through the BFF to private backend storage.
+The browser fallback is useful for local demos; it does not establish that a complaint reached the canonical database.
 
-If the backend is temporarily unavailable, the local browser cache keeps the demo usable. The failed write is not currently queued in the browser, so production should add a visible sync state and retry/outbox mechanism rather than silently relying on the cache.
+## Case reconstruction contract
 
-### Officer update
+The frontend consumes the existing `TriageCase` compatibility payload. The main reconstructed sections use:
 
-1. A dashboard action patches the React case store.
-2. The browser sends the patch to the same-origin `/api/cases/{id}` route.
-3. FastAPI updates allowed fields, increments `complaints.version`, and appends an audit event.
-4. API clients may pass `If-Match: "<version>"`; stale updates receive `409 Conflict`.
+- `analysisDetails.summary`
+- `analysisDetails.timeline[]` with `when`, `what`, `source`, and optional `precision`
+- `analysisDetails.facts[]` with label/value/source
+- `analysisDetails.highlights[]` for factual active signals
+- `analysisDetails.concerns[]` for conflicts/uncertainty
+- `missing[]` and `questions[]`
+- `entities[]`
+- `evidence[]`
+- `status`, `audit[]`, and routing fields
 
-### Bhumika-curated WhatsApp intake
+`lib/case-intelligence.ts` filters the broad entity/fact set into explicit cyber indicators, creates evidence anchors, labels narrative sources, and explains common missing fields. It does not invent a missing item, source, or event.
 
-1. Bhumika owns Meta, the conversation, questions, media download, and victim replies.
-2. It POSTs the completed form to `/api/v1/integrations/bhumika/intakes` with a dedicated service key and stable submission/conversation IDs.
-3. Niriksh validates the versioned schema and unique idempotency key, then creates the canonical complaint and tracking number.
-4. A text/transcript-only submission can finalize immediately. If original media must be transferred, Bhumika creates with `finalize: false`, uploads each file using a stable external evidence ID, then calls finalize.
-5. Niriksh privately stores and hashes bytes, combines the narrative/fields/transcripts/media, runs deterministic and connected analysis, and persists source-specific findings.
-6. Finalize creates report version 1, moves the case to `Awaiting review`, appends audit events, and returns the tracking/report data for Bhumika to relay.
-7. Identical retries return the same case/report; payload reuse under the same ID returns `409`.
+## Connect data model
 
-## Database tables
+Alembic revision `20260906_0005` adds:
 
-| Table | Important fields |
+```text
+case_indicators
+  id
+  complaint_id                FK complaints, CASCADE
+  indicator_type
+  raw_value
+  normalized_value
+  source_evidence_id          nullable FK evidence_items, SET NULL
+  extraction_source
+  source_label
+  metadata_json
+  created_at
+```
+
+Indexes:
+
+- `ix_case_indicators_complaint_id`
+- `ix_case_indicators_source_evidence_id`
+- `ix_case_indicators_match(indicator_type, normalized_value)`
+
+Rows are rebuilt idempotently when the complaint compatibility record is synchronized. At application startup, complaints with no indicator rows are backfilled.
+
+## Indicator extraction and normalization
+
+Supported types:
+
+| Type | Conservative normalization |
 |---|---|
-| `users` | email/phone, password hash, role, active flag |
-| `complaints` | reference, source, status, description, classification, version, compatibility payload |
-| `evidence_items` | filename, MIME type, size, digest, storage key, provenance, extracted text, status |
-| `analysis_runs` | provider/model, input version, result, status/error, timestamps |
-| `reports` | complaint/version uniqueness, rendered text, immutable snapshot, creator |
-| `routing_decisions` | action, recommendation, override reason, actor |
-| `audit_events` | complaint, actor/type, event, detail, structured data, time |
-| `channel_contacts` | channel + external identity uniqueness, locale, consent |
-| `channel_sessions` | contact, complaint, conversation state/context |
-| `channel_messages` | direction, external ID, type, text, raw/response payload |
-| `webhook_events` | idempotency ID, payload, processing state, attempts, retry time/error |
-| `integration_submissions` | source submission/conversation IDs, request snapshot, complaint link, state, completion time |
+| Phone | remove formatting; safely add India prefix for valid ten-digit mobile numbers; require E.164-shaped result |
+| Email | trim; preserve local-part case; IDNA-normalize/lowercase the domain |
+| UPI ID | trim and case-fold when it is UPI-shaped rather than email-shaped |
+| Domain | trim, lowercase, IDNA-normalize, remove trailing dot |
+| URL | require HTTP(S), normalize scheme/host/default port, preserve path/query, remove fragment |
+| Social handle | ensure leading `@`, case-fold, and scope with platform when known |
+| Transaction ID / UTR | trim only; preserve case and internal formatting |
+| Bank/account identifier | trim only; avoid unsafe aggressive transformations |
 
-Supabase PostgreSQL is the deployed shared database. SQLite is a zero-setup local/test fallback, not the multi-user production store.
+Candidate values come from:
 
-## Live environment
+- reporter narrative;
+- structured incident/financial/suspect fields;
+- analysis facts and entities; and
+- evidence extracted text/context notes, with evidence ID provenance where available.
 
-As verified on 4 September 2026, the existing `niriksh` ECS Express website was updated in place and a separate `niriksh-api` ECS Express service was added. The custom domain serves the new web image over HTTPS, and HTTP redirects permanently to HTTPS. The API is reachable at `https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws`; the web BFF uses its `/api/v1` prefix.
+Generic dates, amounts, platforms, locations, people, and category words are not Connect indicators.
 
-Alembic has migrated the Supabase schema. The API health probe successfully executes `SELECT 1`. A private `niriksh-bucket` object was written, hashed, and deleted during the storage smoke test. A fictional Bhumika text submission created a case, connected analysis, tracking number, and report; an identical retry returned the same tracking number as a duplicate. A second fictional submission uploaded and retried screenshot evidence, then finalized successfully. The public web form also returned HTTP 200 with source-specific screenshot findings and a timeline after the inline-media change.
+## Matching algorithm
 
-The direct Meta plan was superseded. Bhumika keeps its callback and Meta credentials; Niriksh's direct WhatsApp route is disabled. The only cross-service requirement is a dedicated `BHUMIKA_INTEGRATION_KEY` shared by the two server deployments.
+`find_related_incidents(complaint_id)`:
+
+1. loads the complaint and its indicator rows;
+2. creates exact `(indicator_type, normalized_value)` keys;
+3. queries matching rows owned by other complaints;
+4. groups by complaint;
+5. groups repeated sources under each exact indicator;
+6. exposes current-case and related-case provenance;
+7. avoids duplicate indicators; and
+8. sorts cases with more exact matches first, then deterministically.
+
+Excluded from matching:
+
+- category or subject folder
+- narrative similarity
+- date/location proximity
+- embeddings or model judgement
+- screenshot/image similarity
+- fuzzy identifiers
+
+PostgreSQL equality and a composite B-tree index are sufficient for the competition dataset and a normal operational starting point.
 
 ## API surface
 
-All routes below are prefixed by `/api/v1` except health.
+Routes are under `/api/v1` except health.
 
-| Method and route | Access | Function |
+| Method and route | Access | Purpose |
 |---|---|---|
-| `GET /health` | public | API/database/channel health |
+| `GET /health` | public | API/database health |
 | `POST /auth/login` | public | officer/admin JWT |
-| `POST /complaints` | public intake | create and baseline-analyse a complaint |
-| `POST /complaints/intake` | public intake | persist a new guided-form case; cannot update existing IDs |
-| `POST /complaints/import` | protected | internal/import persistence for the frontend case contract |
+| `POST /complaints` | public intake | create and baseline-analyse |
+| `POST /complaints/intake` | public intake | persist guided-form case |
+| `POST /complaints/import` | protected | import current frontend case contract |
 | `GET /complaints` | protected | filterable case list |
 | `GET /complaints/{id}` | protected | case detail |
-| `PATCH /complaints/{id}` | protected | allowed state/classification updates |
-| `GET/POST /complaints/{id}/evidence` | protected | list or stream evidence |
+| `PATCH /complaints/{id}` | protected | allowed status/category changes |
+| `GET /complaints/{id}/related-incidents` | protected | exact shared indicators grouped by case |
+| `GET/POST /complaints/{id}/evidence` | protected | list/ingest evidence |
 | `GET /complaints/{id}/evidence/{evidence_id}/content` | protected | private evidence download |
-| `POST /complaints/{id}/intake-evidence` | complaint token | stream files immediately after public intake |
-| `POST /complaints/{id}/analysis-runs` | protected | new persisted policy run |
-| `GET/POST /complaints/{id}/reports` | protected | versioned reports |
-| `POST /triage/{id}/decision` | protected | approve/override/request information |
+| `POST /complaints/{id}/analysis-runs` | protected | persisted analysis run |
+| `GET/POST /complaints/{id}/reports` | protected | immutable report versions |
+| `POST /triage/{id}/decision` | protected | human confirm/override/request-information |
 | `GET /audit/complaints/{id}` | protected | audit history |
-| `POST /integrations/bhumika/intakes` | Bhumika key | create/idempotently recover a curated complaint and optionally finalize |
-| `GET /integrations/bhumika/intakes/{submission_id}` | Bhumika key | recover state after a timeout |
-| `POST /integrations/bhumika/intakes/{submission_id}/evidence` | Bhumika key | idempotent private evidence upload |
-| `POST /integrations/bhumika/intakes/{submission_id}/finalize` | Bhumika key | run analysis and create the report exactly once |
+| `GET /public/tracking/{token}` | signed link | allow-listed victim status |
+| `POST /safety/check-message` | public | deterministic warning-sign guidance |
+| `POST /safety/lookup` | public | privacy-preserving exact directory lookup |
 
-Protected means a valid officer/admin bearer token or the internal server key. Override decisions require a non-empty reason.
+The Related Incidents response includes the current case reference, total related cases, each case’s reference/summary/category/status, match count, each exact shared indicator, both sides’ provenance, and the non-attribution disclaimer.
 
-The Next.js `/login` route creates an HTTP-only officer session. `/dashboard`, `/routing`, `/admin`, and `/cases/*` require the session cookie. The BFF forwards the bearer credential to FastAPI; it does not expose the token to client JavaScript.
+## Demo utility
 
-Interactive API documentation is available at `/docs` when the API runs locally.
+```bash
+# Running Docker stack
+./scripts/demo-data.sh seed
+./scripts/demo-data.sh reset
 
-## Security properties and remaining work
+# Direct backend environment
+cd backend
+python -m app.demo seed
+python -m app.demo reset
+```
 
-Implemented now:
+The utility owns only these IDs:
 
-- backend secrets stay on the server
-- salted memory-hard password hashes
-- expiring signed JWTs
-- officer/admin role checks
-- production rejection of known development secrets
-- restricted CORS methods/origins/headers
-- dedicated Bhumika credential with route-level scope
-- database-enforced submission idempotency and file-level external IDs
-- bounded upload sizes and sanitized storage names
-- streaming SHA-256 calculation
-- authenticated evidence reads
-- non-root backend container user
-- explicit human-review boundaries
-- versioned analysis/report records and audit events
+- `demo-connect-a` / `CYB-2026-D001`
+- `demo-connect-b` / `CYB-2026-D002`
+- `demo-connect-c` / `CYB-2026-D003`
+- `demo-connect-d` / `CYB-2026-D004`
+
+It deletes/recreates only those records, creates report version 1 for each, and synchronizes indicators through the production service path. The main app never depends on seed data.
+
+Expected links:
+
+- D001 ↔ D002 through `niriksh-demo@upi`
+- D001 ↔ D003 through `case-link.example`
+- D004 has no link despite a similar category
+
+## Security properties
+
+Implemented:
+
+- secrets remain server-side;
+- password hashes use salted scrypt;
+- JWTs expire and routes enforce roles;
+- the BFF hides internal API credentials;
+- evidence keys/content are private;
+- ingestion is size-bounded, path-safe, and hashed;
+- CORS is restricted;
+- public tracking is allow-listed;
+- known development secret defaults are rejected in production;
+- provider failure is recorded and falls back rather than discarding a complaint.
 
 Required before handling real sensitive complaints:
 
-- citizen OTP/session authentication and per-case authorization
-- replace the shared BFF key with workload identity or rotated secret management
-- request/login rate limiting and abuse controls
-- S3/KMS private storage, presigned upload, quarantine, malware scanning, derivatives, retention, and legal hold
-- audit read/export controls and tamper-evident retention
-- row-level tenancy/jurisdiction rules if multiple agencies share the system
-- data-subject access/deletion and evidence-retention policy
-- backups, point-in-time recovery, alerts, traces, metrics, and incident response
-- legal/privacy/security review, including handling of child-sensitive material
+- citizen identity and per-complaint grants;
+- jurisdiction/unit-scoped RBAC;
+- rate limiting and abuse controls;
+- immutable/versioned evidence storage, retention, legal hold, and deletion workflows;
+- malware scanning, quarantine, safe rendering, and content-disarm;
+- key rotation, centralized audit monitoring, backup/restore tests, and incident response;
+- data-protection impact assessment, threat model, legal review, and agency SOP mapping;
+- formal access, correction, appeal, and false-connection review policy.
 
-## Analysis boundaries
+## Current limitations
 
-The detailed TypeScript engine remains the richer current policy implementation. It preserves sources, handles negation and contradictions, calculates urgency separately from completeness, and enforces child-safety escalation. The backend engine implements a smaller deterministic baseline behind a replaceable interface.
-
-This duplication is transitional. The recommended consolidation is to move the authoritative policy package and connected provider adapters behind the backend analysis interface, then expose a versioned schema to the UI. Until then, imported frontend analysis is stored as an immutable `analysis_runs` result so reviewers can see what produced the case at that time.
-
-Neither engine's confidence number is an empirically calibrated probability. Neither binary hashes nor multimodal observations prove authenticity.
-
-## Configuration
-
-Start the complete local system. Keep local secrets in the repository-root `.env`; the backend loads that file directly and Docker Compose uses it for interpolation. A second `backend/.env` is optional and overrides the root file, but should normally be avoided:
-
-```bash
-cp backend/.env.example .env
-docker compose up --build
-```
-
-Or run processes separately:
-
-```bash
-# Terminal 1
-cd backend
-alembic upgrade head
-uvicorn app.main:app --reload
-
-# Terminal 2
-npm install
-BACKEND_API_URL=http://127.0.0.1:8000/api/v1 npm run dev
-```
-
-Important variables:
-
-| Variable | Meaning |
-|---|---|
-| `DATABASE_URL` | SQLAlchemy PostgreSQL/SQLite connection |
-| `JWT_SECRET` | token-signing secret; must change outside local dev |
-| `INTERNAL_API_KEY` / `BACKEND_INTERNAL_API_KEY` | matching API and BFF credentials |
-| `EVIDENCE_STORAGE_PATH` | private local evidence root |
-| `EVIDENCE_STORAGE_BACKEND` | `local` or `s3` |
-| `EVIDENCE_S3_BUCKET`, `EVIDENCE_S3_REGION`, `EVIDENCE_S3_PREFIX` | S3 bucket and key namespace |
-| `EVIDENCE_S3_ENDPOINT_URL` | custom S3 endpoint, including Supabase Storage |
-| `EVIDENCE_S3_ACCESS_KEY_ID`, `EVIDENCE_S3_SECRET_ACCESS_KEY` | server-only storage credentials |
-| `EVIDENCE_S3_FORCE_PATH_STYLE` | required for the Supabase S3 endpoint |
-| `BHUMIKA_INTEGRATION_KEY` | dedicated server credential for curated Bhumika submissions |
-| `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL`, `GEMINI_RESERVE_MODEL` | backend and web connected-analysis configuration |
-| `SESSION_COOKIE_SECURE` | set `true` behind production HTTPS |
-
-Do not commit real `.env` files or expose these values with `NEXT_PUBLIC_` prefixes.
-
-## Verification
-
-```bash
-cd backend && pytest -q
-cd .. && npm test
-npm run lint
-npm run build
-docker compose config --quiet
-```
-
-Backend tests cover login/database health, complaint analysis and persistence, optimistic version conflicts, streamed evidence hashing, report snapshots, routing validation, audit events, authenticated/idempotent Bhumika intake, evidence-transfer idempotency, multimodal finalize, and one-report semantics. Frontend tests cover sixteen deterministic analysis and multimodal-merge behaviours.
-
-## Honest current limitations
-
-- Existing UI updates use optimistic fire-and-forget sync; it needs visible pending/failed state for production.
-- Browser-selected binary evidence is uploaded after complaint creation; failed file uploads need a visible retry state in the UI.
-- Bhumika must map its final conversation state into the versioned Niriksh schema and transfer original file bytes before finalize when Niriksh should analyze those bytes.
-- The web path and WhatsApp path still have two connected-analysis adapters; their output contracts should be consolidated after the demo.
-- Seed cases and several admin/citizen operational values remain fictional demo data.
-- No official portal submission, platform takedown, notification SLA, or government integration occurs.
-- Supabase Storage is suitable for the demo but is not immutable evidence storage; versioning, legal hold, quarantine, and recovery controls remain production work.
-- The database migration, Bhumika intake API, updated web service, custom HTTPS domain, and HTTP redirect are deployed and live-smoke-tested. Bhumika still needs the Niriksh URL/key and schema mapping; Meta itself remains unchanged.
+- frontend and backend analysis logic overlap;
+- local fallback persistence can be mistaken for a successful server sync;
+- long media analysis is synchronous;
+- model extraction can miss or misread indicators;
+- exact shared identifiers can be recycled, shared, or mistyped and therefore never prove common ownership;
+- admin staffing/configuration values are illustrative, not operational telemetry;
+- case payload JSON remains a compatibility bridge rather than a fully relational case-reconstruction schema;
+- automated browser visual QA was unavailable in the current environment, though lint, tests, and production build were run.

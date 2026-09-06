@@ -1,12 +1,4 @@
-import { AnalysisHighlight, AnalysisResult, EvidenceAnalysis, MultimodalInsight, Severity, TimelineEvent } from "./types";
-
-const severityRank: Record<Severity, number> = {
-  "Needs review": 0,
-  Low: 1,
-  Medium: 2,
-  High: 3,
-  Critical: 4,
-};
+import { AnalysisHighlight, AnalysisResult, EvidenceAnalysis, MultimodalInsight, TimelineEvent } from "./types";
 
 function unique(items: string[]) {
   return [...new Set(items.filter(Boolean))];
@@ -26,7 +18,7 @@ function comparableFileName(name: string) {
 
 function mergeHighlights(local: AnalysisHighlight[], remote: AnalysisHighlight[]) {
   const seen = new Set<string>();
-  return [...remote, ...local].filter(item => {
+  return [...remote.map(item => ({ ...item, level: "Context" as const })), ...local.map(item => ({ ...item, level: "Context" as const }))].filter(item => {
     const key = `${item.label}:${item.detail}`.toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
@@ -105,19 +97,16 @@ export function mergeMultimodalAnalysis(local: AnalysisResult, insight: Multimod
     ? { ...check, status: "Ready" as const, detail: `${reviewed} attachment${reviewed === 1 ? " was" : "s were"} reviewed by the connected analysis pipeline. Human verification is still required.` }
     : check);
   const verificationPoints = checks.reduce((total, check) => total + (check.status === "Ready" ? 1 : check.status === "Needs review" ? 0.5 : 0), 0);
-  const severity = severityRank[insight.severity] > severityRank[local.severity] ? insight.severity : local.severity;
-
   return {
     ...local,
     summary: insight.situationSummary || local.summary,
-    category: insight.category || local.category,
-    severity,
-    confidence: Math.min(97, Math.max(local.confidence, insight.confidence)),
-    aiSuspected: local.aiSuspected || insight.suspectedAiManipulation,
+    severity: "Needs review",
+    score: 0,
+    confidence: 0,
     highlights: mergeHighlights(local.highlights, insight.importantIndicators),
     timeline: mergeTimeline(local.timeline, insight.timeline),
     evidenceAnalysis,
-    riskFactors: unique([...local.riskFactors, ...insight.importantIndicators.filter(item => item.level !== "Context").map(item => item.label)]),
+    riskFactors: local.riskFactors,
     verification: {
       ...local.verification,
       checks,

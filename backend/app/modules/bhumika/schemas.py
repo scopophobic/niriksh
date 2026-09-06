@@ -1,6 +1,6 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.modules.complaints.schemas import EvidenceMetadata
 
@@ -21,3 +21,18 @@ class BhumikaIntake(BaseModel):
     complaint_details: dict[str, Any] = Field(default_factory=dict)
     evidence: list[EvidenceMetadata] = Field(default_factory=list, max_length=20)
     finalize: bool = True
+
+
+class BhumikaSupplement(BaseModel):
+    schema_version: Literal["1.0"] = "1.0"
+    supplement_id: str = Field(min_length=1, max_length=250)
+    description_addendum: str | None = Field(default=None, max_length=100_000)
+    complaint_details: dict[str, Any] = Field(default_factory=dict)
+    evidence: list[EvidenceMetadata] = Field(default_factory=list, max_length=20)
+    finalize: bool = True
+
+    @model_validator(mode="after")
+    def require_content(self):
+        if not (self.description_addendum or self.complaint_details or self.evidence):
+            raise ValueError("A supplement must include text, structured details, or evidence")
+        return self

@@ -1,44 +1,41 @@
 # Niriksh deployment runbook
 
-Last updated: 4 September 2026
+Last updated: 6 September 2026
 
-## Deployed topology
+## Topology
 
 ```text
-Browser -> niriksh (Next.js ECS Express) -> niriksh-api (FastAPI ECS Express)
-
-Victim -> Meta/WhatsApp -> Bhumika server
-                              |
-                              `-> curated complaint/files -> niriksh-api
-                                                              |-> Supabase PostgreSQL
-                                                              |-> private Supabase Storage
-                                                              |-> Gemini analysis
-                                                              `-> report + tracking number
+Browser
+  → niriksh (Next.js ECS Express)
+  → niriksh-api (FastAPI ECS Express)
+      ├── Supabase PostgreSQL
+      ├── private Supabase Storage
+      └── optional connected-analysis provider
 ```
 
-Live resources:
+Existing service names:
 
-- website: `https://niriksh.scopophobic.xyz`
 - website ECS service: `niriksh`
 - API ECS service: `niriksh-api`
-- API base: `https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws`
-- Bhumika intake: `/api/v1/integrations/bhumika/intakes`
-- database: Supabase PostgreSQL through the IPv4 session pooler
-- evidence: private Supabase Storage bucket `niriksh-bucket`
-- HTTP: permanent redirect to HTTPS
+- custom web domain: `https://niriksh.scopophobic.xyz`
+- API origin currently documented for deployment: `https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws`
 
-Bhumika's existing Meta callback is unchanged. Niriksh does not receive Meta webhooks and needs no Meta credentials.
+Do not assume those endpoints are healthy merely because they appear in this file; verify them during each release.
 
-## Required secret fields
+Bhumika/WhatsApp is not part of this release or deployment procedure. Historical integration routes may still exist in the codebase, but no Bhumika or Meta credential is required for Report → Understand → Connect.
 
-The API uses one AWS Secrets Manager JSON secret:
+## Secret placement
+
+Production does not read the repository’s local `.env`. Put secret key/value pairs in the existing AWS Secrets Manager JSON used by the API task, then map them into the ECS task definition. The web task should receive only values it actually needs.
+
+API secret shape:
 
 ```json
 {
-  "DATABASE_URL": "postgresql+psycopg://...?...sslmode=require",
+  "DATABASE_URL": "postgresql+psycopg://...",
   "JWT_SECRET": "...",
   "INTERNAL_API_KEY": "...",
-  "BHUMIKA_INTEGRATION_KEY": "...",
+  "DIRECTORY_HASH_SECRET": "...",
   "DEMO_USER_PASSWORD": "...",
   "GEMINI_API_KEY": "...",
   "EVIDENCE_S3_BUCKET": "niriksh-bucket",
@@ -49,9 +46,21 @@ The API uses one AWS Secrets Manager JSON secret:
 }
 ```
 
-`BHUMIKA_INTEGRATION_KEY` must be a separate random secret shared only by the two servers. The Niriksh web task receives only the internal BFF key and Gemini key. Meta and storage credentials never enter the web task.
+Requirements:
 
-## Deploy API
+- use a `postgresql+psycopg://` URL with the Supabase pooler when the ECS network needs IPv4;
+- percent-encode special characters inside the database password;
+- keep `JWT_SECRET`, `INTERNAL_API_KEY`, and `DIRECTORY_HASH_SECRET` distinct;
+- make security secrets random and at least 32 characters;
+- keep storage and database credentials out of the web image;
+- never use a `NEXT_PUBLIC_` name for a secret;
+- never paste real values into documentation, Dockerfiles, task-definition source, or Git.
+
+Non-secret task variables may include `PUBLIC_APP_URL`, `TRACKING_TOKEN_DAYS`, and configured origins.
+
+## Release order
+
+### 1. Deploy the API
 
 ```bash
 AWS_REGION=us-east-1 \
@@ -59,55 +68,54 @@ NIRIKSH_API_SECRET_ARN='<secret-arn>' \
 ./scripts/deploy-ecs-express-api.sh
 ```
 
-The container runs `alembic upgrade head` before Uvicorn. Confirm:
+The API container runs `alembic upgrade head` before Uvicorn. This release requires head revision `20260906_0005`, which creates `case_indicators` and its exact-match indexes.
+
+Confirm the API health endpoint and inspect task logs for migration or startup failures:
 
 ```bash
-curl -fsS 'https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws/health'
+curl -fsS 'https://<api-origin>/health'
 ```
 
-Expected fields include `database: connected`, `bhumika_integration: configured`, `direct_whatsapp_webhook: disabled`, `connected_analysis: configured`, and `evidence_storage: s3`.
+Expected essentials are a healthy service and database connection. Connected analysis or S3 health may be intentionally unconfigured in a local/non-media environment; the UI must disclose those limits.
 
-## Deploy web in place
+### 2. Deploy the web service in place
 
 ```bash
 AWS_REGION=us-east-1 \
-BACKEND_API_URL='https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws/api/v1' \
+BACKEND_API_URL='https://<api-origin>/api/v1' \
 NIRIKSH_WEB_SECRET_ARN='<secret-arn>' \
 ./scripts/deploy-ecs-express.sh
 ```
 
-The script updates the existing `niriksh` service; it does not create another website. Verify HTTPS, HTTP redirect, login, `/api/cases`, and `/api/analyze`.
+The script updates the existing `niriksh` service. It should not create a second website service.
 
-For a fictional Bhumika-side deployment smoke test without printing the shared key:
+### 3. Verify
+
+1. HTTPS landing page loads and HTTP redirects to HTTPS.
+2. Officer login creates an HTTP-only session.
+3. `/api/cases` loads canonical backend cases.
+4. A fictional web complaint can be submitted.
+5. Private evidence can be ingested and is not publicly enumerable.
+6. A case page shows reconstruction, chronology, provenance, indicators, missing information, active signals, and status.
+7. `GET /api/v1/complaints/{id}/related-incidents` requires authentication.
+8. Two fictional complaints sharing an exact normalized indicator appear as Related Incidents.
+9. Similar-category cases without an exact shared identifier do not appear.
+10. Public tracking exposes only its allow-listed fields.
+11. Legacy decision fields remain neutral (`Needs review`, `0`, `0`).
+12. Task logs contain no secret values or private evidence URLs.
+
+Do not seed competition fixtures into a real complaint environment unless the environment is explicitly designated for demonstration. The local command is:
 
 ```bash
-python3 scripts/smoke-bhumika-integration.py \
-  --api-url 'https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws/api/v1' \
-  --secret-arn '<secret-arn>' \
-  --evidence-file public/demo-evidence/fictional-threatening-chat.png
+./scripts/demo-data.sh seed
 ```
 
-The script retrieves the key internally through the AWS CLI, submits fictional data, retries it, uploads/retries optional evidence, and checks that one tracking number/report is returned. It never prints the key.
+## Rollback
 
-## Configure Bhumika
+- ECS images use immutable ECR tags; redeploy the last known-good web and API tags.
+- Database migration `20260906_0005` is additive. Prefer application rollback while leaving the table in place. Run a downgrade only after confirming no new release wrote indicator data that must be preserved.
+- Keep the API backward compatible with the existing case payload during rollback.
 
-Add these server-only values to Bhumika:
+## Production-readiness gap
 
-```text
-NIRIKSH_API_URL=https://ni-adada88b582b4d3ea6b21602d2c1abf7.ecs.us-east-1.on.aws/api/v1
-NIRIKSH_INTEGRATION_KEY=<same value as BHUMIKA_INTEGRATION_KEY>
-```
-
-When Bhumika has curated the form, call the contract in [bhumika-integration.md](./bhumika-integration.md). Use a stable unique submission ID. After a timeout, GET the submission before retrying. For original media, create with `finalize: false`, upload each file once using its stable external ID, then finalize.
-
-## Production checks
-
-1. Invalid or missing integration keys return `401`.
-2. The same submission ID and payload return one case/report.
-3. Reusing a submission ID with different content returns `409`.
-4. Original file bytes are stored privately and hashed.
-5. Finalize creates one report and returns a `CYB-YYYY-NNNNNN` tracking number.
-6. The officer dashboard shows the same canonical complaint.
-7. `/api/v1/channels/whatsapp/webhook` returns `404`.
-
-Do not send real victim data until authentication, retention, access-control, monitoring, backup, and legal/privacy requirements have been reviewed.
+The current deployment is suitable for a controlled fictional demo, not real sensitive complaints. Before real use, add jurisdiction-scoped RBAC, citizen identity/grants, retention and deletion policy, immutable evidence retention, malware quarantine, rate limits, audit monitoring, backup/restore tests, incident response, privacy impact assessment, threat modelling, and legal/agency review.

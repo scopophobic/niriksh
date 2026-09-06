@@ -8,6 +8,8 @@ ECS_SERVICE="${ECS_SERVICE:-niriksh-api}"
 ECS_CLUSTER="${ECS_CLUSTER:-default}"
 TARGET_PLATFORM="${TARGET_PLATFORM:-linux/amd64}"
 FRONTEND_ORIGINS="${FRONTEND_ORIGINS:-https://niriksh.scopophobic.xyz}"
+PUBLIC_APP_URL="${PUBLIC_APP_URL:-https://niriksh.scopophobic.xyz}"
+TRACKING_TOKEN_DAYS="${TRACKING_TOKEN_DAYS:-180}"
 NIRIKSH_API_SECRET_ARN="${NIRIKSH_API_SECRET_ARN:?Set NIRIKSH_API_SECRET_ARN to one AWS Secrets Manager JSON secret ARN}"
 
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text --region "$AWS_REGION")"
@@ -57,10 +59,12 @@ fi
 aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 docker buildx build --platform "$TARGET_PLATFORM" --push --tag "$IMAGE_URI" ./backend
 
-SECRET_NAMES="DATABASE_URL,JWT_SECRET,INTERNAL_API_KEY,BHUMIKA_INTEGRATION_KEY,DEMO_USER_PASSWORD,GEMINI_API_KEY,EVIDENCE_S3_BUCKET,EVIDENCE_S3_REGION,EVIDENCE_S3_ENDPOINT_URL,EVIDENCE_S3_ACCESS_KEY_ID,EVIDENCE_S3_SECRET_ACCESS_KEY"
+SECRET_NAMES="DATABASE_URL,JWT_SECRET,INTERNAL_API_KEY,DIRECTORY_HASH_SECRET,BHUMIKA_INTEGRATION_KEY,DEMO_USER_PASSWORD,GEMINI_API_KEY,EVIDENCE_S3_BUCKET,EVIDENCE_S3_REGION,EVIDENCE_S3_ENDPOINT_URL,EVIDENCE_S3_ACCESS_KEY_ID,EVIDENCE_S3_SECRET_ACCESS_KEY"
 PRIMARY_CONTAINER="$(jq -nc \
   --arg image "$IMAGE_URI" \
   --arg origins "$FRONTEND_ORIGINS" \
+  --arg public_app_url "$PUBLIC_APP_URL" \
+  --arg tracking_token_days "$TRACKING_TOKEN_DAYS" \
   --arg secret "$NIRIKSH_API_SECRET_ARN" \
   --arg names "$SECRET_NAMES" \
   '{
@@ -69,6 +73,8 @@ PRIMARY_CONTAINER="$(jq -nc \
     environment:[
       {name:"APP_ENV",value:"production"},
       {name:"FRONTEND_ORIGINS",value:$origins},
+      {name:"PUBLIC_APP_URL",value:$public_app_url},
+      {name:"TRACKING_TOKEN_DAYS",value:$tracking_token_days},
       {name:"SEED_DEMO_USERS",value:"true"},
       {name:"AUTO_CREATE_TABLES",value:"false"},
       {name:"GEMINI_MODEL",value:"gemini-3.5-flash"},

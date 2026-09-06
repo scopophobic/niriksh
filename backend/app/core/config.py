@@ -24,7 +24,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_minutes: int = 60
     internal_api_key: str = "local-development-key"
+    directory_hash_secret: str = ""
     bhumika_integration_key: str = ""
+    public_app_url: str = "http://localhost:3000"
+    tracking_token_days: int = 180
     seed_demo_users: bool = True
     demo_user_password: str = "demo-only-change-me"
     evidence_storage_path: Path = Path("./data/evidence")

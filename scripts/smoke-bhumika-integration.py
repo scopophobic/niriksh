@@ -12,7 +12,7 @@ import urllib.error
 import urllib.request
 import uuid
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import parse_qs, quote, urljoin, urlparse
 
 try:
     import certifi
@@ -67,6 +67,13 @@ def post(url: str, key: str, payload: dict | None = None) -> tuple[int, dict]:
         method="POST",
     )
     return send(request)
+
+
+def get(url: str, key: str | None = None) -> tuple[int, dict]:
+    headers = {"Accept": "application/json"}
+    if key:
+        headers["X-Niriksh-Integration-Key"] = key
+    return send(urllib.request.Request(url, headers=headers, method="GET"))
 
 
 def upload(url: str, key: str, path: Path, external_evidence_id: str) -> tuple[int, dict]:
@@ -145,15 +152,42 @@ def main() -> None:
 
     first_status, first = post(f"{args.api_url.rstrip('/')}/integrations/bhumika/intakes", key, payload)
     second_status, second = post(f"{args.api_url.rstrip('/')}/integrations/bhumika/intakes", key, payload)
+    tracking_url = first.get("tracking_url", "")
+    token = parse_qs(urlparse(tracking_url).query).get("token", [""])[0]
+    public_status, public = get(
+        f"{args.api_url.rstrip('/')}/public/tracking/{quote(token, safe='')}"
+    ) if token else (0, {})
+    updates_status, updates = get(urljoin(args.api_url, first.get("updates_path", "")), key)
+    supplement_status, supplement = post(
+        urljoin(args.api_url, first.get("supplements_path", "")),
+        key,
+        {
+            "schema_version": "1.0",
+            "supplement_id": f"fictional-supplement-{suffix}",
+            "description_addendum": "Fictional follow-up: the reporter supplied the demo account identifier.",
+            "complaint_details": {"accountOrUrl": "@fictional-follow-up"},
+            "evidence": [],
+            "finalize": True,
+        },
+    )
 
     checks = {
         "first_status": first_status,
         "retry_status": second_status,
         "completed": first.get("processing_status") == "completed",
         "tracking_created": bool(first.get("tracking_number")),
+        "tracking_link_created": tracking_url.startswith("https://niriksh.scopophobic.xyz/track?token="),
         "report_created": bool((first.get("report") or {}).get("version")),
         "retry_is_duplicate": second.get("duplicate") is True,
         "retry_same_tracking": first.get("tracking_number") == second.get("tracking_number"),
+        "public_tracking_status": public_status,
+        "public_tracking_matches": public.get("tracking_number") == first.get("tracking_number"),
+        "public_tracking_is_safe": not ({"complaint_id", "description", "evidence", "report"} & set(public)),
+        "updates_status": updates_status,
+        "updates_returned": bool(updates.get("updates")),
+        "supplement_status": supplement_status,
+        "supplement_same_tracking": supplement.get("tracking_number") == first.get("tracking_number"),
+        "supplement_report_version": (supplement.get("report") or {}).get("version"),
         "analysis_mode": (first.get("analysis") or {}).get("mode"),
     }
     print(json.dumps(checks, indent=2))
@@ -162,9 +196,18 @@ def main() -> None:
         and second_status == 200
         and checks["completed"]
         and checks["tracking_created"]
+        and checks["tracking_link_created"]
         and checks["report_created"]
         and checks["retry_is_duplicate"]
         and checks["retry_same_tracking"]
+        and public_status == 200
+        and checks["public_tracking_matches"]
+        and checks["public_tracking_is_safe"]
+        and updates_status == 200
+        and checks["updates_returned"]
+        and supplement_status == 201
+        and checks["supplement_same_tracking"]
+        and checks["supplement_report_version"] == 2
     ):
         raise SystemExit(1)
 

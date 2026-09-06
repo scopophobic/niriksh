@@ -1,95 +1,108 @@
-# Niriksh — evidence context analysis for cybercrime complaints
+# Niriksh — Report → Understand → Connect
 
-Niriksh is a working browser prototype for turning an unstructured complaint and its evidence into a source-labelled case summary for human review. It focuses on understanding context before any routing, enforcement, or legal decision.
+Niriksh turns scattered cybercrime complaints and mixed evidence into structured, source-backed case intelligence. It preserves what the reporter submitted, reconstructs supported events, extracts explicit cyber indicators, identifies useful missing information, and shows when the same normalized identifier occurs in another complaint.
 
-It does **not** determine guilt, file a police report, verify an online account, or claim forensic authenticity.
+Niriksh assists people; it does not decide guilt, authenticity, urgency, priority, FIR registration, legal classification, routing, or enforcement. A Related Incident is a potential connection based on an exact shared identifier—not offender attribution.
 
 ## Run the complete product
 
-The application now has a real FastAPI backend and database. The simplest complete local start is:
+Copy the example configuration and supply your own local secrets:
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-This starts the Next.js web app on port 3000, FastAPI on port 8000, and PostgreSQL 17. Interactive backend documentation is available at `http://localhost:8000/docs`.
+This starts:
 
-Node.js 22+ is recommended:
+- Next.js web application: `http://localhost:3000`
+- FastAPI: `http://localhost:8000`
+- interactive API documentation: `http://localhost:8000/docs`
+- PostgreSQL 17 as the canonical local database
+
+For frontend-only development (Node.js 22+ recommended):
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The local text analyser and browser cache still provide an offline demo fallback, but PostgreSQL is the canonical store in the complete stack.
+The browser cache and deterministic TypeScript analyser provide a disclosed offline fallback. The Docker stack is required for canonical persistence, private evidence storage, authentication, reports, audit history, and Related Incidents.
 
-To enable the multimodal pipeline, copy `.env.example` to `.env.local`, add a server-side `GEMINI_API_KEY`, choose `GEMINI_MODEL`, and restart the development server. Gemini analysis is then attempted automatically, and the deterministic local engine remains the fallback. `GEMINI_FALLBACK_MODEL` and `GEMINI_RESERVE_MODEL` provide distinct capacity pools for temporary overloads or timeouts. Never expose the key through a `NEXT_PUBLIC_` variable.
+## Product areas
 
-The main product areas are:
+- `/` — the Report → Understand → Connect product story
+- `/report` — guided complaint and evidence intake
+- `/whatsapp` — Bhumika-derived WhatsApp-style guided chat that files into Niriksh
+- `/track?token=...` — allow-listed status through a signed tracking link
+- `/dashboard` — cases in received order, without AI priority ranking
+- `/cases/{id}` — case reconstruction, provenance, timeline, indicators, active signals, missing information, evidence, status, and Related Incidents
+- `/routing` — human-confirmed subject-folder and destination workflow
+- `/safety` — deterministic suspicious-message guidance and privacy-protected identifier lookup
+- `/admin` — illustrative governance controls and audit view
 
-- `/` — public landing page, safety guidance and a short explanation of the workflow.
-- `/report` — add a complaint and evidence, review the analysis, answer missing-context questions, and download a report.
-- `/dashboard` — review the local case workspace and open a case's context, timeline, facts, and evidence.
-- `/routing` — review recommended units, jurisdiction, verification readiness, missing information and priority.
+## Demo dataset
 
-## Suggested product walkthrough
+Start the Docker stack, then seed four fictional cases:
 
-1. Open `/report` and either complete the guided incident form or select **Load a complete sample**.
-2. Select **Analyse complaint**. Check the priority, context, important source-backed indicators, verification readiness, evidence limitations, and questions.
-3. Correct the summary or answer a question, then create and download the structured report.
-4. Continue to the routing screen, then open `/dashboard` to review the saved case from the evidence workspace.
-5. Open `/routing` to review recommended destinations and cases that still need information.
+```bash
+./scripts/demo-data.sh seed
+```
 
-## What actually works
+Open `/cases/demo-connect-a`. The case shares the fictional UPI ID `niriksh-demo@upi` with `CYB-2026-D002` and the reserved domain `case-link.example` with `CYB-2026-D003`. `CYB-2026-D004` is deliberately similar in category but has no exact shared identifier.
 
-- Separate analysis of the user description, readable evidence text, and user evidence notes
-- Guided incident, jurisdiction, AI-misuse, financial and optional suspect-information forms
-- Typed or recorded voice descriptions, with live browser transcription where supported and the original recording preserved as evidence
-- A dedicated AI-generated harmful-content category covering consent, identity use, distribution and requested takedown support
-- Context extraction for reporter role, whether the incident is ongoing, possible harm, and actions already taken
-- Source-labelled dates, repeated events, platforms, usernames, email, phone, UPI ID, URLs, amounts, and transaction IDs
-- Timeline construction and contradiction detection
-- Follow-up questions for missing or conflicting context
-- Deterministic category, confidence, priority score, and plain reasons
-- Hard child-safety escalation and explicit uncertainty for insufficient information
-- Browser SHA-256 fingerprints for selected files
-- Preview of local images and videos and direct reading of plain-text files
-- Audio playback, common evidence-file uploads, and a direct paste-chat/SMS/email evidence path
-- Default server-side Gemini analysis of complaint context, screenshots, images, PDFs, audio and short videos when Gemini is configured
-- Structured AI output merged with the deterministic safety and routing pipeline
-- A visible analysis-mode disclosure so local fallback is never presented as media understanding
-- Database-backed complaint records with an offline browser cache, source-focused case review, and report download
-- Versioned analysis runs and report snapshots
-- Streamed private evidence ingestion with SHA-256 hashing
-- JWT officer/admin authentication, role checks, optimistic complaint versions, and audit events
-- Human routing decisions with mandatory reasons for overrides
-- A protected, idempotent Bhumika integration that accepts curated WhatsApp complaints and evidence, then creates the Niriksh analysis, report, and tracking number
-- Human-confirmed routing information and copyable content-takedown request text
-- Ten controlled benchmark fixtures covered by the automated test suite
+Reset only the demo fixtures with:
 
-The benchmark is a regression check for known examples. A 10/10 result means those fixtures behave as expected; it is **not** a real-world accuracy percentage.
+```bash
+./scripts/demo-data.sh reset
+```
 
-## Multimodal boundary
+Seeding is repeatable and never deletes non-demo complaints. See [the demo guide](docs/demo-script.md) for the two-minute walkthrough.
 
-Without `GEMINI_API_KEY`, images, video and audio can be previewed and fingerprinted but are not interpreted. With the key configured and the reporter's consent, the server sends complaint context and supported evidence to Gemini for native image, document, audio and short-video understanding. Provider file uploads are deleted after each analysis attempt. Deepfake detection, metadata forensics and external identity/account verification are not implemented. Multimodal observations are triage indicators, not forensic authenticity findings.
+## What is implemented
+
+### Report
+
+- adaptive incident, jurisdiction, financial, identity-misuse, and optional suspect-information fields
+- narrative, pasteable message text, screenshots, documents, image, audio, and short-video inputs where supported
+- streamed private backend evidence storage with SHA-256 digests
+- browser speech recognition where supported, while retaining the original recording
+- reporter review/correction before a structured report is created
+
+### Understand
+
+- concise incident reconstruction
+- chronological events with explicit precision and source labels
+- a visual distinction between original evidence, extracted facts, and analysis-assisted observations
+- useful cyber indicators without treating generic entities as indicators
+- missing-information questions with a short explanation of why the detail matters
+- factual active signals that never become a priority score
+- versioned analysis runs and immutable report snapshots
+- current case status, human routing decisions, and audit events
+
+### Connect
+
+- persisted `case_indicators` linked to complaints and source evidence where available
+- conservative deterministic normalization for phone numbers, emails, UPI IDs, domains, URLs, social handles, transaction IDs, and account identifiers
+- exact `(indicator_type, normalized_value)` matching in PostgreSQL
+- grouped related cases showing every exact shared indicator and its source
+- no embeddings, fuzzy matching, graph database, semantic narrative matching, or automated offender attribution
+
+## Analysis boundary
+
+The deterministic organiser is always available. If `GEMINI_API_KEY` is configured, connected analysis can assist with structured extraction, source-labelled observations, document/image understanding, and transcription. Provider failure falls back to the local result and remains visible to the user.
+
+Connected analysis does not perform forensic authenticity or deepfake detection. Submitted evidence is untrusted content: text inside it is treated as evidence, never as an instruction to the application or model policy.
 
 ## Technology
 
-- Next.js 16, React 19, and TypeScript for the product UI
-- A local deterministic TypeScript context engine for signals, negation, classification, priority, and questions
-- Regular-expression and source-aware parsing for structured details and timelines
-- Browser Web Crypto for SHA-256 file fingerprints
-- PostgreSQL-backed case storage with a browser offline cache and retry queue
-- An optional server-only Google Gemini `generateContent` route using the official `@google/genai` SDK and structured JSON output
-- Automatic, disclosed Flash-model failover for temporary provider overloads and timeouts
-- Gemini Files API inputs for image, document, audio and native video analysis, with best-effort deletion after every request
-- Node's test runner through `tsx` for analyser regression tests
-- FastAPI, Pydantic, SQLAlchemy, Alembic, and PostgreSQL for the canonical backend
-- A versioned server-to-server integration contract isolated from officer and citizen APIs
-- HTTP-only officer web sessions and protected workspace routes
-- Selectable private local-disk or S3 evidence storage
-
-The deterministic pipeline always remains available as a repeatable fallback. When the multimodal route is configured, the result screen names the mode and model and shows how many evidence items received AI review.
+- Next.js 16, React 19, and TypeScript
+- FastAPI, Pydantic, SQLAlchemy 2, and Alembic
+- PostgreSQL/Supabase PostgreSQL; SQLite only for isolated tests
+- private filesystem or S3-compatible evidence storage (Supabase Storage is supported)
+- salted scrypt password hashes, JWTs, role checks, and HTTP-only officer sessions
+- optional server-side Google Gemini integration with structured output and bounded fallback
+- Node test runner through `tsx` and Pytest
 
 ## Verify
 
@@ -97,25 +110,21 @@ The deterministic pipeline always remains available as a repeatable fallback. Wh
 npm test
 npm run lint
 npm run build
-cd backend && pytest -q
+cd backend
+DATABASE_URL=sqlite:////tmp/niriksh-test.db EVIDENCE_STORAGE_BACKEND=local pytest -q
 ```
 
-## Deploy to Amazon ECS Express Mode
+## Deployment
 
-The production image uses Next.js standalone output, runs as the unprivileged `node` user, listens on port `3000`, and exposes `GET /api/health` for load-balancer and container health checks.
-
-Prerequisites are Docker, AWS CLI v2, an authenticated AWS account, a default VPC with public subnets, and an AWS Secrets Manager JSON secret. Deploy the API first:
+The existing deployment uses separate `niriksh` web and `niriksh-api` ECS Express services. Deploy the API first, then the web service:
 
 ```bash
 AWS_REGION=us-east-1 NIRIKSH_API_SECRET_ARN='<secret-arn>' ./scripts/deploy-ecs-express-api.sh
-```
-
-Then deploy the web service against the API endpoint:
-
-```bash
 AWS_REGION=us-east-1 BACKEND_API_URL='https://<api-endpoint>/api/v1' NIRIKSH_WEB_SECRET_ARN='<secret-arn>' ./scripts/deploy-ecs-express.sh
 ```
 
-The scripts create/update immutable ECR images and separate `niriksh-api` and `niriksh` services. Database, Gemini, integration, and object-storage credentials are injected from Secrets Manager rather than committed or baked into images.
+Secrets belong in AWS Secrets Manager, never in images, Git, documentation, or `NEXT_PUBLIC_*` values. Run Alembic through revision `20260906_0005` before serving the Connect API. Detailed architecture, deployment, and decision records are in [docs/architecture.md](docs/architecture.md), [docs/technical.md](docs/technical.md), [docs/deployment.md](docs/deployment.md), and [docs/decisions.md](docs/decisions.md).
 
-The active backend is in `backend/`; the previous `apps/api` contract stub has been removed. Bhumika continues owning its existing Meta account, app, phone number, conversation flow, and outbound replies. Niriksh receives only Bhumika's curated form submission and optional evidence bytes. See `docs/deployment.md`, `docs/bhumika-integration.md`, and `docs/demo-script.md` for the exact sequence and mentor walkthrough.
+## WhatsApp and Bhumika boundary
+
+The `/whatsapp` route is a browser-based simulation derived from Bhumika and files real local Niriksh cases; it is not connected to Meta. Live WhatsApp transport remains owned by the separate Bhumika deployment, which submits curated complaints and evidence through Niriksh's protected `/integrations/bhumika/intakes` API. Local Compose enables that API with a development-only integration key; production must supply a separate random secret to both services.

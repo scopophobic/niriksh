@@ -7,11 +7,13 @@ import { useCaseStore } from "@/lib/case-store";
 
 const statusSteps = ["Registered", "Analysis complete", "Officer review", "Routing", "Resolved"];
 
-export function CitizenDashboard() {
+export function CitizenDashboard({ initialReference }: { initialReference?: string }) {
   const { cases } = useCaseStore();
-  const citizenCases = useMemo(() => cases.filter(item => item.id === "ai-investment-video" || item.id.startsWith("submitted-")), [cases]);
-  const [selectedId, setSelectedId] = useState(citizenCases[0]?.id || "");
-  const selected = useMemo(() => citizenCases.find(item => item.id === selectedId) || citizenCases[0], [citizenCases, selectedId]);
+  const citizenCases = useMemo(() => cases.filter(item => item.id === "ai-investment-video" || item.id.startsWith("submitted-") || item.id.startsWith("whatsapp-")), [cases]);
+  const [selectedId, setSelectedId] = useState("");
+  const selected = useMemo(() => citizenCases.find(item => item.id === selectedId)
+    || (initialReference ? citizenCases.find(item => item.reference === initialReference) : undefined)
+    || citizenCases[0], [citizenCases, initialReference, selectedId]);
   const currentStep = selected?.status === "Routed" ? 3 : selected?.status === "In review" ? 2 : selected?.status === "Needs information" ? 1 : 2;
   if (!selected) return null;
 
@@ -82,7 +84,7 @@ export function CitizenDashboard() {
               <a href="tel:1930"><Phone size={15}/> Call support <strong>1930</strong></a><a href={`mailto:support@niriksh.example?subject=${reference}`}><MessageCircle size={15}/> Send a message</a>
               <div className="contact-note"><Info size={14}/>Keep your case reference ready when calling.</div>
             </section>
-            <section className="citizen-route-card"><Landmark size={19}/><small>RECOMMENDED REVIEW ROUTE</small><h3>{assignedUnit}</h3><p>{details?.routing.jurisdiction || selected.location || "Jurisdiction confirmation in progress"}</p><span><CheckCircle2 size={14}/>Human confirmation required</span></section>
+            <section className="citizen-route-card"><Landmark size={19}/><small>PROPOSED SUBJECT TEAM</small><h3>{assignedUnit}</h3><p>{details?.routing.jurisdiction || selected.location || "Jurisdiction confirmation in progress"}</p><span><CheckCircle2 size={14}/>Human confirmation required</span></section>
             <section className="citizen-help-card"><ClipboardList size={19}/><div><strong>Need immediate help?</strong><p>Call 112 if anyone is in danger. For recent financial fraud, call 1930 now.</p></div><a href="tel:112">Emergency 112 <ArrowRight size={14}/></a></section>
           </aside>
         </div>
