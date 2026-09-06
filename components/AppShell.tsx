@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Cloud, CloudOff, FilePlus2, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, X } from "lucide-react";
+import { Cloud, CloudOff, FilePlus2, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { POVSwitch } from "./POVSwitch";
 import { useCaseStore } from "@/lib/case-store";
 
 const nav = [
+  { href: "/prevention", label: "Prevention intelligence", icon: Sparkles },
   { href: "/dashboard", label: "Case dashboard", icon: LayoutDashboard },
   { href: "/routing", label: "Routing desk", icon: Route },
   { href: "/report", label: "Register complaint", icon: FilePlus2 },

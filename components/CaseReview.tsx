@@ -10,6 +10,7 @@ import { useCaseStore } from "@/lib/case-store";
 import { caseIndicators, evidenceAnchor, missingInformation, sourceEvidenceName } from "@/lib/case-intelligence";
 import { EvidenceItem } from "@/lib/types";
 import { RelatedIncidents } from "./RelatedIncidents";
+import { PreventionWarning } from "./PreventionWarning";
 
 function SourceTrace({ source }: { source: string }) {
   const evidenceName = sourceEvidenceName(source);
@@ -65,6 +66,7 @@ export function CaseReview({ id }: { id: string }) {
         </section>
 
         <RelatedIncidents complaintId={item.id}/>
+        <PreventionWarning complaintId={item.id}/>
 
         {details && <section className="folio-section">
           <div className="folio-section-head"><div><h2>Source trace</h2><p>Each extracted fact points back to the submitted narrative, form or named evidence.</p></div><span>{details.facts.length} facts</span></div>
