@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 
 from app.core.config import get_settings
-from app.db.models import Complaint, Report
+from app.db.models import Complaint, PreventionPattern, Report
 from app.db.session import build_database
 from app.modules.complaints.service import sync_case
 
@@ -196,6 +196,10 @@ def build_cases() -> list[dict]:
 
 
 def reset_demo(db) -> int:
+    # Remove only patterns whose supporting cases are part of this fictional fixture.
+    for pattern in db.scalars(select(PreventionPattern)).all():
+        if set(pattern.supporting_complaints or []).intersection(DEMO_IDS):
+            db.delete(pattern)
     rows = db.scalars(select(Complaint).where(Complaint.id.in_(DEMO_IDS))).all()
     for row in rows:
         db.delete(row)
