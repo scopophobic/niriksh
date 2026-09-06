@@ -34,6 +34,7 @@ The browser cache and deterministic TypeScript analyser provide a disclosed offl
 - `/` — prevention-first product story
 - `/prevention` — emerging and verified prevention intelligence
 - `/prevention/{id}` — explainable pattern evidence and human review
+- `/awareness` — lightweight awareness/advisory drafts from verified patterns
 - `/report` — guided complaint and evidence intake
 - `/whatsapp` — Bhumika-derived WhatsApp-style guided chat that files into Niriksh
 - `/track?token=...` — allow-listed status through a signed tracking link
@@ -96,6 +97,15 @@ Seeding is repeatable and never deletes non-demo complaints. See [the demo guide
 - human review lifecycle: unreviewed, verified, dismissed, or needs more evidence
 - verified-pattern warnings on future reports, showing matching identifiers and support count
 - controlled awareness-draft action after verification; publication still requires human approval
+
+The prevention loop deliberately separates evidence from impact claims:
+
+- **Observed:** exact recurring indicators and linked cases;
+- **Decided:** human review and verification;
+- **Acted:** warning matches, watchlist decisions, and approved awareness drafts;
+- **Learned:** follow-up outcomes such as acknowledgement, intervention, or reduced repeat harm.
+
+The demo can prove the first three activity checkpoints. It does not claim that harm was prevented until an outcome is collected and reviewed.
 
 ## Analysis boundary
 

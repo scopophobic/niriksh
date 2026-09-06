@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Cloud, CloudOff, FilePlus2, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Cloud, CloudOff, FilePlus2, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, Video, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./Logo";
 import { POVSwitch } from "./POVSwitch";
 import { useCaseStore } from "@/lib/case-store";
 
-const nav = [
-  { href: "/prevention", label: "Prevention intelligence", icon: Sparkles },
-  { href: "/dashboard", label: "Case dashboard", icon: LayoutDashboard },
-  { href: "/routing", label: "Routing desk", icon: Route },
-  { href: "/report", label: "Register complaint", icon: FilePlus2 },
-  { href: "/admin", label: "Administration", icon: Settings2 },
+const navGroups = [
+  { label: "Intelligence", items: [
+    { href: "/prevention", label: "Intelligence overview", icon: Sparkles },
+    { href: "/awareness", label: "Awareness studio", icon: Video },
+  ]},
+  { label: "Casework", items: [
+    { href: "/dashboard", label: "Cases", icon: LayoutDashboard },
+    { href: "/report", label: "New complaint", icon: FilePlus2 },
+  ]},
+  { label: "Operations", items: [
+    { href: "/routing", label: "Routing desk", icon: Route },
+  ]},
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -31,8 +37,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
         <div className="side-head"><Logo inverse /><button className="icon-button mobile-only" onClick={() => setOpen(false)} aria-label="Close menu"><X size={20}/></button></div>
         <nav className="side-nav">
-          <p>WORKSPACE</p>
-          {nav.map(item => <Link key={item.label} href={item.href} onClick={() => setOpen(false)} className={path === item.href ? "active" : ""}><item.icon size={18}/><span>{item.label}</span></Link>)}
+          {navGroups.map(group => <div key={group.label} className="side-nav-group"><p>{group.label}</p>{group.items.map(item => <Link key={item.label} href={item.href} onClick={() => setOpen(false)} className={(path === item.href || (item.href === "/prevention" && path.startsWith("/prevention/"))) ? "active" : ""}><item.icon size={18}/><span>{item.label}</span></Link>)}</div>)}
+          <div className="side-nav-group side-nav-admin"><p>System</p><Link href="/admin" onClick={() => setOpen(false)} className={path === "/admin" ? "active" : ""}><Settings2 size={18}/><span>Administration</span></Link></div>
         </nav>
         <div className="side-notice"><ShieldCheck size={18}/><div><strong>Human-led review</strong><span>Analysis organises evidence. Officers make every decision.</span></div></div>
         <div className="officer-profile"><span>AS</span><div><strong>Authenticated officer</strong><small>Cybercrime Review Officer</small></div><button className="icon-button" onClick={logout} aria-label="Sign out"><LogOut size={17}/></button></div>

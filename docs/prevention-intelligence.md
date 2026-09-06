@@ -22,6 +22,17 @@ Only verified patterns can generate a future-case warning or expose prevention a
 
 Awareness/advisory output is a human-controlled draft only. It is never automatically published, accusatory, or an enforcement action.
 
+## Showing effectiveness honestly
+
+Prevention intelligence should be evaluated as a traceable loop, not a single “accuracy” or “harm prevented” percentage:
+
+1. **Observed:** how many exact indicators recur, across how many reports, with what provenance;
+2. **Decided:** how many candidates received a human decision and how long review took;
+3. **Acted:** how many verified patterns generated a warning, watchlist decision, or approved awareness draft;
+4. **Learned:** whether future matches were acknowledged, an intervention was recorded, or the same signal recurred after an intervention.
+
+The current `/prevention` experience shows these as evidence checkpoints. The last checkpoint is intentionally an outcome-collection prompt until a real operational outcome feed is connected. This prevents Niriksh from claiming that a warning prevented harm merely because it was generated.
+
 ## Fictional demo
 
 Run `./scripts/demo-data.sh seed` with the Docker stack running. This creates six clearly fictional cases. Five contain the reserved `demo-invest@upi` and `wealth-demo.example` identifiers alongside high-return investment wording. `CYB-2026-D004` remains unrelated, showing that category similarity does not establish a pattern.
