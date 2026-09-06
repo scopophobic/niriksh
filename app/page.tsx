@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PublicHeader } from "@/components/PublicHeader";
+import { WhatsAppMark } from "@/components/WhatsAppMark";
 
 export default function Home() {
   return <div className="landing-v3">
@@ -18,7 +19,8 @@ export default function Home() {
           <h1>Every complaint should make the next one safer.</h1>
           <p className="story-deck">Niriksh turns cybercrime reports into structured intelligence, learns recurring patterns across incidents, and helps surface threats earlier—under human review.</p>
           <div className="prevention-chips"><span>Prevention-first</span><span>Learns across incidents</span><span>Human-reviewed</span><span>Source-backed</span></div>
-          <div className="story-actions"><Link className="story-primary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link><Link className="story-secondary" href="/report">Report an incident</Link><Link className="story-secondary" href="/whatsapp"><MessageCircle/>Try Bhumika WhatsApp demo</Link></div>
+          <Link className="hero-whatsapp-note" href="/whatsapp"><span><WhatsAppMark/></span><div><strong>You can file a complaint on WhatsApp</strong><small>Try Bhumika&apos;s guided reporting demo</small></div><ArrowRight/></Link>
+          <div className="story-actions"><Link className="story-primary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link><Link className="story-secondary" href="/report">Report an incident</Link></div>
           <p className="story-boundary"><ShieldCheck/>People verify patterns and decide every operational action.</p>
         </div>
 

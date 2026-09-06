@@ -1,6 +1,6 @@
-import { AlertTriangle, MessageCircleWarning } from "lucide-react";
 import { PublicHeader } from "@/components/PublicHeader";
 import { WhatsAppDemo } from "@/components/WhatsAppDemo";
+import { WhatsAppMark } from "@/components/WhatsAppMark";
 
 export const metadata = {
   title: "Niriksh — Bhumika-derived WhatsApp reporting demo",
@@ -14,17 +14,18 @@ export default function WhatsAppPage() {
     <div className="landing-page whatsapp-demo-page">
       <PublicHeader />
       <main className="whatsapp-demo-main">
-        <div className="whatsapp-demo-notice">
-          <MessageCircleWarning size={20} />
+        <details className="whatsapp-demo-notice">
+          <summary>
+            <WhatsAppMark />
+            <span><strong>Bhumika WhatsApp reporting demo</strong><small>Browser preview · complaints submitted here are saved to Niriksh</small></span>
+            <b>About this demo</b>
+          </summary>
           <div>
-            <strong>This Niriksh demo is derived from Bhumika&apos;s guided WhatsApp reporting experience.</strong>
-            <p>The browser simulation below uses the Bhumika-style conversational intake and Niriksh&apos;s analysis pipeline. It is not connected to Meta or a real phone number. Bhumika separately owns the live WhatsApp channel, webhook, and conversation delivery (see docs/decisions.md, ADR-046).</p>
-            <p><strong>Cases filed here are real</strong> — they enter Niriksh&apos;s own database and appear on the internal dashboard — but tracking a reference back is only possible in this same browser right now, not from any device.</p>
-            {!aiConfigured && (
-              <p className="whatsapp-demo-notice-fixture"><AlertTriangle size={14} /> No Gemini API key is configured in this environment, so this chat is running in offline fixture mode — classification quality is materially lower than the connected version.</p>
-            )}
+            <p>This page previews Bhumika&apos;s conversational intake inside Niriksh; it is not connected to Meta or a real WhatsApp phone number. Bhumika owns the live channel and delivery integration.</p>
+            <p>Complaints submitted in this demo enter the Niriksh database. Tracking is currently limited to this browser.</p>
+            {!aiConfigured && <p className="whatsapp-demo-notice-fixture">Guided demo mode is active because connected AI analysis is not configured.</p>}
           </div>
-        </div>
+        </details>
 
         <h1>Try the Bhumika-derived reporting flow</h1>
         <p className="whatsapp-demo-sub">The first hours matter most — money&apos;s still traceable, threats are still active, harmful content is still live enough to pull down. Message Niriksh below — voice, photo, or text — and she&apos;ll walk you through exactly what a reviewer needs.</p>

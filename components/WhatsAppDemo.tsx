@@ -569,48 +569,48 @@ export function WhatsAppDemo({ aiConfigured }: { aiConfigured: boolean }) {
 }
 
 const CSS = `
-.wad { width:100%; }
+.wad { width:100%; --wa-green:#25d366; --wa-dark:#075e54; --wa-deep:#111b21; --wa-chat:#efeae2; --wa-outgoing:#d9fdd3; }
 .wad-stage { display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; justify-content:center; }
-.wad-phone{ width:min(340px, 100%); height:min(620px, 82vh); background:var(--navy); border-radius:34px; padding:10px;
-  box-shadow:var(--shadow); display:flex; flex-direction:column; position:relative; }
-.wad-notch{ position:absolute; top:0; left:50%; transform:translateX(-50%); width:70px; height:18px; background:var(--navy); border-radius:0 0 12px 12px; }
-.wad-head{ background:var(--teal); color:#fff; display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:24px 24px 0 0; }
+.wad-phone{ width:min(340px, 100%); height:min(620px, 82vh); background:var(--wa-deep); border-radius:34px; padding:10px;
+  box-shadow:0 24px 60px rgba(7,94,84,.18); display:flex; flex-direction:column; position:relative; }
+.wad-notch{ position:absolute; top:0; left:50%; transform:translateX(-50%); width:70px; height:18px; background:var(--wa-deep); border-radius:0 0 12px 12px; }
+.wad-head{ background:var(--wa-dark); color:#fff; display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:24px 24px 0 0; }
 .wad-avatar{ width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2); display:grid; place-items:center; font-weight:700; font-size:13px; }
 .wad-name{ font-weight:700; font-size:14px; } .wad-status{ font-size:11px; opacity:.85; }
-.wad-body{ flex:1; overflow-y:auto; padding:12px; background:var(--mint); }
+.wad-body{ flex:1; overflow-y:auto; padding:12px; background-color:var(--wa-chat); background-image:radial-gradient(rgba(7,94,84,.045) 1px,transparent 1px); background-size:18px 18px; }
 .wad-hint{ background:#fff8d6; color:#6b5b00; font-size:12px; padding:10px 12px; border-radius:10px; text-align:center; margin:auto; max-width:220px; }
 .wad-bubble{ max-width:84%; padding:8px 11px; border-radius:10px; margin:6px 0; font-size:13px; line-height:1.42; white-space:pre-wrap; overflow-wrap:anywhere; box-shadow:0 1px .5px rgba(0,0,0,.08); }
-.wad-bubble-text a{ color:var(--teal-dark); text-decoration:underline; }
-.wad-bubble.me{ background:#d9fdd3; margin-left:auto; border-top-right-radius:3px; }
+.wad-bubble-text a{ color:var(--wa-dark); text-decoration:underline; }
+.wad-bubble.me{ background:var(--wa-outgoing); margin-left:auto; border-top-right-radius:3px; }
 .wad-bubble.bot{ background:#fff; margin-right:auto; border-top-left-radius:3px; }
 .wad-bubble.processing{ background:#f8fbff; color:#45515b; border:1px solid #dce8ef; }
 .wad-bubble-btns{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
-.wad-btn{ background:#fff; color:var(--teal-dark); border:1px solid #e5e5e5; padding:9px; border-radius:8px; font-weight:600; font-size:13px; }
+.wad-btn{ background:#fff; color:var(--wa-dark); border:1px solid #dfe9e4; padding:9px; border-radius:8px; font-weight:600; font-size:13px; }
 .wad-btn-disabled{ color:#9aa2a6; cursor:not-allowed; }
 .wad-input{ display:grid; grid-template-columns:auto auto minmax(0,1fr) auto 38px; align-items:center; gap:6px; padding:8px; background:#f0f2f5; border-radius:0 0 24px 24px; }
 .wad-input input{ width:100%; border:none; background:#fff; border-radius:20px; padding:9px 14px; font-size:13px; }
 .wad-input input:focus{ outline:none; }
 .wad-input input.wad-input-recording{ color:#e63946; font-weight:600; }
 .wad-icon{ border:none; background:transparent; font-size:16px; padding:4px; }
-.wad-send{ border:none; background:var(--teal); color:#fff; width:36px; height:36px; border-radius:50%; font-size:14px; display:grid; place-items:center; }
+.wad-send{ border:none; background:var(--wa-green); color:#073b32; width:36px; height:36px; border-radius:50%; font-size:14px; display:grid; place-items:center; }
 .wad-send:disabled{ opacity:.5; }
 .wad-tray{ display:flex; flex-direction:column; gap:10px; width:min(280px, 100%); }
 .wad-tray-label{ font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
 .wad-bub{ background:#fff; border:1.5px solid var(--line); border-radius:20px; padding:11px 14px; text-align:left; font-size:13.5px; font-weight:600; color:var(--ink); cursor:pointer; box-shadow:var(--shadow); }
-.wad-bub:hover{ border-color:var(--teal); }
+.wad-bub:hover{ border-color:var(--wa-green); }
 .wad-checklist{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:15px; box-shadow:var(--shadow); }
 .wad-checklist-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
 .wad-checklist-head strong{ font-size:14px; line-height:1.35; }
-.wad-checklist-head>span{ flex:none; color:var(--teal-dark); background:var(--mint); border-radius:999px; padding:3px 7px; font-size:11px; font-weight:800; }
+.wad-checklist-head>span{ flex:none; color:var(--wa-dark); background:#e8f8ef; border-radius:999px; padding:3px 7px; font-size:11px; font-weight:800; }
 .wad-progress{ height:6px; overflow:hidden; background:#e6ece9; border-radius:99px; margin:12px 0 14px; }
-.wad-progress i{ display:block; height:100%; max-width:100%; background:var(--teal); border-radius:inherit; transition:width .25s ease; }
+.wad-progress i{ display:block; height:100%; max-width:100%; background:var(--wa-green); border-radius:inherit; transition:width .25s ease; }
 .wad-checklist-rows{ display:grid; gap:9px; }
 .wad-checklist-rows>div{ display:flex; align-items:flex-start; gap:8px; color:#68736f; font-size:12px; line-height:1.35; }
 .wad-checklist-rows>div>i{ font-style:normal; color:#98a29e; font-weight:800; }
 .wad-checklist-rows>div>span{ display:grid; gap:2px; }
 .wad-checklist-rows small{ color:#909895; font-size:9px; text-transform:uppercase; letter-spacing:.04em; }
 .wad-checklist-rows>div.done{ color:var(--ink); }
-.wad-checklist-rows>div.done>i{ color:var(--teal); }
+.wad-checklist-rows>div.done>i{ color:var(--wa-dark); }
 .wad-loc-overlay{ position:fixed; inset:0; background:rgba(15,15,15,.5); display:grid; place-items:center; z-index:60; padding:20px; }
 .wad-loc-card{ width:min(380px,100%); background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,.3); }
 .wad-loc-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); }
@@ -619,7 +619,7 @@ const CSS = `
 .wad-loc-body label{ display:block; font-size:12px; font-weight:700; color:var(--ink); }
 .wad-loc-body select, .wad-loc-body input{ width:100%; margin-top:6px; padding:9px; border:1px solid var(--line); border-radius:8px; font-size:13px; }
 .wad-loc-foot{ padding:12px 16px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; }
-.wad-loc-confirm{ background:var(--teal); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:13px; }
+.wad-loc-confirm{ background:var(--wa-dark); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:13px; }
 .wad-loc-confirm:disabled{ opacity:.5; }
 @media (max-width: 720px){ .wad-stage{ flex-direction:column; align-items:center; } }
 `;
