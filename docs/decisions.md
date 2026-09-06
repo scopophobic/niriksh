@@ -1,6 +1,6 @@
 # Niriksh decision record
 
-Last reconstructed: 4 September 2026
+Last updated: 6 September 2026
 
 ## Purpose of this document
 
@@ -16,11 +16,13 @@ The record was reconstructed from:
 
 Sensitive values such as API keys, certificate validation tokens, and AWS account identifiers are deliberately omitted.
 
+> **Current-state notice:** ADR-049 through ADR-056 define the current release. Older entries are retained as project history. Where they mention priority scoring, AI routing, Bhumika/WhatsApp as a required channel, or broader prevention/intelligence features, the newer decisions supersede them.
+
 ## Current product statement
 
-> Niriksh is an evidence intelligence platform for cybercrime complaints. It connects a reporter's description, structured incident details, and supporting evidence into a prioritised, source-labelled case for human review.
+> Niriksh turns scattered cybercrime complaints and evidence into structured, source-backed case intelligence, then surfaces exact shared indicators across incidents for human review.
 
-The product is intended to help with the first-mile triage problem: complaints arrive as incomplete narratives plus screenshots, messages, receipts, audio, video, and links; a reviewer must understand the context, identify urgency, find useful identifiers, ask for missing information, and decide where the case may need review.
+The product is intended to help with the first-mile preparation problem: complaints arrive as incomplete narratives plus screenshots, messages, receipts, audio, video, and links; a reviewer must understand the context, inspect supported active signals, find useful identifiers, ask for missing information, and decide what happens next.
 
 Niriksh is not an autonomous investigator, deepfake detector, guilt engine, legal decision-maker, police-report filing service, or forensic authenticity tool.
 
@@ -29,8 +31,8 @@ Niriksh is not an autonomous investigator, deepfake detector, guilt engine, lega
 1. Evidence context is the core feature; routing and dashboards are downstream views.
 2. Reporter claims, evidence observations, system inferences, and human decisions must remain distinguishable.
 3. Every important finding should retain a source.
-4. Urgency and evidence completeness are separate concepts.
-5. Child-safety and other critical safety rules remain deterministic and inspectable.
+4. Factual active signals and evidence completeness are separate concepts; neither becomes an automated priority.
+5. Safety-related wording remains factual, deterministic where possible, and inspectable.
 6. A provider failure must not prevent a reporter from preparing a case.
 7. Uncertainty must be shown rather than converted into a confident category.
 8. A reporter must be able to review and correct the generated summary.
@@ -598,6 +600,71 @@ Limitations: a bearer link must be treated as private, currently expires after t
 
 Status: accepted and implemented.
 
+### 49. Organise the product around Report → Understand → Connect
+
+The current competition release has one coherent transformation:
+
+```text
+raw complaint + evidence
+  → source-backed case reconstruction
+  → explicit normalized indicators
+  → potential related incidents
+```
+
+Report remains the existing intake, Understand is the hero officer experience, and Connect adds exact cross-case context. Case status and routing remain useful downstream workflows rather than the product headline.
+
+This supersedes earlier positioning around priority-first triage, generated-content detection, a broad prevention network, and Bhumika-led demo storytelling.
+
+Status: accepted and implemented.
+
+### 50. Remove automated priority and expose factual active signals
+
+Neither AI nor deterministic scoring decides which victim deserves attention. The UI shows cases in received order and keeps legacy severity/confidence fields neutralized for compatibility. Analysis may surface statements such as ongoing access, continuing threats, recent financial activity, or continuing impersonation only when supported by submitted material. A person interprets those facts under policy.
+
+Status: accepted and implemented. This supersedes ADR-005, ADR-006, and ADR-022 where they describe scoring or priority.
+
+### 51. Make case reconstruction and provenance the officer hero
+
+The case experience leads with what happened, chronology, source trace, explicit indicators, uncertainty, original evidence, active signals, missing information, and compact status. Original evidence, extracted facts, and analysis-assisted observations are distinct layers. Exact times and evidence IDs are never invented.
+
+Status: accepted and implemented.
+
+### 52. Correlate complaints only through deterministic exact indicators
+
+Models may extract candidate identifiers but cannot decide that cases are related. Connect only compares equal `indicator_type + normalized_value` pairs. Same category, similar narrative, nearby time/location, embeddings, images, and fuzzy matches are excluded.
+
+The result exposes the exact value and source provenance and uses non-attribution language. Shared identifiers can be recycled, shared, spoofed, or mistyped; a match is supporting information only.
+
+Status: accepted and implemented.
+
+### 53. Use PostgreSQL and a normalized indicator table for Connect
+
+`case_indicators` preserves raw/display values, normalized values, types, complaint ownership, extraction source, and optional evidence provenance. A composite B-tree index supports equality lookups. PostgreSQL already owns canonical complaint data and is sufficient for the current query and competition scale.
+
+Neo4j, Elasticsearch, vector storage, and a separate correlation service add operational and consistency cost without improving the exact-match requirement.
+
+Status: accepted and implemented in migration `20260906_0005`.
+
+### 54. Exclude Bhumika/WhatsApp from the current release
+
+Bhumika is not part of the current repository implementation request, demo path, landing story, or runtime requirement. Historical modules and ADRs remain for traceability but are not extended. A future adapter may use the canonical complaint boundary after separate design and security review.
+
+This avoids advertising an integration that is not part of the current deliverable and keeps Niriksh independently usable.
+
+Status: accepted for the current release. ADR-041, ADR-046, and the Bhumika-specific part of ADR-048 are deferred.
+
+### 55. Postpone prevention/intelligence-loop expansion
+
+Public awareness generation, automated blocking, crawler-driven intelligence, graph visualizations, semantic cross-case matching, and automated enforcement are not needed to prove the central workflow. Development effort remains on trustworthy reporting, source-backed understanding, and explicit connections.
+
+Status: accepted.
+
+### 56. Keep demo correlation isolated and fictional
+
+Four fixed demo complaint IDs and reserved/example identifiers provide a repeatable two-minute story. Seed/reset operates only on those IDs, runs through the production synchronization service, and the application never depends on the fixtures.
+
+Status: accepted and implemented.
+
 ## Decision index
 
 | ID | Decision | Status |
@@ -606,8 +673,8 @@ Status: accepted and implemented.
 | ADR-002 | Optimise the MVP for a complete demo before enterprise completeness | Accepted |
 | ADR-003 | Make citizen complaint-to-report flow the primary product journey | Accepted |
 | ADR-004 | Keep source attribution throughout analysis | Accepted |
-| ADR-005 | Keep deterministic safety, scoring, and routing policy outside the model | Accepted |
-| ADR-006 | Treat urgency, completeness, and verification readiness separately | Accepted |
+| ADR-005 | Keep deterministic safety, scoring, and routing policy outside the model | Superseded in part by ADR-050 |
+| ADR-006 | Treat urgency, completeness, and verification readiness separately | Superseded in part by ADR-050 |
 | ADR-007 | Allow `Unclear / needs review` instead of forced classification | Accepted |
 | ADR-008 | Use adaptive, conditional intake instead of one large form | Accepted |
 | ADR-009 | Do not collect national ID in the unauthenticated prototype | Accepted |
@@ -623,11 +690,11 @@ Status: accepted and implemented.
 | ADR-019 | Use bounded provider retry, model failover, then local fallback | Accepted |
 | ADR-020 | Treat video as a first-class source with per-file failure reporting | Accepted |
 | ADR-021 | Separate voice description from uploaded audio evidence | Accepted |
-| ADR-022 | Make the report priority-first and explicitly “not submitted” | Accepted |
+| ADR-022 | Make the report priority-first and explicitly “not submitted” | Superseded by ADR-049/050 |
 | ADR-023 | Keep routing human-confirmed | Accepted |
 | ADR-024 | Separate citizen, officer, and administrator experiences | Accepted |
 | ADR-025 | Use browser-local storage for demo reliability only | Accepted for prototype |
-| ADR-026 | Retain FastAPI/PostgreSQL as an inactive production-direction boundary | Provisional |
+| ADR-026 | Retain FastAPI/PostgreSQL as an inactive production-direction boundary | Superseded by ADR-031/033 |
 | ADR-027 | Treat controlled benchmarks as regression tests, not accuracy | Accepted |
 | ADR-028 | Deploy a hardened standalone container to ECS Express Mode | Accepted |
 | ADR-029 | Use immutable ECR tags and repeatable create/update automation | Accepted |
@@ -642,14 +709,22 @@ Status: accepted and implemented.
 | ADR-038 | Reuse Bhumika's existing Meta assets inside Niriksh | Superseded by ADR-046 |
 | ADR-039 | Use Supabase PostgreSQL through the session pooler | Deployed |
 | ADR-040 | Use private Supabase Storage for the demo; stronger immutable storage later | Deployed for demo |
-| ADR-041 | Run WhatsApp multimodal extraction/transcription in FastAPI | Accepted |
+| ADR-041 | Run WhatsApp multimodal extraction/transcription in FastAPI | Deferred by ADR-054 |
 | ADR-042 | Process webhook jobs inline for the one-service demo only | Superseded by ADR-046 |
 | ADR-043 | Treat the Niriksh reference as tracking, not an FIR | Accepted |
 | ADR-044 | Deploy separate web and API ECS Express services | Deployed |
 | ADR-045 | Redirect HTTP to the canonical HTTPS domain | Deployed |
-| ADR-046 | Keep Meta in Bhumika; send Niriksh a curated, idempotent form/media submission | Accepted |
+| ADR-046 | Keep Meta in Bhumika; send Niriksh a curated, idempotent form/media submission | Deferred by ADR-054 |
 | ADR-047 | Inline ordinary web media to keep connected analysis inside the request window | Accepted |
-| ADR-048 | Use signed tracking links, a pull update feed, and idempotent supplements | Deployed |
+| ADR-048 | Use signed tracking links, a pull update feed, and idempotent supplements | Tracking retained; Bhumika feed deferred |
+| ADR-049 | Organise the product around Report → Understand → Connect | Accepted |
+| ADR-050 | Remove automated priority and expose factual active signals | Accepted |
+| ADR-051 | Make case reconstruction and provenance the officer hero | Accepted |
+| ADR-052 | Correlate complaints only through deterministic exact indicators | Accepted |
+| ADR-053 | Use PostgreSQL and a normalized indicator table for Connect | Accepted |
+| ADR-054 | Exclude Bhumika/WhatsApp from the current release | Accepted |
+| ADR-055 | Postpone prevention/intelligence-loop expansion | Accepted |
+| ADR-056 | Keep demo correlation isolated and fictional | Accepted |
 
 ## Explicitly deferred or rejected scope
 
@@ -674,31 +749,26 @@ The following were intentionally excluded from the MVP:
 
 ## Known inconsistencies and follow-up decisions
 
-1. **README versus current AI behaviour:** README says a reporter can disable connected analysis; the current UI automatically uses it whenever configured.
-2. **Model defaults:** the web currently prefers `gemini-2.5-flash` for stable media latency while the API prefers `gemini-3.5-flash`; both use distinct fallback pools. These adapters should still be consolidated behind one shared configuration contract.
-3. **Bhumika mapping:** Bhumika still needs the client-side mapping from its conversation state to Niriksh schema `1.0` and the shared integration key in its deployment secret.
-4. **Policy duplication:** the frontend TypeScript analyser is richer than the new Python baseline; policy should be consolidated behind one versioned backend contract.
-5. **Admin realism:** several admin capacity, health, identity, and success-rate values are illustrative UI data, not live operational telemetry.
-6. **Citizen authorization:** officer APIs are protected, but public intake does not yet issue a citizen session or per-complaint access grant.
-7. **Evidence UI sync:** the backend can store binary files, but the current report flow persists only their metadata; `blob:` previews remain browser-local.
-8. **Integration latency:** analysis/finalize is currently synchronous. A production version should return a job ID and use a durable analysis queue for long audio/video.
-9. **Provider disclosure:** public UI intentionally hides vendor/model names, while operational/audit views may still need them for accountability.
-10. **Evaluation:** controlled fixtures are too small for accuracy or fairness claims.
+1. **Analysis duplication:** the frontend TypeScript organiser is richer than the Python baseline; these should converge behind a versioned backend contract.
+2. **Model defaults:** the web and API connected-analysis adapters still use separate model configuration paths.
+3. **Admin realism:** staffing, service state, and configuration controls are illustrative UI data rather than live operational telemetry.
+4. **Citizen authorization:** public intake does not yet issue a citizen session or per-complaint access grant.
+5. **Browser sync:** the offline case cache does not yet show a sufficiently strong canonical-sync/outbox state.
+6. **Media latency:** long connected media analysis remains synchronous and needs a durable job model.
+7. **Indicator governance:** exact matching is implemented, but retention, correction, access, dispute, and false-positive review policy still need formal ownership.
+8. **Relational reconstruction:** chronology/facts still live primarily in the compatibility JSON payload rather than first-class relational tables.
+9. **Provider disclosure:** public UI hides vendor/model details while operational/audit views may need them for accountability.
+10. **Evaluation:** controlled fixtures are regression tests, not evidence of real-world accuracy, fairness, or government readiness.
 
 ## Recommended next decision sequence
 
 1. Add visible frontend sync states and retry failed complaint writes.
-2. Configure Bhumika's Niriksh client, test text and media transfer, and verify the returned tracking number reaches the approved test phone.
-3. Add citizen OTP/session authentication and per-complaint grants.
-4. Consolidate TypeScript policy and Gemini adapters behind the versioned backend analysis interface.
-5. Replace local evidence storage with immutable encrypted object storage and derivative tracking.
-6. Add malware/content quarantine and safe reviewer previews.
-7. Build a labelled evaluation corpus and measure extraction, urgency, routing, language, and modality performance.
-8. Add observability, backup/restore tests, retention controls, and infrastructure as code.
-9. Add a durable analysis job/outbox worker and encode the deployed web/API/load-balancer resources as infrastructure as code.
-10. Obtain legal, privacy, security, and evidence-handling review before real complaints are accepted.
-# Current superseding decision — human judgment only
-
-As of 5 September 2026, Niriksh no longer uses AI or deterministic scoring to assign priority, severity, confidence, legal category, or routing. Cases are shown in received order and grouped by a reporter-selected subject folder that an officer confirms or changes. Connected AI is limited to extraction, transcription, source-grounded summarisation, timelines, and missing-field questions. The public safety checker is rule-based and non-adjudicative. See [Human Review, Subject Folders, and Public Safety Checks](./human-review-and-safety.md).
-
-Any older decision below that describes automated classification, scoring, priority-first reports, or AI routing is retained only as project history and is superseded by this decision.
+2. Add citizen identity/session support and per-complaint access grants.
+3. Define jurisdiction/unit-scoped RBAC and indicator access policy.
+4. Consolidate TypeScript and Python analysis behind one versioned contract.
+5. Add immutable encrypted evidence retention, derivative tracking, malware quarantine, and safe rendering.
+6. Move long media analysis to a durable job/outbox worker.
+7. Build a representative labelled evaluation corpus for extraction and provenance quality.
+8. Add observability, audit alerts, backup/restore tests, retention controls, and infrastructure as code.
+9. Run privacy impact, threat-model, legal, accessibility, and receiving-agency SOP reviews.
+10. Design any future intake adapter—including Bhumika—separately after the canonical web workflow is stable.

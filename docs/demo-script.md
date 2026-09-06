@@ -1,49 +1,129 @@
-# Niriksh mentor demo script
+# Niriksh two-minute demo
 
-## Before the room
+This walkthrough uses fictional data only. It demonstrates Report → Understand → Connect without Bhumika, WhatsApp, real victims, or claims of government integration.
 
-1. Open `https://niriksh.scopophobic.xyz` and confirm it redirects from HTTP and loads over HTTPS.
-2. Sign in once and confirm the officer dashboard loads its case list from the backend.
-3. Confirm Niriksh health says `bhumika_integration: configured` and `direct_whatsapp_webhook: disabled`.
-4. Configure Bhumika with the Niriksh API URL and the shared integration key. Do not change Bhumika's Meta callback or credentials.
-5. Keep one approved test phone ready.
-6. Send one private test text and one voice note before presenting. Confirm Bhumika sends the curated submission, the case appears in Niriksh, and Bhumika relays both the tracking number and signed portal link.
+## Prepare once
 
-## 30-second setup
+1. Supply safe local configuration in `.env`; never commit it.
+2. Start the stack:
 
-“Niriksh is a cybercrime intake and triage system. A victim can report through the web or the same WhatsApp number we already operate. Both channels create one canonical case in the backend. The system organises allegations and evidence for an authorised human reviewer; it does not claim to file an FIR or decide guilt.”
+   ```bash
+   docker compose up --build -d
+   ```
 
-## Five-minute demo
+3. Seed the repeatable fixture:
 
-1. Open the officer dashboard and show that the queue is backed by the FastAPI service and Supabase PostgreSQL.
-2. From an approved phone, send the existing Bhumika WhatsApp number a short fictional complaint: “Yesterday I paid ₹5,000 after a caller on WhatsApp pretended to be my bank.”
-3. Explain while Bhumika asks questions: “Bhumika owns the WhatsApp conversation and gathers the required details. Once the form is complete, it sends one versioned, idempotent submission to Niriksh.”
-4. Reply with a missing detail, such as the UPI ID or transaction reference.
-5. Send a short fictional voice note containing the date, location, and transaction reference.
-6. When Niriksh responds, say: “Bhumika transferred the original voice note to Niriksh. Niriksh stored it privately, computed a SHA-256 digest, transcribed it, extracted useful fields, and retained the transcript with the evidence record. The model output is advisory and has a deterministic fallback.”
-7. Tap **Submit report**.
-8. Show the WhatsApp reply containing a `CYB-YYYY-NNNNNN` tracking number and tap its signed Niriksh tracking link. Point out that it shows status/history without exposing the narrative or evidence.
-9. Refresh the officer dashboard, open the new case, and show the human-selected subject folder, summary, extracted fields, source-linked context, evidence metadata/transcript, missing information, report, and audit trail. Explicitly show that there is no automated priority score.
-10. Send `status` in WhatsApp and explain that Bhumika reads the protected update feed instead of opening a duplicate case.
-11. Send one fictional follow-up detail. Show that Bhumika creates a supplement on the same tracking ID and Niriksh creates report version 2.
-12. Close with: “This is submitted for Niriksh review, not automatically to police. The next integration can send a human-approved report to an authorised external system.”
+   ```bash
+   ./scripts/demo-data.sh seed
+   ```
 
-## Architecture answer
+4. Confirm `http://localhost:8000/health` and `http://localhost:3000` respond.
+5. Sign in at `/login` with the officer email/password configured in the environment. Local development may use the repository’s documented demo-auth setting; production must not disable officer authentication.
+6. Open `/cases/demo-connect-a` in another tab.
 
-“The UI and WhatsApp are channels, not separate databases. FastAPI owns the business rules and API. Supabase PostgreSQL owns canonical structured data. A private Supabase Storage bucket holds binary evidence; PostgreSQL holds its key, hash, metadata, and analysis. Gemini performs source-labelled multimodal extraction and audio transcription, while deterministic policy remains available if it fails. Analysis runs, reports, routing decisions, and audit events are independently versioned.”
+The seed command may be repeated. It replaces only the four fixed demo IDs and leaves every other complaint untouched.
 
-## If the model is slow or unavailable
+## Exact fictional scenario
 
-Say: “Connected analysis can fail without losing the complaint. The complaint is already stored, deterministic triage still works, and the failed provider run is recorded for retry.” Then continue with text intake and submit.
+| Case | Story | Explicit indicator |
+|---|---|---|
+| `CYB-2026-D001` | Social account takeover, impersonation, and payment requests | `niriksh-demo@upi`, `case-link.example`, fictional social handle |
+| `CYB-2026-D002` | A separate fictional payment request | same UPI ID |
+| `CYB-2026-D003` | A separate fictional verification message | same reserved domain |
+| `CYB-2026-D004` | An unrelated marketplace complaint | no shared identifier |
 
-## If WhatsApp cutover fails
+All values are safe fixtures. `.example` is used for non-resolving demo domains.
 
-Replay the same fictional JSON through the protected Bhumika integration endpoint or use the web form. The stable submission ID returns the original case instead of duplicating it; Meta remains untouched.
+## Recording script
+
+### 0:00–0:15 — Position
+
+Show the landing hero.
+
+Say:
+
+> “A complaint is not yet an investigation-ready case. Niriksh takes scattered narratives and evidence through one path: Report, Understand, Connect. It prepares source-backed information for people; it does not replace police or decide priority.”
+
+Scroll just far enough to reveal the three pillars and human/AI boundary.
+
+### 0:15–0:38 — Report
+
+Open `/report`, select **Load a complete sample**, and show the guided information and evidence inputs.
+
+Say:
+
+> “A person reports what happened and adds what they safely have—messages, screenshots, documents, transaction details, or supported media. The form is adaptive rather than one overwhelming questionnaire.”
+
+Run **Organise complaint** if this was prepared before recording. Point to one missing-information question and its source/limitation wording.
+
+### 0:38–1:18 — Understand
+
+Open seeded case `/cases/demo-connect-a`.
+
+Point, in order, to:
+
+1. the concise reconstruction;
+2. the provenance legend;
+3. timeline events at 09:12, 09:18, 09:24, and 09:31;
+4. a **Source →** evidence link;
+5. extracted identifiers;
+6. an active factual signal; and
+7. **Original profile URL** under missing information.
+
+Say:
+
+> “The officer can answer what happened, when, what supports it, which identifiers matter, and what is still missing. Evidence, extracted facts, and analysis-assisted observations stay distinct. Ongoing conditions are factual signals—not an AI priority score.”
+
+Click one timeline source to move to the original evidence record.
+
+### 1:18–1:48 — Connect
+
+Show **Related incidents** on D001.
+
+Point to:
+
+- D002 and exact UPI match `niriksh-demo@upi`;
+- D003 and exact domain match `case-link.example`;
+- provenance on both sides; and
+- the disclaimer.
+
+Say:
+
+> “Connect is deterministic. PostgreSQL matches only the same normalized explicit identifier. It does not connect cases because their narratives, dates, locations, or categories look similar. This is a potential connection—not a claim about a common offender.”
+
+Optionally mention that D004 has a similar category but does not appear because it has no shared identifier.
+
+### 1:48–2:00 — Human control
+
+Return to the status or routing area.
+
+Say:
+
+> “Niriksh complements an existing review workflow. Humans confirm the category, destination, status, and every operational or legal decision. AI assists with extraction and organisation; people remain accountable.”
+
+## Reliability fallback
+
+- If connected media analysis is unavailable, continue with the disclosed deterministic result; never describe it as media interpretation.
+- If a just-submitted browser case has not synchronized, use the seeded D001 case. Do not imply that browser cache is the database.
+- If Related Incidents is unavailable, verify that the API container is healthy, migration `20260906_0005` ran, and the seed command succeeded.
+- The demo does not require network access after images/dependencies are built.
+
+## Reset
+
+```bash
+./scripts/demo-data.sh reset
+```
+
+The command removes only `demo-connect-a` through `demo-connect-d`.
 
 ## Claims to avoid
 
-- Do not say the system filed an FIR or government complaint.
-- Do not say a hash proves authenticity.
-- Do not call AI-media detection forensic proof.
-- Do not show real victim evidence or unredacted credentials.
-- Do not call the current bucket immutable or legally compliant.
+Do not say:
+
+- “same criminal” or “criminal network detected”;
+- “AI decides which case is urgent”;
+- “the evidence is authentic”;
+- “an FIR was filed”;
+- “integrated with the government”;
+- “WhatsApp reporting is included”; or
+- “these are real complaints.”

@@ -113,7 +113,7 @@ export function PublicTrackingView({ token }: { token: string }) {
       </div>
       <div className="citizen-current-update">
         <ShieldCheck size={20}/>
-        <div><small>LAST UPDATED · {formatDate(record.last_updated_at)}</small><strong>{record.needs_information ? "The review team needs more information" : "Your complaint is in the Niriksh review process"}</strong><p>{record.needs_information ? "Reply to Bhumika with the requested details below. Bhumika can securely add them to this same case." : "No response is required unless Bhumika or the review team asks for another detail."}</p></div>
+        <div><small>LAST UPDATED · {formatDate(record.last_updated_at)}</small><strong>{record.needs_information ? "The review team needs more information" : "Your complaint is in the Niriksh review process"}</strong><p>{record.needs_information ? "Keep the requested details ready and use the official contact method provided by the review team." : "No response is required unless the review team asks for another detail."}</p></div>
       </div>
     </section>
 
@@ -122,7 +122,7 @@ export function PublicTrackingView({ token }: { token: string }) {
         {record.needs_information && <section className="citizen-panel tracking-request-panel">
           <div className="citizen-panel-heading"><div><span><ClipboardList size={17}/></span><div><small>ACTION NEEDED</small><h2>Information requested</h2></div></div></div>
           <ul>{record.requested_information.map(item => <li key={item}>{item}</li>)}</ul>
-          <p>Send these details in your existing Bhumika WhatsApp conversation. Do not share passwords, PINs, or OTPs.</p>
+          <p>Use only the official contact method provided by the review team. Do not share passwords, PINs, recovery codes, or OTPs.</p>
         </section>}
 
         <section className="citizen-panel update-timeline-panel">
@@ -135,7 +135,7 @@ export function PublicTrackingView({ token }: { token: string }) {
         <section className="citizen-guidance-card">
           <div><span><ShieldCheck size={20}/></span><div><small>SAFETY GUIDANCE</small><h2>What you should do now</h2></div></div>
           <div className="citizen-guidance-grid">{record.guidance.map((item, index) => <span key={item}><i>{String(index + 1).padStart(2, "0")}</i><strong>{index === 0 ? "Protect evidence" : index === 1 ? "Keep the reference" : "Get urgent help"}</strong><p>{item}</p></span>)}</div>
-          <div className="guidance-warning"><AlertCircle size={16}/><span><strong>Never share an OTP, PIN, password, or recovery code.</strong> Niriksh and Bhumika will not ask for one.</span></div>
+          <div className="guidance-warning"><AlertCircle size={16}/><span><strong>Never share an OTP, PIN, password, or recovery code.</strong> Niriksh will not ask for one through this tracking page.</span></div>
         </section>
       </div>
 

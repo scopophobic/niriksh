@@ -7,7 +7,7 @@ import { CaseStoreProvider } from "@/lib/case-store";
 
 export const metadata: Metadata = {
   title: "Niriksh | Evidence intelligence",
-  description: "Turn unstructured complaints into investigation-ready case files.",
+  description: "Turn scattered cybercrime complaints into structured, source-backed case intelligence.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

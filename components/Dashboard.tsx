@@ -66,7 +66,7 @@ export function Dashboard() {
         <div className="engine-numbers"><div><strong>{cases.length}</strong><span>case analyses</span></div><div><strong>{timelinesBuilt}</strong><span>timelines built</span></div><div><strong>{sourcedFacts}</strong><span>sourced details</span></div></div>
         <div className="engine-checks"><span><CheckCircle2 size={14}/> Understands who, what and whether it is ongoing</span><span><CheckCircle2 size={14}/> Connects details to their source</span><span><CheckCircle2 size={14}/> Finds conflicting statements</span><span><CheckCircle2 size={14}/> Asks for missing context</span></div>
         <Link href="/routing">Open routing dashboard <ArrowRight size={15}/></Link>
-        <small className="engine-boundary">OCR, audio transcription and video analysis are shown as upcoming capabilities—not current results.</small>
+        <small className="engine-boundary">Media understanding depends on the connected service and consent. When unavailable, Niriksh labels the local fallback instead of presenting it as media analysis.</small>
       </aside>
       </div>
     </div>

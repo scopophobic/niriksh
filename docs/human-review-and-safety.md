@@ -1,12 +1,12 @@
 # Human Review, Subject Folders, and Public Safety Checks
 
-Status: implemented locally on 5 September 2026. This document supersedes any older Niriksh design that describes AI-generated priority, severity, confidence, legal classification, or autonomous routing.
+Status: verified locally on 6 September 2026. This document supersedes any older Niriksh design that describes AI-generated priority, severity, confidence, legal classification, autonomous routing, or model-decided case relationships.
 
 ## Product position
 
 Niriksh is an intake and evidence-organisation layer that can complement an existing government complaint workflow. It helps a reporter assemble a clear complaint and helps an authorised reviewer understand the submitted facts, sources, evidence metadata, timeline, and missing information. It does not decide guilt, legal outcome, urgency, priority, or final routing.
 
-The consumer side remains deliberately useful: guided complaint intake, evidence preservation, Bhumika submissions, tracking numbers, signed tracking links, status updates, and a new preventive safety checker. The officer side is now a category-based review workspace rather than an AI-ranked queue.
+The consumer side remains deliberately useful: guided complaint intake, evidence preservation, tracking numbers, signed tracking links, status updates, and a preventive safety checker. The officer side is a source-backed case reconstruction workspace rather than an AI-ranked queue. Connect adds exact shared-identifier context without offender attribution.
 
 ## Decision boundary
 
@@ -29,6 +29,7 @@ AI is not allowed to:
 - select the final team or jurisdiction;
 - dispatch a case; or
 - recommend an enforcement action.
+- decide that two complaints are related.
 
 These prohibited fields were removed from both connected Gemini response schemas. Legacy `severity`, `severityScore`, and `confidence` fields remain temporarily in the API/database for compatibility but are always neutralised to `Needs review`, `0`, and `0`. Old stored scores therefore cannot reappear in the UI.
 
@@ -110,21 +111,28 @@ Officer-only endpoint:
 
 The Next.js frontend exposes same-origin proxies at `/api/public/safety/check-message` and `/api/public/safety/lookup`; browser code never receives the internal API key.
 
+## Connect decision boundary
+
+AI may extract a candidate phone number, email, UPI ID, transaction reference, URL, domain, or scoped social handle from submitted material. The backend then normalizes it conservatively and uses database equality only. Category, dates, location, narrative similarity, embeddings, images, and a model's opinion cannot create a Related Incident.
+
+Every result exposes the exact indicator and available source provenance. “Related” means potential supporting information only. It does not establish common ownership, identity, guilt, or offender.
+
 ## Processing flow
 
-1. A reporter or Bhumika chooses a subject folder and supplies facts and evidence.
+1. A reporter chooses a subject folder and supplies facts and evidence.
 2. Niriksh stores the complaint in PostgreSQL and evidence in private object storage.
 3. Optional connected analysis extracts and organises source-grounded information only.
 4. The backend neutralises all legacy decision fields before persistence and before UI hydration.
 5. Cases appear in received order and can be filtered by subject folder.
 6. An officer reads the source material, confirms/corrects the folder, decides the destination, and records the reason.
-7. The reporter receives tracking details and safe public status updates.
+7. Exact persisted indicators may surface another complaint to an authorised officer; the system displays the non-attribution disclaimer.
+8. The reporter receives tracking details and safe public status updates.
 
 ## Production configuration
 
 Add `DIRECTORY_HASH_SECRET` to the existing `niriksh/api-production` AWS Secrets Manager JSON and map it into the ECS API task definition. Generate at least 32 random bytes. Changing this value later makes existing directory fingerprints unsearchable, so rotation needs a deliberate re-indexing plan.
 
-The database migration `20260906_0004_safety_directory.py` must run before the new API task handles safety-directory writes. The frontend and API task definitions must then be redeployed together.
+Database migrations `20260906_0004` (safety directory) and `20260906_0005` (case indicators) must run before the new API task handles those writes. The frontend and API task definitions must then be redeployed together.
 
 ## Remaining work before government use
 
@@ -140,4 +148,4 @@ The database migration `20260906_0004_safety_directory.py` must run before the n
 
 ## Demo narrative
 
-“Niriksh does not ask AI to decide which victim matters first. It organises every complaint into a clear evidence brief and a human-selected subject folder. Officers see the original report, source-linked details, evidence limitations, missing information, and proposed team, then make and record the decision themselves. Citizens also get a preventive message checker and privacy-protected identifier lookup, with direct links to the official national portal.”
+“Niriksh does not ask AI to decide which victim matters first. It organises every complaint into a source-backed reconstruction and human-selected subject folder. Officers see the original report, chronology, exact identifiers, evidence limitations, missing information, and active factual signals, then make and record decisions themselves. Connect uses database equality to show explicit indicators submitted in another complaint; it never attributes an offender.”

@@ -32,7 +32,7 @@ export default function Home() {
             <div className="case-sheet-head"><span translate="no">CYB-2026-000123</span><small>Awaiting review</small></div>
             <div className="case-sheet-summary"><small>What happened</small><strong>Account compromise followed by impersonation and payment requests.</strong></div>
             <div className="case-sheet-event"><time>09:31</time><i/><span><strong>Payment requested</strong><small><Link2/>Source → Screenshot 04</small></span></div>
-            <div className="case-sheet-indicator"><Fingerprint/><span><small>Shared UPI identifier</small><strong translate="no">demo-connect@upi</strong></span><b>2 cases</b></div>
+            <div className="case-sheet-indicator"><Fingerprint/><span><small>Shared UPI identifier</small><strong translate="no">niriksh-demo@upi</strong></span><b>2 cases</b></div>
           </div>
         </div>
       </section>
@@ -58,7 +58,7 @@ export default function Home() {
       <section className="connect-story">
         <div className="connect-story-mark"><GitBranch/></div>
         <div><p>Connect</p><h2>Shared identifiers become visible. Conclusions remain human.</h2><span>Niriksh compares normalized phone numbers, emails, UPI IDs, transaction references, URLs, domains and scoped social handles in PostgreSQL. It does not connect cases because their stories merely sound alike.</span></div>
-        <div className="connect-match"><span><small>Case A</small><strong translate="no">demo-connect@upi</strong></span><i/><span><small>Case B</small><strong translate="no">demo-connect@upi</strong></span><p><AlertTriangle/>A shared identifier indicates a potential connection only. It does not establish ownership, identity, guilt or offender.</p></div>
+        <div className="connect-match"><span><small>Case A</small><strong translate="no">niriksh-demo@upi</strong></span><i/><span><small>Case B</small><strong translate="no">niriksh-demo@upi</strong></span><p><AlertTriangle/>A shared identifier indicates a potential connection only. It does not establish ownership, identity, guilt or offender.</p></div>
       </section>
 
       <section className="human-ai-boundary">

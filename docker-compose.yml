@@ -30,7 +30,6 @@ services:
       JWT_SECRET: ${JWT_SECRET:-local-only-change-before-deployment}
       INTERNAL_API_KEY: ${BACKEND_INTERNAL_API_KEY:-local-development-key}
       DIRECTORY_HASH_SECRET: ${DIRECTORY_HASH_SECRET:-local-directory-hash-secret-change-me}
-      BHUMIKA_INTEGRATION_KEY: ${BHUMIKA_INTEGRATION_KEY:-local-bhumika-integration-key}
       DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-demo-only-change-me}
       EVIDENCE_STORAGE_PATH: /app/data/evidence
       # Local Compose must never mix test uploads with the production bucket.
