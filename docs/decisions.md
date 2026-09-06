@@ -673,6 +673,14 @@ GitHub Actions verifies pull requests and successful changes to `main`, builds i
 
 Status: accepted and implemented. Supersedes ADR-028 and ADR-044 for the current deployment; retains ADR-029's immutable image principle and ADR-045's HTTPS requirement.
 
+### 58. Make prevention intelligence the primary product direction
+
+Niriksh now follows **Understand → Learn → Prevent**. Complaint intake, evidence, reconstruction, and Related Incidents remain essential inputs, but reviewed cross-case intelligence is the product outcome. Public messaging must lead with prevention and system memory rather than a complaint portal.
+
+### 59. Keep prevention patterns exact, explainable, and human reviewed
+
+Pattern candidates aggregate the existing normalized `case_indicators`; a repeated exact identifier is required before a cluster exists. Behavioural context may explain an exact-match candidate but semantic similarity never establishes one. Percent confidence claims are avoided because they conceal the reasoning and imply a precision the system does not have. A person must mark a pattern verified before it can support a future warning, watchlist preparation, or awareness draft. Those outputs remain advisory and non-attributive.
+
 ## Decision index
 
 | ID | Decision | Status |

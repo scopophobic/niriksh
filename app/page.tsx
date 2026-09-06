@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   AlertTriangle, ArrowDown, ArrowRight, Check, FileAudio, FileImage, FileText,
-  Fingerprint, GitBranch, Link2, ListTree, MessageCircle, PhoneCall, Scale,
+  Fingerprint, GitBranch, Link2, ListTree, PhoneCall, Scale,
   SearchCheck, ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -14,26 +14,27 @@ export default function Home() {
     <main id="main-content">
       <section className="story-hero">
         <div className="story-hero-copy">
-          <p className="story-intro">Cybercrime complaint preparation</p>
-          <h1>A complaint is not yet an investigation-ready case.</h1>
-          <p className="story-deck">Niriksh turns scattered cybercrime complaints and mixed evidence into structured, source-backed case intelligence—then surfaces explicit identifiers observed in other submitted incidents.</p>
-          <div className="story-actions"><Link className="story-primary" href="/report">Report an incident <ArrowRight/></Link><Link className="story-secondary" href="/whatsapp"><MessageCircle/>Use guided chat</Link><Link className="story-secondary" href="/track"><SearchCheck/>Track a complaint</Link></div>
-          <p className="story-boundary"><ShieldCheck/>People make every judgement and operational decision.</p>
+          <p className="story-intro">PREVENTION-FIRST CYBER INTELLIGENCE</p>
+          <h1>Every complaint should make the next one safer.</h1>
+          <p className="story-deck">Niriksh turns cybercrime reports into structured intelligence, learns recurring patterns across incidents, and helps surface threats earlier—under human review.</p>
+          <div className="prevention-chips"><span>Prevention-first</span><span>Learns across incidents</span><span>Human-reviewed</span><span>Source-backed</span></div>
+          <div className="story-actions"><Link className="story-primary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link><Link className="story-secondary" href="/report">Report an incident</Link><Link className="story-secondary" href="/track"><SearchCheck/>Track a complaint</Link></div>
+          <p className="story-boundary"><ShieldCheck/>People verify patterns and decide every operational action.</p>
         </div>
 
         <div className="transformation" aria-label="Raw complaint material transformed into a structured case">
           <div className="raw-material">
-            <span className="transformation-label">Raw complaint</span>
-            <div className="raw-slip raw-message"><FileText/><span><strong>Long narrative</strong><small>“My account was taken over…”</small></span></div>
+            <span className="transformation-label">Structured report</span>
+            <div className="raw-slip raw-message"><FileText/><span><strong>Source-backed case</strong><small>Timeline and indicators</small></span></div>
             <div className="raw-slip raw-image"><FileImage/><span><strong>Screenshot 04</strong><small>Payment request</small></span></div>
             <div className="raw-slip raw-audio"><FileAudio/><span><strong>Voice note</strong><small>Incident details</small></span></div>
           </div>
-          <div className="transformation-spine"><span>Niriksh</span><ArrowRight/><ArrowDown/></div>
+          <div className="transformation-spine"><span>Learn</span><ArrowRight/><ArrowDown/></div>
           <div className="case-sheet">
-            <div className="case-sheet-head"><span translate="no">CYB-2026-000123</span><small>Awaiting review</small></div>
-            <div className="case-sheet-summary"><small>What happened</small><strong>Account compromise followed by impersonation and payment requests.</strong></div>
-            <div className="case-sheet-event"><time>09:31</time><i/><span><strong>Payment requested</strong><small><Link2/>Source → Screenshot 04</small></span></div>
-            <div className="case-sheet-indicator"><Fingerprint/><span><small>Shared UPI identifier</small><strong translate="no">niriksh-demo@upi</strong></span><b>2 cases</b></div>
+            <div className="case-sheet-head"><span>EMERGING PATTERN</span><small>Requires review</small></div>
+            <div className="case-sheet-summary"><small>5 related incidents</small><strong>Recurring payment identifier and domain.</strong></div>
+            <div className="case-sheet-event"><time>WHY</time><i/><span><strong>Same UPI ID in 5 reports</strong><small><Link2/>Source-backed indicators</small></span></div>
+            <div className="case-sheet-indicator"><Fingerprint/><span><small>Recurring domain</small><strong translate="no">wealth-demo.example</strong></span><b>5 cases</b></div>
           </div>
         </div>
       </section>
@@ -41,11 +42,11 @@ export default function Home() {
       <section className="landing-v3-emergency" aria-label="Emergency support"><PhoneCall/><div><strong>Immediate danger or urgent financial fraud?</strong><span>Call 112 for emergency help or 1930 for the national cybercrime helpline.</span></div><a href="tel:112">Call 112</a><a href="tel:1930">Call 1930</a></section>
 
       <section className="three-pillars" id="how-it-works">
-        <header><p>One coherent path</p><h2>Report → Understand → Connect</h2><span>Niriksh complements existing complaint and review workflows. It does not replace police or government systems.</span></header>
+        <header><p>ONE PREVENTION LOOP</p><h2>Understand → Learn → Prevent</h2><span>Individual reports are often treated in isolation. Niriksh retains the case intelligence that makes recurring harm visible.</span></header>
         <div className="pillar-sequence">
-          <article><b>1</b><div><h3>Report</h3><p>Capture the incident without overwhelming the person reporting it.</p><ul><li><Check/>Narrative and structured details</li><li><Check/>Screenshots, messages, documents and supported media</li><li><Check/>Useful questions for information still missing</li></ul></div></article>
+          <article><b>1</b><div><h3>Understand</h3><p>Turn each incident into a structured, source-backed case.</p><ul><li><Check/>Narrative and structured details</li><li><Check/>Timeline, provenance and indicators</li><li><Check/>Useful questions for information still missing</li></ul></div></article>
           <article><b>2</b><div><h3>Understand</h3><p>Reconstruct what happened while preserving the boundary between evidence and observation.</p><ul><li><Check/>Concise case reconstruction</li><li><Check/>Evidence-backed chronology</li><li><Check/>Source trace, active signals and explicit indicators</li></ul></div></article>
-          <article><b>3</b><div><h3>Connect</h3><p>Show when an exact submitted identifier also occurs in another complaint.</p><ul><li><Check/>Deterministic database matching</li><li><Check/>The exact identifier responsible</li><li><Check/>Potential connection—not offender attribution</li></ul></div></article>
+          <article><b>3</b><div><h3>Prevent</h3><p>Use human-verified intelligence to inform future review.</p><ul><li><Check/>Known-pattern warnings on new incidents</li><li><Check/>Internal watchlists and advisory drafts</li><li><Check/>Potential connection—not offender attribution</li></ul></div></article>
         </div>
       </section>
 
@@ -56,10 +57,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="connect-story">
+      <section className="connect-story" id="prevention-intelligence">
         <div className="connect-story-mark"><GitBranch/></div>
-        <div><p>Connect</p><h2>Shared identifiers become visible. Conclusions remain human.</h2><span>Niriksh compares normalized phone numbers, emails, UPI IDs, transaction references, URLs, domains and scoped social handles in PostgreSQL. It does not connect cases because their stories merely sound alike.</span></div>
-        <div className="connect-match"><span><small>Case A</small><strong translate="no">niriksh-demo@upi</strong></span><i/><span><small>Case B</small><strong translate="no">niriksh-demo@upi</strong></span><p><AlertTriangle/>A shared identifier indicates a potential connection only. It does not establish ownership, identity, guilt or offender.</p></div>
+        <div><p>Prevention intelligence</p><h2>Patterns make the reason visible. Conclusions remain human.</h2><span>Niriksh compares normalized phone numbers, emails, UPI IDs, transaction references, URLs, domains and scoped social handles. Exact shared identifiers create candidates; behavioural context can explain them, never prove them.</span><Link className="story-secondary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link></div>
+        <div className="connect-match"><span><small>5 related reports</small><strong translate="no">demo-invest@upi</strong></span><i/><span><small>Recurring domain</small><strong translate="no">wealth-demo.example</strong></span><p><AlertTriangle/>Potential connection only. A human must verify a pattern before it can support a warning or awareness draft.</p></div>
       </section>
 
       <section className="human-ai-boundary">
@@ -70,8 +71,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="final-invitation"><div><h2>Start with the incident. Leave with a case a person can review.</h2><p>Report what happened, attach what you safely have, and keep uncertainty visible.</p></div><Link href="/report">Report an incident <ArrowRight/></Link></section>
+      <section className="final-invitation"><div><h2>Cybercrime systems shouldn’t forget.</h2><p>Explore how incident intelligence can help prevent repeated harm.</p></div><Link href="/prevention">Explore prevention intelligence <ArrowRight/></Link></section>
     </main>
-    <footer className="landing-v3-footer"><Logo/><p>Niriksh is a preparation and intelligence layer for human-led cybercrime review.</p><div><Link href="/safety">Check a suspicious message</Link><Link href="/track">Track a complaint</Link></div></footer>
+    <footer className="landing-v3-footer"><Logo/><p>Niriksh is prevention intelligence built from incident patterns, always under human review.</p><div><Link href="/safety">Check a suspicious message</Link><Link href="/track">Track a complaint</Link></div></footer>
   </div>;
 }

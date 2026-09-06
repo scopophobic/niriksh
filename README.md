@@ -1,6 +1,6 @@
-# Niriksh — Report → Understand → Connect
+# Niriksh — Understand → Learn → Prevent
 
-Niriksh turns scattered cybercrime complaints and mixed evidence into structured, source-backed case intelligence. It preserves what the reporter submitted, reconstructs supported events, extracts explicit cyber indicators, identifies useful missing information, and shows when the same normalized identifier occurs in another complaint.
+Niriksh is cybercrime prevention intelligence built from real incident patterns. It turns scattered complaints and mixed evidence into structured, source-backed case intelligence; then uses exact shared indicators to surface explainable, human-reviewed prevention patterns.
 
 Niriksh assists people; it does not decide guilt, authenticity, urgency, priority, FIR registration, legal classification, routing, or enforcement. A Related Incident is a potential connection based on an exact shared identifier—not offender attribution.
 
@@ -31,7 +31,9 @@ The browser cache and deterministic TypeScript analyser provide a disclosed offl
 
 ## Product areas
 
-- `/` — the Report → Understand → Connect product story
+- `/` — prevention-first product story
+- `/prevention` — emerging and verified prevention intelligence
+- `/prevention/{id}` — explainable pattern evidence and human review
 - `/report` — guided complaint and evidence intake
 - `/whatsapp` — Bhumika-derived WhatsApp-style guided chat that files into Niriksh
 - `/track?token=...` — allow-listed status through a signed tracking link
@@ -43,13 +45,13 @@ The browser cache and deterministic TypeScript analyser provide a disclosed offl
 
 ## Demo dataset
 
-Start the Docker stack, then seed four fictional cases:
+Start the Docker stack, then seed six fictional cases:
 
 ```bash
 ./scripts/demo-data.sh seed
 ```
 
-Open `/cases/demo-connect-a`. The case shares the fictional UPI ID `niriksh-demo@upi` with `CYB-2026-D002` and the reserved domain `case-link.example` with `CYB-2026-D003`. `CYB-2026-D004` is deliberately similar in category but has no exact shared identifier.
+Open `/prevention`. Five fictional reports share the reserved UPI ID `demo-invest@upi` and domain `wealth-demo.example`; `CYB-2026-D004` is deliberately similar in category but has no exact shared pattern. See [prevention intelligence](docs/prevention-intelligence.md) for the full walkthrough.
 
 Reset only the demo fixtures with:
 
@@ -87,6 +89,13 @@ Seeding is repeatable and never deletes non-demo complaints. See [the demo guide
 - exact `(indicator_type, normalized_value)` matching in PostgreSQL
 - grouped related cases showing every exact shared indicator and its source
 - no embeddings, fuzzy matching, graph database, semantic narrative matching, or automated offender attribution
+
+### Prevent
+
+- explainable pattern candidates aggregated from the existing exact indicators
+- human review lifecycle: unreviewed, verified, dismissed, or needs more evidence
+- verified-pattern warnings on future reports, showing matching identifiers and support count
+- controlled awareness-draft action after verification; publication still requires human approval
 
 ## Analysis boundary
 

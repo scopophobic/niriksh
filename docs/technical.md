@@ -289,3 +289,7 @@ Required before handling real sensitive complaints:
 - admin staffing/configuration values are illustrative, not operational telemetry;
 - case payload JSON remains a compatibility bridge rather than a fully relational case-reconstruction schema;
 - automated browser visual QA was unavailable in the current environment, though lint, tests, and production build were run.
+
+## Prevention intelligence limits
+
+Patterns are a small, explainable exact-match aggregation for the current scale. They are not a graph database, entity-resolution system, or crime-attribution engine. A verified pattern retains the indicator keys that justified its review so a later case can receive a transparent match warning. Production work still needs reviewer identity display, note validation, role/jurisdiction policy, retention/dispute handling, and a controlled publishing workflow for awareness drafts.
