@@ -9,7 +9,7 @@ interface CaseStoreValue {
   cases: TriageCase[];
   syncState: "loading" | "synced" | "offline" | "error";
   getCase: (id: string) => TriageCase | undefined;
-  addCase: (item: TriageCase) => Promise<TriageCase & { _uploadToken?: string }>;
+  addCase: (item: TriageCase, options?: { persistOnly?: boolean }) => Promise<TriageCase & { _uploadToken?: string }>;
   updateCase: (id: string, patch: Partial<TriageCase>) => void;
   resetDemo: () => void;
   retrySync: () => Promise<void>;
@@ -79,16 +79,21 @@ export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
       else setSyncState("synced");
     }).catch(() => enqueue({ kind: "update", id, payload: patch }));
   };
-  const addCase = async (item: TriageCase) => {
+  const addCase = async (item: TriageCase, options: { persistOnly?: boolean } = {}) => {
     const normalizedItem = reviewCase(item);
-    setCases(items => [...items.filter(existing => existing.id !== item.id), normalizedItem]);
+    if (!options.persistOnly) {
+      setCases(items => [...items.filter(existing => existing.id !== item.id), normalizedItem]);
+    }
     try {
       const response = await fetch("/api/cases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(normalizedItem),
       });
-      if (!response.ok) { enqueue({ kind: "create", id: item.id, payload: normalizedItem }); return normalizedItem; }
+      if (!response.ok) {
+        if (!options.persistOnly) enqueue({ kind: "create", id: item.id, payload: normalizedItem });
+        return normalizedItem;
+      }
       const responseCase = await response.json() as TriageCase & { _uploadToken?: string };
       const uploadToken = responseCase._uploadToken;
       const { _uploadToken: _discarded, ...caseWithoutToken } = responseCase;
@@ -98,7 +103,7 @@ export function CaseStoreProvider({ children }: { children: React.ReactNode }) {
       setSyncState("synced");
       return { ...persisted, _uploadToken: uploadToken };
     } catch {
-      enqueue({ kind: "create", id: item.id, payload: normalizedItem });
+      if (!options.persistOnly) enqueue({ kind: "create", id: item.id, payload: normalizedItem });
       return normalizedItem;
     }
   };

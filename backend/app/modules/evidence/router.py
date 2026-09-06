@@ -68,6 +68,14 @@ async def store_upload(
     expected_sha256 = expected_sha256.lower() if expected_sha256 and re.fullmatch(r"[a-fA-F0-9]{64}", expected_sha256) else None
     item = None
     if expected_sha256:
+        stored_item = db.scalar(select(EvidenceItem).where(
+            EvidenceItem.complaint_id == complaint_id,
+            EvidenceItem.sha256 == expected_sha256,
+            EvidenceItem.status == "stored",
+        ).limit(1))
+        if stored_item is not None:
+            await evidence.close()
+            return serialize(stored_item)
         item = db.scalar(select(EvidenceItem).where(
             EvidenceItem.complaint_id == complaint_id,
             EvidenceItem.sha256 == expected_sha256,

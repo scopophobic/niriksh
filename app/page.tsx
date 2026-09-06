@@ -1,7 +1,8 @@
 import Link from "next/link";
 import {
   AlertTriangle, ArrowDown, ArrowRight, Check, FileAudio, FileImage, FileText,
-  Fingerprint, GitBranch, Link2, ListTree, PhoneCall, Scale, SearchCheck, ShieldCheck,
+  Fingerprint, GitBranch, Link2, ListTree, MessageCircle, PhoneCall, Scale,
+  SearchCheck, ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { PublicHeader } from "@/components/PublicHeader";
@@ -16,7 +17,7 @@ export default function Home() {
           <p className="story-intro">Cybercrime complaint preparation</p>
           <h1>A complaint is not yet an investigation-ready case.</h1>
           <p className="story-deck">Niriksh turns scattered cybercrime complaints and mixed evidence into structured, source-backed case intelligence—then surfaces explicit identifiers observed in other submitted incidents.</p>
-          <div className="story-actions"><Link className="story-primary" href="/report">Report an incident <ArrowRight/></Link><Link className="story-secondary" href="/track"><SearchCheck/>Track a complaint</Link></div>
+          <div className="story-actions"><Link className="story-primary" href="/report">Report an incident <ArrowRight/></Link><Link className="story-secondary" href="/whatsapp"><MessageCircle/>Use guided chat</Link><Link className="story-secondary" href="/track"><SearchCheck/>Track a complaint</Link></div>
           <p className="story-boundary"><ShieldCheck/>People make every judgement and operational decision.</p>
         </div>
 

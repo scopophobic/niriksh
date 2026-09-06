@@ -7,11 +7,13 @@ import { useCaseStore } from "@/lib/case-store";
 
 const statusSteps = ["Registered", "Analysis complete", "Officer review", "Routing", "Resolved"];
 
-export function CitizenDashboard() {
+export function CitizenDashboard({ initialReference }: { initialReference?: string }) {
   const { cases } = useCaseStore();
-  const citizenCases = useMemo(() => cases.filter(item => item.id === "ai-investment-video" || item.id.startsWith("submitted-")), [cases]);
-  const [selectedId, setSelectedId] = useState(citizenCases[0]?.id || "");
-  const selected = useMemo(() => citizenCases.find(item => item.id === selectedId) || citizenCases[0], [citizenCases, selectedId]);
+  const citizenCases = useMemo(() => cases.filter(item => item.id === "ai-investment-video" || item.id.startsWith("submitted-") || item.id.startsWith("whatsapp-")), [cases]);
+  const [selectedId, setSelectedId] = useState("");
+  const selected = useMemo(() => citizenCases.find(item => item.id === selectedId)
+    || (initialReference ? citizenCases.find(item => item.reference === initialReference) : undefined)
+    || citizenCases[0], [citizenCases, initialReference, selectedId]);
   const currentStep = selected?.status === "Routed" ? 3 : selected?.status === "In review" ? 2 : selected?.status === "Needs information" ? 1 : 2;
   if (!selected) return null;
 

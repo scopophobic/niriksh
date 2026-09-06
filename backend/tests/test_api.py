@@ -103,6 +103,8 @@ def test_complaint_is_analyzed_persisted_and_versioned(client, internal_headers)
 
 
 def test_guided_form_intake_gets_backend_reference_and_cannot_overwrite(client, internal_headers):
+    evidence_bytes = b"browser evidence bytes"
+    evidence_sha256 = hashlib.sha256(evidence_bytes).hexdigest()
     raw = {
         "id": "submitted-browser-1",
         "reference": "CLIENT-TEMP",
@@ -118,7 +120,13 @@ def test_guided_form_intake_gets_backend_reference_and_cannot_overwrite(client, 
         "createdLabel": "Just now",
         "department": ["General Cybercrime Review"],
         "entities": [],
-        "evidence": [],
+        "evidence": [{
+            "name": "browser-proof.txt",
+            "type": "Document",
+            "size": "22 bytes",
+            "mimeType": "text/plain",
+            "sha256": evidence_sha256,
+        }],
         "missing": [],
         "riskFactors": ["Threat"],
         "audit": [],
@@ -132,14 +140,22 @@ def test_guided_form_intake_gets_backend_reference_and_cannot_overwrite(client, 
     uploaded = client.post(
         "/api/v1/complaints/submitted-browser-1/intake-evidence",
         headers={"X-Complaint-Token": created.json()["_uploadToken"]},
-        files={"evidence": ("browser-proof.txt", b"browser evidence bytes", "text/plain")},
-        data={"evidence_type": "Document"},
+        files={"evidence": ("browser-proof.txt", evidence_bytes, "text/plain")},
+        data={"evidence_type": "Document", "expected_sha256": evidence_sha256},
     )
     assert uploaded.status_code == 201
     assert len(uploaded.json()["sha256"]) == 64
     downloaded = client.get(uploaded.json()["download_url"], headers=internal_headers)
     assert downloaded.status_code == 200
-    assert downloaded.content == b"browser evidence bytes"
+    assert downloaded.content == evidence_bytes
+    repeated_upload = client.post(
+        "/api/v1/complaints/submitted-browser-1/intake-evidence",
+        headers={"X-Complaint-Token": created.json()["_uploadToken"]},
+        files={"evidence": ("browser-proof.txt", evidence_bytes, "text/plain")},
+        data={"evidence_type": "Document", "expected_sha256": evidence_sha256},
+    )
+    assert repeated_upload.status_code == 201
+    assert repeated_upload.json()["id"] == uploaded.json()["id"]
     duplicate = client.post("/api/v1/complaints/intake", json={**raw, "summary": "overwrite"})
     assert duplicate.status_code == 409
 
