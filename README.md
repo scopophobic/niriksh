@@ -33,6 +33,7 @@ The browser cache and deterministic TypeScript analyser provide a disclosed offl
 
 - `/` — the Report → Understand → Connect product story
 - `/report` — guided complaint and evidence intake
+- `/whatsapp` — Bhumika-derived WhatsApp-style guided chat that files into Niriksh
 - `/track?token=...` — allow-listed status through a signed tracking link
 - `/dashboard` — cases in received order, without AI priority ranking
 - `/cases/{id}` — case reconstruction, provenance, timeline, indicators, active signals, missing information, evidence, status, and Related Incidents
@@ -124,6 +125,6 @@ AWS_REGION=us-east-1 BACKEND_API_URL='https://<api-endpoint>/api/v1' NIRIKSH_WEB
 
 Secrets belong in AWS Secrets Manager, never in images, Git, documentation, or `NEXT_PUBLIC_*` values. Run Alembic through revision `20260906_0005` before serving the Connect API. Detailed architecture, deployment, and decision records are in [docs/architecture.md](docs/architecture.md), [docs/technical.md](docs/technical.md), [docs/deployment.md](docs/deployment.md), and [docs/decisions.md](docs/decisions.md).
 
-## Current scope boundary
+## WhatsApp and Bhumika boundary
 
-Bhumika/WhatsApp is not part of the current Niriksh implementation or demo path. Historical integration modules and documents may remain in the repository for prior-work traceability, but Niriksh does not require them and this release does not advertise or modify them. A future intake adapter can call the canonical complaint API without changing the case model.
+The `/whatsapp` route is a browser-based simulation derived from Bhumika and files real local Niriksh cases; it is not connected to Meta. Live WhatsApp transport remains owned by the separate Bhumika deployment, which submits curated complaints and evidence through Niriksh's protected `/integrations/bhumika/intakes` API. Local Compose enables that API with a development-only integration key; production must supply a separate random secret to both services.
