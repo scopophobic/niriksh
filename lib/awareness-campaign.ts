@@ -17,12 +17,19 @@ export interface AwarenessScene {
   narration: string;
 }
 
+export interface AwarenessDemoMedia {
+  imageSrc: string;
+  imageAlt: string;
+  videoSrc: string;
+}
+
 interface AwarenessCampaignBase {
   title: string;
   objective: string;
   evidenceLine: string;
   language: string;
   audience: string;
+  demoMedia?: AwarenessDemoMedia;
 }
 
 export interface VideoAwarenessCampaign extends AwarenessCampaignBase {
@@ -72,6 +79,9 @@ function campaignFoundation(pattern: AwarenessPattern, language: string, audienc
   const signalTypes = [...new Set(pattern.indicators.map(item => item.type_label))];
   const behaviour = pattern.behavioural_pattern?.replaceAll("→", "followed by")
     || "An unexpected approach builds trust or urgency before asking the person to act.";
+  const normalizedTitle = pattern.title.toLowerCase();
+  const isDigitalArrest = normalizedTitle.includes("digital arrest")
+    || (normalizedTitle.includes("authority") && normalizedTitle.includes("impersonation"));
   return {
     signalTypes,
     behaviour,
@@ -82,6 +92,11 @@ function campaignFoundation(pattern: AwarenessPattern, language: string, audienc
       evidenceLine: `Built from one human-verified pattern supported by ${pattern.complaint_count} reports and ${signalTypes.length} recurring signal type${signalTypes.length === 1 ? "" : "s"}.`,
       language,
       audience,
+      demoMedia: isDigitalArrest ? {
+        imageSrc: "/demo-awareness/digital-arrest-awareness.png",
+        imageAlt: "Digital arrest awareness poster showing a fake authority video call and advice to stop, think, and hang up",
+        videoSrc: "/demo-awareness/digital-arrest-awareness.mp4",
+      } : undefined,
     },
   };
 }

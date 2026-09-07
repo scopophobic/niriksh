@@ -47,3 +47,16 @@ test("text awareness produces a complete public advisory", () => {
   assert.match(output, /official website/);
   assert.doesNotMatch(output, /99999 11111|private@upi/);
 });
+
+test("digital arrest awareness loads the bundled demo media", () => {
+  const digitalArrestPattern = {
+    ...pattern,
+    id: "digital-arrest-pattern",
+    title: "Digital arrest and authority-impersonation pattern",
+  };
+  const video = buildAwarenessCampaign(digitalArrestPattern, "English", "General public", "video");
+  const image = buildAwarenessCampaign(digitalArrestPattern, "English", "General public", "image");
+  assert.equal(video.demoMedia?.videoSrc, "/demo-awareness/digital-arrest-awareness.mp4");
+  assert.equal(image.demoMedia?.imageSrc, "/demo-awareness/digital-arrest-awareness.png");
+  assert.equal(buildAwarenessCampaign(pattern, "English", "General public", "video").demoMedia, undefined);
+});

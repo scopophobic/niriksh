@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   AlignLeft, ArrowRight, Check, CheckCircle2, Clapperboard, Download, Image as ImageIcon,
   Languages, LoaderCircle, LockKeyhole, Megaphone, Play, ShieldCheck, Sparkles,
@@ -39,6 +40,16 @@ function VideoPreview({ campaign, activeScene, onSelect }: {
   activeScene: number;
   onSelect: (scene: number) => void;
 }) {
+  if (campaign.demoMedia) {
+    return <div className="awareness-demo-media">
+      <div className="demo-media-label"><Clapperboard/><span>Digital Arrest demo video</span></div>
+      <video controls playsInline preload="metadata" poster={campaign.demoMedia.imageSrc} aria-label="Digital Arrest cyber-safety awareness video">
+        <source src={campaign.demoMedia.videoSrc} type="video/mp4"/>
+        Your browser does not support MP4 video playback.
+      </video>
+      <a href={campaign.demoMedia.videoSrc} download="niriksh-digital-arrest-awareness.mp4"><Download/>Download demo video</a>
+    </div>;
+  }
   const scene = campaign.scenes[activeScene];
   return <>
     <div className="video-preview awareness-storyboard">
@@ -55,6 +66,13 @@ function VideoPreview({ campaign, activeScene, onSelect }: {
 }
 
 function ImagePreview({ campaign }: { campaign: ImageAwarenessCampaign }) {
+  if (campaign.demoMedia) {
+    return <div className="awareness-demo-media awareness-demo-image">
+      <div className="demo-media-label"><ImageIcon/><span>Digital Arrest demo poster</span></div>
+      <Image src={campaign.demoMedia.imageSrc} alt={campaign.demoMedia.imageAlt} width={1024} height={1536} sizes="(max-width: 900px) 100vw, 420px"/>
+      <a href={campaign.demoMedia.imageSrc} download="niriksh-digital-arrest-awareness.png"><Download/>Download demo image</a>
+    </div>;
+  }
   return <div className="awareness-image-preview">
     <div className="image-preview-brand"><ShieldCheck/><span>Niriksh public safety</span></div>
     <strong>{campaign.image.headline}</strong>
