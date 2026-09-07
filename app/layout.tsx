@@ -8,6 +8,7 @@ import "./workspace-redesign.css";
 import "./case-network.css";
 import "./awareness-workflow.css";
 import "./landing-prevention.css";
+import "./demo-experience.css";
 import { CaseStoreProvider } from "@/lib/case-store";
 
 export const metadata: Metadata = {

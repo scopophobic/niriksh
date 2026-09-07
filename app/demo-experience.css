@@ -1,0 +1,79 @@
+/* Guided demo affordances shared by the login and officer workspace. */
+.sidebar { overflow-y: auto; }
+.officer-demo-access {
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid #d7e5df;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f2f8f5, #fffdf9);
+}
+
+.officer-demo-access-head { display: flex; align-items: center; gap: 10px; }
+.officer-demo-access-head > span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: #dcefe8; color: #276f62; }
+.officer-demo-access-head svg { width: 16px; }
+.officer-demo-access-head > div { display: grid; gap: 2px; }
+.officer-demo-access-head small { font-size: 8px; letter-spacing: 1px; color: #4f786f; font-weight: 900; }
+.officer-demo-access-head strong { font-size: 11px; color: #314a44; }
+.officer-demo-access dl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 13px 0 10px; }
+.officer-demo-access dl > div { min-width: 0; padding: 9px; background: #fff; border: 1px solid #e1e9e5; border-radius: 7px; }
+.officer-demo-access dt { font-size: 8px; color: #7b8984; text-transform: uppercase; letter-spacing: .6px; }
+.officer-demo-access dd { margin: 4px 0 0; font: 700 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #273c37; overflow-wrap: anywhere; }
+.officer-demo-access > button { border: 0; background: transparent; color: #7a1c2c; font: inherit; font-size: 10px; font-weight: 700; padding: 2px 0; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.officer-demo-access > button svg { width: 14px; }
+
+.officer-session-check { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 30px; text-align: center; background: #f4f1ea; color: #233a38; }
+.officer-session-check > svg { width: 28px; height: 28px; color: #8f2638; }
+.officer-session-check > svg.lucide-loader-circle { animation: spin 1s linear infinite; }
+.officer-session-check h1 { font: 700 22px Manrope, sans-serif; margin: 4px 0 0; }
+.officer-session-check p { max-width: 430px; margin: 0; color: #687875; font-size: 12px; line-height: 1.55; }
+.officer-session-check > div { display: flex; gap: 9px; margin-top: 5px; }
+
+.side-demo-guide { margin: 0 0 12px; padding: 12px; background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; }
+.side-demo-guide-head { display: flex; align-items: center; gap: 8px; }
+.side-demo-guide-head > svg { width: 16px; color: #d5a1a9; flex: none; }
+.side-demo-guide-head > span { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.side-demo-guide-head small { font-size: 6px; letter-spacing: 1px; color: #829694; font-weight: 900; }
+.side-demo-guide-head strong { font-size: 9px; color: #f4eee7; }
+.side-demo-guide-head > b { font-size: 7px; color: #a9bbb8; }
+.side-demo-progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin: 10px 0; }
+.side-demo-progress a { display: grid; justify-items: center; gap: 4px; color: #6f8b88; font-size: 6px; }
+.side-demo-progress i { width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid #496663; border-radius: 50%; font-style: normal; }
+.side-demo-progress a.active, .side-demo-progress a.complete { color: #f2e8df; }
+.side-demo-progress a.active i { background: #8f2638; border-color: #8f2638; }
+.side-demo-progress a.complete i { background: #315c50; border-color: #6c9a90; }
+.side-demo-guide > p { font-size: 7px; line-height: 1.45; color: #91a5a2; margin: 8px 0; }
+.side-demo-next { display: flex; align-items: center; justify-content: space-between; color: #f4eee7; font-size: 8px; font-weight: 800; }
+.side-demo-next svg { width: 13px; }
+.officer-profile > div { min-width: 0; }
+.officer-profile strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.demo-start-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px; padding: 15px 17px; margin: -5px 0 18px; border: 1px solid #ddcfbd; border-radius: 8px; background: linear-gradient(105deg, #fffaf1, #f2f8f5); box-shadow: 0 4px 16px rgba(38,48,43,.035); }
+.demo-start-card > span { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 50%; background: #8f2638; color: #fff; }
+.demo-start-card > span svg { width: 18px; }
+.demo-start-card > div { display: grid; gap: 2px; }
+.demo-start-card small { font-size: 7px; letter-spacing: 1px; font-weight: 900; color: #8f2638; }
+.demo-start-card strong { font: 700 12px Manrope, sans-serif; color: #263c39; }
+.demo-start-card p { font-size: 8px; color: #697a76; margin: 0; line-height: 1.45; }
+.demo-start-card > a { display: flex; align-items: center; gap: 7px; padding: 9px 11px; border-radius: 5px; background: #173c3a; color: #fff; font-size: 8px; font-weight: 800; white-space: nowrap; }
+.demo-start-card > a svg { width: 13px; }
+
+.prevention-error span { display: grid; gap: 3px; flex: 1; }
+.prevention-error > a { display: flex; align-items: center; gap: 6px; color: inherit; font-weight: 800; white-space: nowrap; }
+.prevention-error > a svg { width: 15px; }
+.prevention-empty-guide { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 20px; margin: 22px 0; border: 1px dashed #b8d5cd; border-radius: 12px; background: #f6faf8; color: #456661; }
+.prevention-empty-guide > svg { color: #147c74; }
+.prevention-empty-guide > div { display: grid; gap: 4px; }
+.prevention-empty-guide span { font-size: .86rem; line-height: 1.45; }
+.prevention-empty-guide > a { display: flex; align-items: center; gap: 6px; color: #08766f; font-weight: 800; white-space: nowrap; }
+.prevention-empty-guide > a svg { width: 15px; }
+
+@media (max-width: 620px) {
+  .officer-demo-access dl { grid-template-columns: 1fr; }
+  .officer-session-check > div { flex-direction: column; }
+  .demo-start-card { grid-template-columns: auto 1fr; }
+  .demo-start-card > a { grid-column: 1 / 3; justify-content: center; }
+  .prevention-empty-guide { grid-template-columns: auto 1fr; }
+  .prevention-empty-guide > a { grid-column: 1 / 3; }
+  .prevention-error { align-items: flex-start; flex-wrap: wrap; }
+  .prevention-error > a { margin-left: 34px; }
+}

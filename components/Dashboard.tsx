@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, CheckCircle2, ChevronRight, Clock3, FileCheck2, FolderOpen, Route, Search } from "lucide-react";
+import { ArrowRight, BrainCircuit, CheckCircle2, ChevronRight, Clock3, FileCheck2, FolderOpen, Route, Search, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useCaseStore } from "@/lib/case-store";
 import { REVIEW_CATEGORIES } from "@/lib/review-policy";
@@ -28,6 +28,12 @@ export function Dashboard() {
         <div><div className="eyebrow">EVIDENCE WORKSPACE</div><h1>Overview</h1><p>Understand complaints, organise evidence and prepare clear cases for review.</p></div>
         <div className="heading-actions"><Link className="button button-ghost" href="/routing"><Route size={16}/> Routing dashboard</Link></div>
       </section>
+
+      {cases[0] && <section className="demo-start-card">
+        <span><Sparkles/></span>
+        <div><small>SUGGESTED DEMO START</small><strong>Follow one report from evidence to prevention intelligence.</strong><p>Begin with a fictional case, inspect its source-backed timeline, then use the sidebar walkthrough to find recurring signals.</p></div>
+        <Link href={`/cases/${cases[0].id}`}>Open {cases[0].reference}<ArrowRight/></Link>
+      </section>}
 
       <section className="metric-grid product-metrics">
         <div className="metric-card"><span className="metric-icon blue"><FolderOpen size={20}/></span><div><span>Total cases</span><strong>{cases.length}</strong><small>Available in this workspace</small></div></div>
