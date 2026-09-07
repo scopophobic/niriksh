@@ -1,0 +1,114 @@
+[
+  {
+    "title": "Expert-led group with a withdrawal toll",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "A messaging group presents its leader as a financial expert and directs members to a trading app or website. The account displays supposed profits, but a withdrawal triggers demands for an extra tax, fee, or deposit. Paying the demand does not release the promised money, and the operators may cut off contact.",
+    "suggested_beats": [
+      "An apparent expert invites members to invest through a trading platform.",
+      "A withdrawal button leads to another payment demand.",
+      "Verify the professional independently; displayed profits do not prove that money is available."
+    ],
+    "who_falls_for_it_archetype": "someone seeking guidance in an investment group",
+    "why_it_works": "Apparent expertise and visible gains can make another payment feel like the final step toward a reward.",
+    "source_citation": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-alerts/gateway-to-investment-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A familiar account sells a fake investment",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "A compromised social account posts claims of easy investment profits to the real account holder's followers. Anyone who responds receives a private pitch promising large returns and asking for an initial transfer. After receiving the money, the scammer blocks the person.",
+    "suggested_beats": [
+      "A familiar account posts impressive earnings screenshots.",
+      "A private message turns the post into a request for money.",
+      "Check with the real person through a separate trusted channel."
+    ],
+    "who_falls_for_it_archetype": "someone who trusts a friend's social account",
+    "why_it_works": "Existing personal trust can carry over to a financial claim made by an account controlled by someone else.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2025/05/can-you-spot-investment-scam-social-media",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An online relationship becomes a trading trap",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "A stranger builds a relationship through repeated online conversations before offering to help with investing. The stranger directs the person to transfer cryptocurrency to a fake trading platform, where apparent gains encourage larger deposits. Attempts to withdraw meet resistance, technical excuses, or additional fee demands.",
+    "suggested_beats": [
+      "An attentive online companion gradually introduces investing.",
+      "Growing on-screen profits lead to larger transfers.",
+      "An online relationship is not independent verification of an investment platform."
+    ],
+    "who_falls_for_it_archetype": "someone developing trust in a new online companion",
+    "why_it_works": "Emotional attachment can make financial instructions feel like personal care rather than a sales pitch.",
+    "source_citation": "https://www.cftc.gov/LearnAndProtect/romancefrauds",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "The hot stock tip that funds the promoter's exit",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "Online promoters spread false or misleading claims to persuade people to buy a stock quickly. The resulting demand lifts the price, allowing the promoters to sell their own holdings. When the selling and promotion end, the price typically falls and later buyers lose money.",
+    "suggested_beats": [
+      "An urgent stock tip claims privileged knowledge.",
+      "Promoters sell into the buying rush they created.",
+      "Research the business independently before acting on online stock tips."
+    ],
+    "who_falls_for_it_archetype": "someone afraid of missing a fast-rising stock",
+    "why_it_works": "Urgency and apparent insider access can turn a rising price into persuasive but misleading evidence.",
+    "source_citation": "https://www.investor.gov/protect-your-investments/fraud/types-fraud/pump-and-dump-schemes",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Exclusive access to an imminent listing",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "A promoter offers shares supposedly available before a company lists publicly, using online pitches or direct contact. The pitch promises exceptional upside and may claim that the listing is imminent. In the documented scam pattern, claims about the opportunity or listing timetable are false or misleading.",
+    "suggested_beats": [
+      "A pitch offers early access usually associated with wealthy investors.",
+      "An imminent listing claim pressures the person to commit.",
+      "Verify the offering and seller independently instead of relying on a promised listing date."
+    ],
+    "who_falls_for_it_archetype": "someone attracted to investing before a public listing",
+    "why_it_works": "Exclusivity and a closing window can make an unverified offering feel like a rare advantage.",
+    "source_citation": "https://www.investor.gov/protect-your-investments/fraud/types-fraud/pre-ipo-investment-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Regular payouts financed by new deposits",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "A fraudulent investment scheme promises strong returns with little risk and pays earlier participants using newer participants' money. Those payouts conceal the lack of sufficient legitimate investment earnings. When fresh deposits slow or many participants want their money back, the scheme can collapse.",
+    "suggested_beats": [
+      "Early participants receive reassuring payouts.",
+      "The scheme needs fresh deposits to keep paying.",
+      "Early payments do not establish where investment returns actually come from."
+    ],
+    "who_falls_for_it_archetype": "someone reassured by a record of regular payouts",
+    "why_it_works": "Repeated payments can be mistaken for proof that the underlying investment is sound.",
+    "source_citation": "https://www.investor.gov/protect-your-investments/fraud/types-fraud/ponzi-scheme",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Free investing lesson becomes expensive coaching",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "An advertisement or free introductory event promises a secret or proven route to investment wealth. The introduction leads to expensive training or coaching, supported by misleading success stories. The promised easy profits do not match the value of the training being sold.",
+    "suggested_beats": [
+      "A free lesson promises an easy route to investing success.",
+      "The secret method is placed behind another expensive course.",
+      "Question guaranteed earnings and independently check the program before paying."
+    ],
+    "who_falls_for_it_archetype": "a beginner looking for a simple way to learn investing",
+    "why_it_works": "A free introduction lowers resistance while success stories make paid access feel like the missing ingredient.",
+    "source_citation": "https://consumer.ftc.gov/articles/investment-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An investment system claims AI eliminates losses",
+    "scam_category": "Investment Scam",
+    "mechanism_summary": "An online investment platform or seller promotes an artificial-intelligence trading system as capable of guaranteed gains. Fraudsters use the technology claim to solicit investment while making unrealistic promises about risk and performance. The claim that the system cannot lose is part of the deception, not evidence that the investment is safe.",
+    "suggested_beats": [
+      "A polished pitch credits artificial intelligence for exceptional returns.",
+      "The seller claims that losing is impossible.",
+      "A technology label does not remove investment risk or replace independent checks."
+    ],
+    "who_falls_for_it_archetype": "someone impressed by automated investing technology",
+    "why_it_works": "Technical language can make an unsupported guarantee sound scientifically established.",
+    "source_citation": "https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-alerts/artificial-intelligence-fraud",
+    "source_type": "government_advisory"
+  }
+]

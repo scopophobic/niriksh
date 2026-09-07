@@ -37,7 +37,6 @@ function LoginForm() {
   return <main className="officer-login-page">
     <section className="officer-login-card">
       <Link href="/" className="officer-login-brand"><Logo/></Link>
-      <small>AUTHORISED WORKSPACE</small>
       <h1>Officer sign in</h1>
       <p>Case material and routing actions are available only to authenticated reviewers.</p>
       <aside className="officer-demo-access" aria-label="Demo account details">

@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A remote job charges for useless training",
+    "scam_category": "Other",
+    "mechanism_summary": "An online job advert promises easy earnings from home. Instead of employment, the applicant pays for useless training, certification, or starter materials.",
+    "suggested_beats": [
+      "A flexible job promises easy money.",
+      "Starting requires an upfront purchase.",
+      "Verify the employer before paying for job access."
+    ],
+    "who_falls_for_it_archetype": "someone looking for work from home",
+    "why_it_works": "The prospect of income makes a startup cost seem recoverable.",
+    "source_citation": "https://consumer.ftc.gov/articles/job-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A shipping job recruits an unwitting intermediary",
+    "scam_category": "Other",
+    "mechanism_summary": "A supposed employer hires someone to receive and forward packages. The goods may have been bought with stolen cards, while the promised wage never arrives.",
+    "suggested_beats": [
+      "An online employer offers parcel work.",
+      "Repacking hides the original purchase trail.",
+      "Treat reshipping job offers as a serious warning sign."
+    ],
+    "who_falls_for_it_archetype": "someone seeking home-based work",
+    "why_it_works": "Ordinary shipping tasks can conceal participation in a fraud.",
+    "source_citation": "https://consumer.ftc.gov/articles/job-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A copied rental advert collects a deposit",
+    "scam_category": "Other",
+    "mechanism_summary": "Scammers copy a real rental listing and replace the contact details. Applicants send deposits to someone who cannot provide the property.",
+    "suggested_beats": [
+      "A convincing rental advert attracts interest.",
+      "The contact demands money before verification.",
+      "Verify the property and landlord independently."
+    ],
+    "who_falls_for_it_archetype": "someone urgently seeking housing",
+    "why_it_works": "A plausible listing and housing pressure can overwhelm verification.",
+    "source_citation": "https://consumer.ftc.gov/articles/rental-listing-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Recovery help starts with another advance fee",
+    "scam_category": "Other",
+    "mechanism_summary": "Someone contacts a person who already lost money and promises recovery. The supposed helper demands an upfront payment, causing another loss.",
+    "suggested_beats": [
+      "A past scam victim is offered help.",
+      "Recovery requires paying first.",
+      "Verify recovery claims before sending more money."
+    ],
+    "who_falls_for_it_archetype": "someone trying to recover a previous loss",
+    "why_it_works": "Hope of reversing a loss makes another payment feel justified.",
+    "source_citation": "https://consumer.ftc.gov/articles/refund-and-recovery-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A caller offers a refund for fake technical support",
+    "scam_category": "Other",
+    "mechanism_summary": "A supposed support provider says a refund is available. The refund story is used to request financial information or access rather than return money.",
+    "suggested_beats": [
+      "A caller offers an unexpected refund.",
+      "Processing it requires private financial access.",
+      "Contact the original provider independently."
+    ],
+    "who_falls_for_it_archetype": "someone who previously bought technical support",
+    "why_it_works": "The prospect of reimbursement makes renewed contact seem welcome.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An online directory call becomes a bill",
+    "scam_category": "Other",
+    "mechanism_summary": "A caller offers to confirm a business listing or provide free advertising. Later the business receives a charge for something it did not knowingly purchase.",
+    "suggested_beats": [
+      "A caller requests routine listing details.",
+      "A supposedly free interaction becomes an invoice.",
+      "Verify any claimed advertising agreement."
+    ],
+    "who_falls_for_it_archetype": "someone managing a small business",
+    "why_it_works": "Routine information checks can be misrepresented as purchase consent.",
+    "source_citation": "https://www.ftc.gov/business-guidance/resources/scams-your-small-business-guide-business-0",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A bargain supplier never provides the goods",
+    "scam_category": "Other",
+    "mechanism_summary": "A supposed work opportunity asks someone to buy discounted luxury goods for resale. After payment, the goods never arrive or prove worthless.",
+    "suggested_beats": [
+      "A seller promises easy resale profit.",
+      "The purchased stock is missing or worthless.",
+      "Research the supplier before committing money."
+    ],
+    "who_falls_for_it_archetype": "someone hoping to start a resale business",
+    "why_it_works": "The promised margin makes an unverified supplier look like an opportunity.",
+    "source_citation": "https://consumer.ftc.gov/articles/job-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A mystery-shopping assignment diverts money",
+    "scam_category": "Other",
+    "mechanism_summary": "A supposed employer sends a mystery-shopping check. The worker is told to transfer some funds onward before the check is discovered to be fake.",
+    "suggested_beats": [
+      "An assignment arrives with a check.",
+      "The task requires forwarding money.",
+      "A deposited check is not proof that funds are genuine."
+    ],
+    "who_falls_for_it_archetype": "someone seeking paid shopping assignments",
+    "why_it_works": "An apparent test assignment disguises a transfer to the scammer.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-fake-check-scams",
+    "source_type": "government_advisory"
+  }
+]

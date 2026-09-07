@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A familiar voice asks for emergency money",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "A consumer advisory describes scammers cloning a relative's voice to claim an emergency. The familiar sound is used to persuade the recipient to send money.",
+    "suggested_beats": [
+      "A call sounds like a loved one.",
+      "An urgent payment is requested.",
+      "Call the loved one through a known number."
+    ],
+    "who_falls_for_it_archetype": "someone concerned for a family member",
+    "why_it_works": "Recognition can make an unverified emergency feel certain.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2023/03/scammers-use-ai-enhance-their-family-emergency-schemes",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A director's cloned voice authorizes a transfer",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "A reported investigation describes a bank employee receiving what sounded like a familiar company director's call. A fabricated acquisition story and supporting emails persuaded the employee to authorize transfers.",
+    "suggested_beats": [
+      "A familiar business voice calls.",
+      "An acquisition requires urgent transfers.",
+      "Verify payment instructions through established channels."
+    ],
+    "who_falls_for_it_archetype": "someone handling corporate transfers",
+    "why_it_works": "A familiar voice and consistent paperwork reinforce each other.",
+    "source_citation": "https://www.forbes.com/sites/thomasbrewster/2021/10/14/huge-bank-fraud-uses-deep-fake-voice-tech-to-steal-millions/",
+    "source_type": "news_article"
+  },
+  {
+    "title": "An official-sounding voice requests private documents",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "An official warning describes AI voice messages impersonating senior officials. The campaign moves contacts into private messaging and solicits sensitive documents.",
+    "suggested_beats": [
+      "An apparent official initiates contact.",
+      "Private documents are requested.",
+      "Verify the request through an independently sourced office contact."
+    ],
+    "who_falls_for_it_archetype": "someone approached by an apparent senior official",
+    "why_it_works": "Authority and personal attention can lower resistance to disclosure.",
+    "source_citation": "https://www.ic3.gov/PSA/2025/PSA251219",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A cloned official voice requests a linking code",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "An advisory describes an official-impersonation campaign using AI voice messages. Requests for authentication codes can give attackers access to the target's contact list.",
+    "suggested_beats": [
+      "An apparent official establishes rapport.",
+      "A linking code is requested.",
+      "Never pass authentication codes to an unverified contact."
+    ],
+    "who_falls_for_it_archetype": "someone trusting an official-sounding message",
+    "why_it_works": "A trusted persona disguises a request that enables further targeting.",
+    "source_citation": "https://www.ic3.gov/PSA/2025/PSA251219",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A job interview conceals a different speaker",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "An advisory reports suspected voice spoofing or voice deepfakes during remote job interviews. Mismatched sound and visible actions helped reveal deception about the applicant.",
+    "suggested_beats": [
+      "A remote applicant joins an interview.",
+      "Audio and visible actions do not align.",
+      "Verify applicant identity through independent checks."
+    ],
+    "who_falls_for_it_archetype": "someone assessing remote job applicants",
+    "why_it_works": "A mediated interview can obscure who is actually speaking.",
+    "source_citation": "https://www.ic3.gov/PSA/2022/PSA220628",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A political robocall borrows a leader's voice",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "An enforcement announcement describes fraudulent election robocalls using a cloned political leader's voice. The audio made deceptive outreach appear to come from that leader.",
+    "suggested_beats": [
+      "A voter receives a political call.",
+      "A familiar voice lends authority to the message.",
+      "Verify election information through official channels."
+    ],
+    "who_falls_for_it_archetype": "someone receiving election-related calls",
+    "why_it_works": "A recognizable voice can lend credibility to deceptive political messaging.",
+    "source_citation": "https://docs.fcc.gov/public/attachments/DOC-403529A1.pdf",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A child's apparent voice supports a kidnapping hoax",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "Police reporting describes a parent receiving a fake kidnapping call using what sounded like their child's voice. The apparent distress was used to make an invented abduction believable.",
+    "suggested_beats": [
+      "A parent hears an apparent child in distress.",
+      "A caller claims a kidnapping.",
+      "Contact the child independently and seek police help."
+    ],
+    "who_falls_for_it_archetype": "a parent alarmed by a distress call",
+    "why_it_works": "A familiar distressed voice can overwhelm the opportunity to verify.",
+    "source_citation": "https://www.ksl.com/article/news/utah/ai-voice-cloning-used-to-convince-lehi-parent-their-child-was-kidnapped/51590376",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A cloned customer voice targets a financial account",
+    "scam_category": "Voice Cloning",
+    "mechanism_summary": "An advisory identifies AI-generated audio used to impersonate account holders. Criminals use the false voice to try to obtain financial-account access.",
+    "suggested_beats": [
+      "A caller sounds like the account holder.",
+      "The caller seeks account access.",
+      "Use verification beyond voice recognition."
+    ],
+    "who_falls_for_it_archetype": "someone handling account-access requests",
+    "why_it_works": "A voice match can create false confidence in identity.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA241203",
+    "source_type": "government_advisory"
+  }
+]

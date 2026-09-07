@@ -1,0 +1,114 @@
+[
+  {
+    "title": "Provocation recruits a crowd",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "A troll posts comments designed to upset a target and encourages others to join. The attack expands into a pile-on rather than a genuine discussion.",
+    "suggested_beats": [
+      "A provocative comment targets someone.",
+      "Others are urged to join the attack.",
+      "Report abuse rather than amplifying it."
+    ],
+    "who_falls_for_it_archetype": "someone participating in an online discussion",
+    "why_it_works": "Crowd participation can make harassment feel socially rewarded.",
+    "source_citation": "https://www.esafety.gov.au/young-people/trolling",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A disagreement becomes an identity-based attack",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "An online troll targets personal characteristics to humiliate someone. The abuse shifts attention away from the discussion and toward punishing the person.",
+    "suggested_beats": [
+      "A public discussion attracts a troll.",
+      "Personal identity becomes the target.",
+      "Preserve and report targeted abuse."
+    ],
+    "who_falls_for_it_archetype": "someone exposed to identity-based hostility",
+    "why_it_works": "Prejudice and public humiliation can pressure someone out of a conversation.",
+    "source_citation": "https://www.esafety.gov.au/young-people/trolling",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Private details invite a wave of unwanted contact",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "Someone publishes another person's contact or location information to cause harm. Others are encouraged to use it to harass the target.",
+    "suggested_beats": [
+      "Private details are posted.",
+      "Strangers begin unwanted contact.",
+      "Report the disclosure without reposting the details."
+    ],
+    "who_falls_for_it_archetype": "someone whose private information is exposed",
+    "why_it_works": "Publicly supplied details lower the effort needed for others to join abuse.",
+    "source_citation": "https://www.esafety.gov.au/industry/tech-trends-and-challenges/doxing",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Sensitive records are published to undermine credibility",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "An attacker exposes private medical, financial, or personal material. The disclosure is intended to damage the person's reputation or standing.",
+    "suggested_beats": [
+      "Private material is obtained.",
+      "It is published to discredit someone.",
+      "Preserve evidence and seek removal support."
+    ],
+    "who_falls_for_it_archetype": "someone targeted through private records",
+    "why_it_works": "Embarrassment and reputational fear give private information coercive value.",
+    "source_citation": "https://www.esafety.gov.au/industry/tech-trends-and-challenges/doxing",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Rumors turn a social feed into a hostile space",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "Someone circulates lies about a person online. Repetition and sharing can expand the harm beyond the original audience.",
+    "suggested_beats": [
+      "A false claim is posted.",
+      "Others repeat it as fact.",
+      "Document and report the harmful posts."
+    ],
+    "who_falls_for_it_archetype": "someone targeted by online rumors",
+    "why_it_works": "Repetition can make an unsupported accusation seem credible.",
+    "source_citation": "https://www.esafety.gov.au/young-people/cyberbullying",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A humiliating recording outlives the original incident",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "A recording of an embarrassing incident is shared online to humiliate someone. Wider circulation prolongs the person's distress beyond the event itself.",
+    "suggested_beats": [
+      "An incident is recorded.",
+      "The recording is shared for ridicule.",
+      "Support the target and report abusive sharing."
+    ],
+    "who_falls_for_it_archetype": "someone whose embarrassing recording is circulated",
+    "why_it_works": "Audience attention rewards forwarding while hiding its impact on the person shown.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/cyberbullying/stories",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Abusive messages attack a person's differences",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "A young person receives repeated messages insulting their personal differences. The repeated insults make online participation distressing and isolating.",
+    "suggested_beats": [
+      "Hostile messages begin.",
+      "Repeated insults undermine belonging.",
+      "Tell a trusted adult and report the abuse."
+    ],
+    "who_falls_for_it_archetype": "a young person receiving targeted insults",
+    "why_it_works": "Repeated rejection can exploit a person's need for acceptance.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/cyberbullying/stories",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Reputation attacks push a public participant into silence",
+    "scam_category": "Online Harassment",
+    "mechanism_summary": "A person with a public online presence receives comments intended to damage their reputation. The abuse can cause withdrawal or self-censorship.",
+    "suggested_beats": [
+      "A public contribution attracts abuse.",
+      "Comments attack the contributor's reputation.",
+      "Seek support and document the harmful conduct."
+    ],
+    "who_falls_for_it_archetype": "someone visible through public-facing work",
+    "why_it_works": "Reputational pressure can make continued participation feel personally costly.",
+    "source_citation": "https://www.esafety.gov.au/women/women-in-the-spotlight/online-abuse",
+    "source_type": "government_advisory"
+  }
+]

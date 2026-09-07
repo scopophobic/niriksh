@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A billing problem freezes an apparent subscription",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A branded email says an account is on hold because payment information needs updating. Its link collects information for scammers rather than resolving a real billing issue.",
+    "suggested_beats": [
+      "A service appears to suspend access.",
+      "The fix asks for payment details.",
+      "Open the service independently."
+    ],
+    "who_falls_for_it_archetype": "someone concerned about a subscription",
+    "why_it_works": "Fear of losing access makes the linked fix feel urgent.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A refund registration captures private details",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A message says the recipient qualifies for a government refund and must register through a link. The refund story is a pretext for stealing personal or financial information.",
+    "suggested_beats": [
+      "An unexpected refund is announced.",
+      "Registration requests sensitive information.",
+      "Verify refunds through the official agency."
+    ],
+    "who_falls_for_it_archetype": "someone hoping to receive a refund",
+    "why_it_works": "An unexpected benefit can lower scrutiny of the information requested.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An unfamiliar invoice hides a malicious attachment",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A scam email presents an invoice the recipient does not recognize. Opening its attachment or following its payment link can expose information or introduce malware.",
+    "suggested_beats": [
+      "An invoice arrives unexpectedly.",
+      "The attachment becomes the trap.",
+      "Verify the sender before opening files."
+    ],
+    "who_falls_for_it_archetype": "someone processing invoices",
+    "why_it_works": "Routine administrative work can encourage opening a document before checking it.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An overdue toll text copies an agency",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A text claims the recipient owes a road toll and threatens extra charges. It links to a website impersonating the toll service.",
+    "suggested_beats": [
+      "A small toll debt is announced.",
+      "The link imitates the collection agency.",
+      "Check toll accounts through an independently found site."
+    ],
+    "who_falls_for_it_archetype": "someone worried about a missed toll",
+    "why_it_works": "A small debt paired with a penalty can prompt quick compliance.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA240412",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A mystery gift contains a phishing QR code",
+    "scam_category": "Phishing",
+    "mechanism_summary": "An unexpected package contains a QR code that appears to explain who sent it. Scanning can lead to a website seeking account or card information.",
+    "suggested_beats": [
+      "An unexplained package arrives.",
+      "Its explanation requires scanning a code.",
+      "Do not enter credentials through an unexpected package link."
+    ],
+    "who_falls_for_it_archetype": "someone curious about an unsolicited gift",
+    "why_it_works": "Curiosity gives a malicious link a plausible physical invitation.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2025/01/scam-alert-qr-code-unexpected-package",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A prospective buyer demands identity verification",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A supposed buyer asks an online seller to share a texted verification code. The code actually helps register a calling account linked to the seller's number.",
+    "suggested_beats": [
+      "A buyer expresses interest.",
+      "The buyer requires a verification code.",
+      "Keep account verification codes private."
+    ],
+    "who_falls_for_it_archetype": "someone selling an item online",
+    "why_it_works": "A demand to prove honesty reverses suspicion onto the legitimate seller.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2021/10/google-voice-scam-how-verification-code-scam-works-how-avoid-it",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A missing-pet reply asks for a code",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A scammer responding to a lost-pet notice claims to have found the animal. Before arranging its return, the scammer requests a verification code used to set up a calling account.",
+    "suggested_beats": [
+      "A hopeful reply claims the pet is found.",
+      "Returning it depends on sharing a code.",
+      "Verify the claim without sharing account codes."
+    ],
+    "who_falls_for_it_archetype": "someone searching for a missing pet",
+    "why_it_works": "Relief and urgency can overwhelm scrutiny of an unrelated security request.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2021/10/google-voice-scam-how-verification-code-scam-works-how-avoid-it",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An account warning becomes a remote-support call",
+    "scam_category": "Phishing",
+    "mechanism_summary": "A pop-up claims a device has a serious security problem and supplies a support contact. The apparent support agent seeks remote access or payment for an invented repair.",
+    "suggested_beats": [
+      "A warning interrupts browsing.",
+      "Calling it leads to remote-access instructions.",
+      "Use the real provider's support channel."
+    ],
+    "who_falls_for_it_archetype": "someone alarmed by a device warning",
+    "why_it_works": "An alarming screen makes an unsolicited helper appear necessary.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
+    "source_type": "government_advisory"
+  }
+]

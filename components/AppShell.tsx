@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, Cloud, CloudOff, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, Video, X } from "lucide-react";
+import { ArrowRight, Clapperboard, Cloud, CloudOff, Inbox, LayoutDashboard, LoaderCircle, LogOut, Menu, RefreshCw, Route, Settings2, ShieldCheck, Sparkles, Video, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { POVSwitch } from "./POVSwitch";
@@ -12,6 +12,8 @@ const navGroups = [
   { label: "Intelligence", items: [
     { href: "/prevention", label: "Intelligence overview", icon: Sparkles },
     { href: "/awareness", label: "Awareness studio", icon: Video },
+    { href: "/awareness/psa-lab", label: "PSA lab", icon: Clapperboard },
+    { href: "/awareness/psa-lab/officer-box", label: "PSA officer box", icon: Inbox },
   ]},
   { label: "Casework", items: [
     { href: "/dashboard", label: "Cases", icon: LayoutDashboard },

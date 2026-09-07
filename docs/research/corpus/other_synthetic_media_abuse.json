@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A fabricated identity document passes as genuine",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "A financial-crime advisory describes suspected use of deepfake identity documents. Fraudsters submit them to bypass verification at financial institutions.",
+    "suggested_beats": [
+      "An applicant supplies identity evidence.",
+      "A synthetic document supports a false identity.",
+      "Verify documents beyond their visual appearance."
+    ],
+    "who_falls_for_it_archetype": "someone reviewing financial onboarding documents",
+    "why_it_works": "Authentic-looking formatting can make fabricated evidence seem routine.",
+    "source_citation": "https://www.fincen.gov/news/news-releases/fincen-issues-alert-fraud-schemes-involving-deepfake-media-targeting-financial",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An altered family photo supports a ransom demand",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "An advisory describes criminals altering public photos to claim a loved one has been kidnapped. The fabricated proof accompanies urgent ransom demands.",
+    "suggested_beats": [
+      "A kidnapping claim arrives.",
+      "An altered photo is presented as proof.",
+      "Contact the loved one independently and seek help."
+    ],
+    "who_falls_for_it_archetype": "someone worried about an unreachable loved one",
+    "why_it_works": "Apparent visual proof can intensify fear and urgency.",
+    "source_citation": "https://www.ic3.gov/PSA/2025/PSA251205",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A delivery photo is altered to exaggerate damage",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "A news report describes a social-media claim that AI was used to exaggerate damage to delivered food. The account claimed the altered photo secured a refund; the report is not independent proof of every claim.",
+    "suggested_beats": [
+      "A delivery has limited visible damage.",
+      "An altered image supports a larger refund claim.",
+      "Verify claims against original evidence."
+    ],
+    "who_falls_for_it_archetype": "someone reviewing a photographic refund claim",
+    "why_it_works": "Photographic evidence can appear objective even when altered.",
+    "source_citation": "https://indianexpress.com/article/trending/trending-in-india/swiggy-customer-uses-ai-to-fake-damaged-eggs-secures-refund-viral-post-sparks-debate-10387095/",
+    "source_type": "news_article"
+  },
+  {
+    "title": "Generated disaster images solicit fraudulent donations",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "An advisory describes criminals using AI disaster or conflict images in charity scams. The fabricated scenes encourage donations to fraudulent causes.",
+    "suggested_beats": [
+      "An urgent appeal shows distressing imagery.",
+      "A donation request relies on the synthetic scene.",
+      "Verify the charity independently."
+    ],
+    "who_falls_for_it_archetype": "someone moved to help during a crisis",
+    "why_it_works": "Compassion can be redirected by fabricated visual evidence.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA241203",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A fraudulent website uses an AI chatbot to guide visitors",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "An advisory describes AI chatbots embedded in fraudulent websites. The bots encourage visitors to follow malicious links.",
+    "suggested_beats": [
+      "A website offers responsive assistance.",
+      "The chatbot directs the visitor to a harmful link.",
+      "Verify the website before following its guidance."
+    ],
+    "who_falls_for_it_archetype": "someone seeking help on an unfamiliar website",
+    "why_it_works": "Responsive conversation can make a fraudulent site seem legitimate.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA241203",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A synthetic receipt supports a false insurance claim",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "An insurance regulator warns of fabricated receipts generated with AI. The documents are presented as evidence for fraudulent claims.",
+    "suggested_beats": [
+      "A claim includes a plausible receipt.",
+      "The document conceals a fabricated expense.",
+      "Check original records and document authenticity."
+    ],
+    "who_falls_for_it_archetype": "someone evaluating an insurance claim",
+    "why_it_works": "Familiar formatting can make an invented expense seem documented.",
+    "source_citation": "https://www.oid.ok.gov/getready7_2026/",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "AI damage pictures support fraudulent claims",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "An insurance advisory describes generated damage photographs used as false evidence. A realistic image can support a claim without documenting the actual condition of the property.",
+    "suggested_beats": [
+      "A claim arrives with damage photos.",
+      "The pictures misrepresent the underlying evidence.",
+      "Verify against original and independent records."
+    ],
+    "who_falls_for_it_archetype": "someone reviewing photographic claim evidence",
+    "why_it_works": "Visual realism can hide the absence of an actual documented loss.",
+    "source_citation": "https://www.oid.ok.gov/getready7_2026/",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Synthetic product images make a shopping site look established",
+    "scam_category": "Other Synthetic Media Abuse",
+    "mechanism_summary": "A government-distributed warning describes fake shopping sites using AI product images and generated reviews. The polished presentation creates an illusion of legitimacy.",
+    "suggested_beats": [
+      "An unfamiliar store displays convincing products.",
+      "Synthetic content substitutes for a trustworthy trading history.",
+      "Check the seller through independent evidence."
+    ],
+    "who_falls_for_it_archetype": "someone shopping at an unfamiliar online store",
+    "why_it_works": "A polished catalogue can be mistaken for proof that a seller is genuine.",
+    "source_citation": "https://www.sd.gov/sys_attachment.do?sys_id=407ccb918790f250a086bae9cebb35f4&sysparm_viewer_id=683ccb918790f250a086bae9cebb353e&sysparm_viewer_table=kb_knowledge",
+    "source_type": "government_advisory"
+  }
+]

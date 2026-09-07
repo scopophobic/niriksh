@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A prerecorded executive meeting authorizes payments",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "An official case account describes a deepfake group meeting with an apparent finance executive. The prerecorded meeting provided no real interaction, and payment instructions continued through messages.",
+    "suggested_beats": [
+      "An employee joins an apparent executive meeting.",
+      "Confidential transfer instructions follow.",
+      "Verify the instruction through an established channel."
+    ],
+    "who_falls_for_it_archetype": "someone authorized to move company funds",
+    "why_it_works": "A staged meeting can make one fraudulent instruction appear institutionally approved.",
+    "source_citation": "https://www.info.gov.hk/gia/general/202406/26/P2024062600192p.htm",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A face swap supports a fraudulent loan application",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "An official account describes suspects using stolen identities and AI face swapping in online loan applications. The altered face helped impersonate another applicant.",
+    "suggested_beats": [
+      "An online application uses someone else's identity.",
+      "A fabricated face supports the application.",
+      "Check identity using independent evidence."
+    ],
+    "who_falls_for_it_archetype": "someone reviewing remote loan applications",
+    "why_it_works": "A plausible face can falsely appear to corroborate stolen identity details.",
+    "source_citation": "https://www.info.gov.hk/gia/general/202406/26/P2024062600192p.htm",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A fabricated government conference leads to a transfer",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "Police describe a video meeting impersonating senior officials with deepfake elements. A supposed lawyer subsequently contacted the attendee to request money.",
+    "suggested_beats": [
+      "An invitation offers access to officials.",
+      "A lawyer persona follows with payment instructions.",
+      "Verify the meeting and payment independently."
+    ],
+    "who_falls_for_it_archetype": "someone invited to an apparent official meeting",
+    "why_it_works": "A staged display of authority makes the later request seem endorsed.",
+    "source_citation": "https://www.police.gov.sg/media-hub/news/2026/05/20260516_footage_from_zoom_video_conference_involving_impersonation_of_senior_government_officials",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A synthetic official promotes a false complaint website",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "An advisory describes AI videos impersonating a senior law-enforcement figure. Viewers are directed to a spoofed complaint form that collects personal details.",
+    "suggested_beats": [
+      "An apparent official invites scam reports.",
+      "The linked form gathers sensitive information.",
+      "Reach the real agency through its official site."
+    ],
+    "who_falls_for_it_archetype": "someone trying to report an earlier scam",
+    "why_it_works": "A help-seeking moment makes borrowed official credibility especially persuasive.",
+    "source_citation": "https://www.ic3.gov/PSA/2026/PSA260720",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A convincing private video is treated as proof of identity",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "An advisory describes criminals using fabricated videos in private communications to appear real. The synthetic appearance supports an otherwise unverified online identity.",
+    "suggested_beats": [
+      "An online contact offers a reassuring video.",
+      "The video is treated as identity proof.",
+      "Verify the person beyond the video."
+    ],
+    "who_falls_for_it_archetype": "someone verifying an unfamiliar online contact",
+    "why_it_works": "Seeing a lifelike person can create misplaced certainty.",
+    "source_citation": "https://www.ic3.gov/PSA/2026/PSA260720",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A doctor's likeness sells an unverified health product",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "Consumer-protection reporting describes deepfake advertisements that borrow respected doctors' likenesses. Fabricated endorsements are used to sell health products the doctors did not promote.",
+    "suggested_beats": [
+      "A familiar medical figure appears in an advertisement.",
+      "The apparent endorsement urges a purchase.",
+      "Verify the endorsement through the professional's own channels."
+    ],
+    "who_falls_for_it_archetype": "someone considering a health product",
+    "why_it_works": "Borrowed medical credibility can make an unsupported sales claim persuasive.",
+    "source_citation": "https://www.aarp.org/podcasts/the-perfect-scam/ai-deepfake-doctors-scam.html",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A synthetic athlete endorses a fraudulent token",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "Police warn of fraudulent sports-themed cryptocurrency promotions. Some use AI deepfakes of athletes or celebrities to make the platforms appear credible.",
+    "suggested_beats": [
+      "A sports figure appears to endorse a token.",
+      "A linked platform solicits participation.",
+      "Verify official affiliation independently."
+    ],
+    "who_falls_for_it_archetype": "someone drawn to sports-themed digital assets",
+    "why_it_works": "Familiar sporting figures can lend false credibility to a financial promotion.",
+    "source_citation": "https://www.police.gov.sg/Media-Hub/News/2026/07/20260701_police_advisory_on_cryptocurrency_scams_involving_malicious_links",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A deepfake dating identity leads to a false investment platform",
+    "scam_category": "Synthetic Media Impersonation",
+    "mechanism_summary": "An official account describes a syndicate using deepfakes in online dating. The relationships were used to direct people to fraudulent cryptocurrency platforms.",
+    "suggested_beats": [
+      "An apparent romantic contact develops trust.",
+      "The contact recommends an investment platform.",
+      "Verify identity and the platform separately."
+    ],
+    "who_falls_for_it_archetype": "someone trusting an online romantic introduction",
+    "why_it_works": "A convincing persona can transfer relationship trust to a financial scheme.",
+    "source_citation": "https://www.police.gov.hk/info/doc/fcq/2026/sfc_e.pdf",
+    "source_type": "government_advisory"
+  }
+]

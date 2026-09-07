@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A supposed removal service belongs to the abuser",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "An enforcement complaint describes a site publishing intimate images without consent. It then directed targets to apparently separate paid removal services controlled by the same operator.",
+    "suggested_beats": [
+      "An abusive image is posted.",
+      "A supposed outside service demands a removal fee.",
+      "Seek independent reporting and removal support."
+    ],
+    "who_falls_for_it_archetype": "someone desperate to remove an intimate image",
+    "why_it_works": "False separation hides the financial incentive behind the abuse.",
+    "source_citation": "https://www.ftc.gov/news-events/news/press-releases/2015/01/website-operator-banned-revenge-porn-business-after-ftc-charges-he-unfairly-posted-nude-photos",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A paid helper threatens a young person's future",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "An official warning describes a company approached by a young sextortion target. It used threats about education and family employment to solicit repeated assistance payments.",
+    "suggested_beats": [
+      "A frightened person asks for help.",
+      "The helper adds frightening payment pressure.",
+      "Contact independent victim-support services."
+    ],
+    "who_falls_for_it_archetype": "a young person seeking urgent sextortion help",
+    "why_it_works": "Desperation can make an exploitative helper seem indispensable.",
+    "source_citation": "https://www.ic3.gov/PSA/2023/PSA230407",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A helper discourages the family from reporting",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "An official warning describes a representative offering to locate a sextortionist for a fee. The representative discouraged a parent from contacting law enforcement.",
+    "suggested_beats": [
+      "A family receives an assistance offer.",
+      "Payment is requested while reporting is discouraged.",
+      "Verify help independently."
+    ],
+    "who_falls_for_it_archetype": "a parent trying to protect a targeted child",
+    "why_it_works": "Concern for a child can make unsolicited rescue promises persuasive.",
+    "source_citation": "https://www.ic3.gov/PSA/2023/PSA230407",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A hacked inbox supplies material for blackmail",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "A sentencing account describes phishing used to obtain email access and private images. The attacker then threatened disclosure to force further compliance.",
+    "suggested_beats": [
+      "A deceptive message obtains account access.",
+      "Stolen intimate material becomes a threat.",
+      "Secure the account and report the coercion."
+    ],
+    "who_falls_for_it_archetype": "someone whose private account is compromised",
+    "why_it_works": "Stolen material gives an attacker leverage without any consensual exchange.",
+    "source_citation": "https://www.justice.gov/archives/opa/pr/former-us-state-department-employee-sentenced-57-months-extensive-computer-hacking",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Blackmail demands recordings of other people",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "A sentencing account describes an attacker threatening to expose stolen intimate images. The attacker demanded additional recordings involving other people.",
+    "suggested_beats": [
+      "An attacker holds private imagery.",
+      "The demand expands to violating others' privacy.",
+      "Seek help instead of complying."
+    ],
+    "who_falls_for_it_archetype": "someone pressured with stolen intimate material",
+    "why_it_works": "Exposure threats can be used to push a target into further harm.",
+    "source_citation": "https://www.justice.gov/archives/opa/pr/former-us-state-department-employee-sentenced-57-months-extensive-computer-hacking",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A dating conversation becomes an exposure demand",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "An advisory describes a dating contact moving the conversation to another platform. After obtaining intimate material, the contact demands money to keep it from family and friends.",
+    "suggested_beats": [
+      "A new match requests a private chat.",
+      "Intimacy abruptly becomes blackmail.",
+      "Stop contact and seek reporting support."
+    ],
+    "who_falls_for_it_archetype": "someone meeting a new dating contact",
+    "why_it_works": "A sudden threat exploits trust formed during apparent mutual interest.",
+    "source_citation": "https://www.ic3.gov/PSA/2021/PSA210902",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A gaming friendship becomes financial blackmail",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "An apparent gaming friend requests intimate images. An official example describes the contact then demanding money for silence.",
+    "suggested_beats": [
+      "A gamer meets an apparent friend.",
+      "An image request becomes a money demand.",
+      "Tell a trusted adult and report the account."
+    ],
+    "who_falls_for_it_archetype": "a young gamer",
+    "why_it_works": "Shared interests can make an unfamiliar contact seem safe.",
+    "source_citation": "https://www.fbi.gov/how-we-can-help-you/common-frauds-and-scams/sextortion/financially-motivated-sextortion",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An email bluffs about an intimate recording",
+    "scam_category": "Sextortion",
+    "mechanism_summary": "A consumer warning describes emails demanding cryptocurrency to keep embarrassing material secret. The sender's claim of possessing a recording is a bluff, not evidence of access.",
+    "suggested_beats": [
+      "An alarming email alleges surveillance.",
+      "The sender demands payment for silence.",
+      "Do not pay a threat unsupported by evidence."
+    ],
+    "who_falls_for_it_archetype": "someone frightened by an unsolicited exposure threat",
+    "why_it_works": "Shame and uncertainty can make an unsupported claim feel credible.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2020/04/scam-emails-demand-bitcoin-threaten-blackmail",
+    "source_type": "government_advisory"
+  }
+]

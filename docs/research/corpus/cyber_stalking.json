@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A phone secretly reports its owner's movements",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "An abusive person installs stalkerware without the device owner's knowledge. The software can reveal locations and private communications to the abuser.",
+    "suggested_beats": [
+      "An abuser gains device access.",
+      "Private movements become known.",
+      "Seek safety support using a safer device."
+    ],
+    "who_falls_for_it_archetype": "someone whose device may be monitored",
+    "why_it_works": "Hidden surveillance can make the abuser appear impossible to escape.",
+    "source_citation": "https://consumer.ftc.gov/articles/stalkerware-what-know",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A concealed microphone exposes private conversations",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "Stalkerware may activate a device microphone or capture phone conversations. An abusive person uses the access to monitor information never shared with them.",
+    "suggested_beats": [
+      "A device is secretly monitored.",
+      "The abuser knows private conversations.",
+      "Plan safely before changing a monitored device."
+    ],
+    "who_falls_for_it_archetype": "someone experiencing covert monitoring",
+    "why_it_works": "Knowledge of private conversations can intimidate without revealing the surveillance tool.",
+    "source_citation": "https://consumer.ftc.gov/articles/stalkerware-what-know",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A blocked contact follows across platforms",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "A person repeatedly pursues someone across different online accounts after contact is unwelcome. The persistent appearances communicate that the target cannot easily get away.",
+    "suggested_beats": [
+      "Contact is unwelcome.",
+      "The same person appears on other platforms.",
+      "Document the pattern and report it."
+    ],
+    "who_falls_for_it_archetype": "someone facing repeated unwanted contact",
+    "why_it_works": "Persistent pursuit can wear down boundaries and create a sense of inescapability.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/staying-safe/cyberstalking",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Smart-home controls become a tool of intimidation",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "An abusive person remotely changes internet-connected devices in the target's home. Small unexplained changes can be used to frighten the person or undermine confidence in their perceptions.",
+    "suggested_beats": [
+      "Home devices behave unexpectedly.",
+      "An abuser controls the changes remotely.",
+      "Seek support for a safe technology plan."
+    ],
+    "who_falls_for_it_archetype": "someone sharing connected-home access with an abuser",
+    "why_it_works": "Hard-to-explain changes can make a person doubt their own observations.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/staying-safe/cyberstalking",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A supposed rescuer created the harassment",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "A person facing unwanted online contact receives help from someone who knows suspiciously much about it. The helper may be the person causing the abuse, seeking dependence and isolation.",
+    "suggested_beats": [
+      "Unwanted contact creates distress.",
+      "An unusually informed helper offers rescue.",
+      "Seek independent support outside that relationship."
+    ],
+    "who_falls_for_it_archetype": "someone seeking relief from harassment",
+    "why_it_works": "Manufactured danger can make its instigator appear indispensable.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/staying-safe/cyberstalking",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Fake dating profiles recruit strangers into harassment",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "A cyberstalker created dating profiles using another person's photographs and contact information. Strangers then directed unwanted solicitations and messages toward that person.",
+    "suggested_beats": [
+      "An impostor creates dating profiles.",
+      "Strangers begin contacting the target.",
+      "Report the profiles and preserve evidence."
+    ],
+    "who_falls_for_it_archetype": "someone impersonated on dating services",
+    "why_it_works": "A false profile makes outsiders believe the target invited their contact.",
+    "source_citation": "https://www.justice.gov/archives/opa/pr/seattle-man-sentenced-over-two-years-prison-cyberstalking-campaign",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Unwanted registrations generate a flood of contact",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "A cyberstalker enrolled another person in numerous programs without consent. The resulting calls and emails turned legitimate services into instruments of harassment.",
+    "suggested_beats": [
+      "A stalker submits unwanted registrations.",
+      "Unrelated services repeatedly contact the target.",
+      "Document the coordinated pattern and seek help."
+    ],
+    "who_falls_for_it_archetype": "someone receiving coordinated unwanted signups",
+    "why_it_works": "Many apparently unrelated senders can make an organized attack hard to recognize.",
+    "source_citation": "https://www.justice.gov/archives/opa/pr/seattle-man-sentenced-over-two-years-prison-cyberstalking-campaign",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "New accounts evade an explicit block",
+    "scam_category": "Cyber Stalking",
+    "mechanism_summary": "A harasser makes replacement accounts to keep contacting someone who blocked them. The repeated evasion prolongs abuse beyond the target's attempt to end it.",
+    "suggested_beats": [
+      "A target blocks an abusive account.",
+      "A replacement account resumes contact.",
+      "Report the repeated evasion as a pattern."
+    ],
+    "who_falls_for_it_archetype": "someone trying to stop online harassment",
+    "why_it_works": "Repeated boundary violations can make platform controls feel ineffective.",
+    "source_citation": "https://www.esafety.gov.au/young-people/cyberbullying",
+    "source_type": "government_advisory"
+  }
+]

@@ -1,0 +1,114 @@
+[
+  {
+    "title": "Credit opened in someone else's identity",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "A thief uses stolen personal information to open a credit account. The person whose identity was used may discover unfamiliar debt or account activity.",
+    "suggested_beats": [
+      "Personal information is stolen.",
+      "An unfamiliar credit account appears.",
+      "Review credit records and report unknown accounts."
+    ],
+    "who_falls_for_it_archetype": "someone whose identity data was exposed",
+    "why_it_works": "Formal-looking applications can conceal that the applicant is an impostor.",
+    "source_citation": "https://consumer.ftc.gov/articles/what-know-about-identity-theft",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A utility account uses stolen personal details",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "Someone uses another person's identity to obtain utility or communications services. Charges and account records can then be associated with the wrong person.",
+    "suggested_beats": [
+      "Identity details reach a thief.",
+      "An unknown service appears in records.",
+      "Dispute unrecognized accounts with the provider."
+    ],
+    "who_falls_for_it_archetype": "someone receiving an unfamiliar service bill",
+    "why_it_works": "Routine account creation can hide misuse until billing exposes it.",
+    "source_citation": "https://consumer.ftc.gov/articles/what-know-about-identity-theft",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A child's identity finances an adult's borrowing",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "A thief uses a child's personal details to apply for credit or a loan. The misuse may remain unnoticed because the family does not expect the child to have financial accounts.",
+    "suggested_beats": [
+      "A child's details are misused.",
+      "A loan appears under that identity.",
+      "Investigate unexpected credit activity involving a child."
+    ],
+    "who_falls_for_it_archetype": "a caregiver protecting a child's identity",
+    "why_it_works": "The assumption that children have no credit activity can delay discovery.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-protect-your-child-identity-theft",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Medical care is billed under another identity",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "A person uses stolen insurance or identity information to obtain medical services. The misuse can generate unfamiliar bills and mix another patient's information into the victim's records.",
+    "suggested_beats": [
+      "Medical details are stolen.",
+      "Unrecognized treatment appears on a statement.",
+      "Ask the provider to investigate and correct records."
+    ],
+    "who_falls_for_it_archetype": "someone reviewing a medical statement",
+    "why_it_works": "Trusted billing paperwork can make identity misuse look like an ordinary charge.",
+    "source_citation": "https://consumer.ftc.gov/articles/what-know-about-medical-identity-theft",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A tax refund is claimed before the taxpayer files",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "A thief files a false tax return using another person's identity and collects the refund. The real taxpayer may discover the fraud when their own filing is rejected as a duplicate.",
+    "suggested_beats": [
+      "An identity thief files first.",
+      "The genuine return is rejected.",
+      "Verify the rejection directly with the tax authority."
+    ],
+    "who_falls_for_it_archetype": "someone filing a tax return",
+    "why_it_works": "The fraud exploits an administrative process before the real claimant participates.",
+    "source_citation": "https://consumer.ftc.gov/features/tax-identity-theft-awareness",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Unemployment benefits appear without an application",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "An identity thief applies for unemployment benefits using someone else's information. An unexpected benefits notice can reveal the claim even though the person never applied.",
+    "suggested_beats": [
+      "A benefits claim uses stolen details.",
+      "An unsolicited notice arrives.",
+      "Report the false claim through the official benefits agency."
+    ],
+    "who_falls_for_it_archetype": "someone receiving an unexpected benefits letter",
+    "why_it_works": "A familiar government notice can obscure that the underlying application was fraudulent.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2026/02/got-letter-about-unemployment-benefits-you-didnt-file-thats-identity-theft",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A delivered item manufactures a reviewer's identity",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "A seller sends an unsolicited low-value item to obtain apparent delivery validation. The seller then uses the recipient's identity to publish a fabricated review.",
+    "suggested_beats": [
+      "A package arrives without an order.",
+      "Delivery supports a review the recipient never wrote.",
+      "Report the unsolicited shipment to the marketplace."
+    ],
+    "who_falls_for_it_archetype": "someone receiving an unexplained parcel",
+    "why_it_works": "Delivery evidence can make invented customer testimony look authentic.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2026/08/unexpected-package-you-got-could-be-brushing-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A stolen identity becomes a remote job application",
+    "scam_category": "Identity Misuse",
+    "mechanism_summary": "Applicants use stolen personal information, sometimes alongside suspected voice manipulation, to apply for remote work. The identity owner did not authorize the application.",
+    "suggested_beats": [
+      "A remote application presents borrowed credentials.",
+      "The applicant is not the identity holder.",
+      "Verify applicant identity independently."
+    ],
+    "who_falls_for_it_archetype": "someone whose identity is used in recruitment",
+    "why_it_works": "A plausible application can make stolen personal information look like legitimate credentials.",
+    "source_citation": "https://www.ic3.gov/PSA/2022/PSA220628",
+    "source_type": "government_advisory"
+  }
+]

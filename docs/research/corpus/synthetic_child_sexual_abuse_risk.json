@@ -1,0 +1,114 @@
+[
+  {
+    "title": "An ordinary child photo is turned into abusive imagery",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "An official warning describes offenders altering ordinary child photographs into sexual abuse material with AI. No intimate original is needed for this misuse.",
+    "suggested_beats": [
+      "A normal photograph is available.",
+      "An offender fabricates abusive imagery.",
+      "Report the abuse without circulating it."
+    ],
+    "who_falls_for_it_archetype": "a child whose ordinary image is misused",
+    "why_it_works": "A recognizable likeness can make a fabrication personally harmful.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA240329",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A child's public likeness is used in a sexual face swap",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "An advisory describes a child's likeness being inserted into abusive material. The fabrication misuses identity despite the child never participating in the depicted scene.",
+    "suggested_beats": [
+      "A child's likeness is copied.",
+      "A fabricated abusive depiction appears.",
+      "Seek trusted help and report it."
+    ],
+    "who_falls_for_it_archetype": "a child with a publicly accessible likeness",
+    "why_it_works": "Viewers may wrongly treat a fabricated image as a real event.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA240329",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An offender commissions abusive AI images",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "A prosecution account describes an offender creating child abuse images from real photographs for others. The resulting synthetic material exploits the depicted children without their participation.",
+    "suggested_beats": [
+      "Ordinary images reach an offender.",
+      "Others commission abusive fabrications.",
+      "Report suspected exploitation without obtaining copies."
+    ],
+    "who_falls_for_it_archetype": "a child whose photograph is targeted for alteration",
+    "why_it_works": "Commissioned abuse treats a child's likeness as material others can exploit.",
+    "source_citation": "https://www.cps.gov.uk/cps/news/man-who-used-ai-technology-create-child-sexual-abuse-images-jailed",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A trusted worker misuses photographs of children",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "An official case page describes a worker using ordinary photographs of children in their care to generate abusive images. Legitimate access to photographs was misused for exploitation.",
+    "suggested_beats": [
+      "A trusted worker has ordinary photos.",
+      "The photos are transformed into abusive material.",
+      "Report concerns to safeguarding authorities."
+    ],
+    "who_falls_for_it_archetype": "a child whose images are accessible to a trusted worker",
+    "why_it_works": "Trusted access can conceal serious misuse of a child's images.",
+    "source_citation": "https://www.justice.gov/usao-mn/haslach-child-exploitation-case-school-district-employee-0",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Synthetic abuse material is sent to a child",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "A public charging account alleges that an adult generated abusive synthetic child imagery and sent material to a minor. The reported conduct used fabricated content in direct contact with a child.",
+    "suggested_beats": [
+      "An adult contacts a child online.",
+      "Abusive synthetic material is sent.",
+      "Stop contact and tell a trusted adult."
+    ],
+    "who_falls_for_it_archetype": "a child receiving abusive material online",
+    "why_it_works": "Direct contact can use disturbing content to cross a child's boundaries.",
+    "source_citation": "https://www.justice.gov/archives/opa/pr/man-arrested-producing-distributing-and-possessing-ai-generated-images-minors-engaged",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A network distributes fully synthetic child abuse material",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "An international enforcement announcement describes a network distributing AI-generated child abuse material. Fabricated content became the subject of organized circulation.",
+    "suggested_beats": [
+      "An online network collects synthetic abuse.",
+      "The material is distributed to others.",
+      "Report the network without downloading the material."
+    ],
+    "who_falls_for_it_archetype": "children exposed to risks from online exploitation networks",
+    "why_it_works": "Organized sharing can normalize and sustain exploitative conduct.",
+    "source_citation": "https://www.europol.europa.eu/media-press/newsroom/news/25-arrested-in-global-hit-against-ai-generated-child-sexual-abuse-material",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Schoolmates treat an abusive forgery as a joke",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "An official school-safety account describes students using AI to fabricate intimate images of peers. Sharing framed as humor still causes image-based abuse.",
+    "suggested_beats": [
+      "A peer's ordinary photo is available.",
+      "A fabricated intimate image circulates as a joke.",
+      "Do not share it; tell a trusted adult."
+    ],
+    "who_falls_for_it_archetype": "a student targeted by peers",
+    "why_it_works": "Group approval can obscure the serious harm of an abusive fabrication.",
+    "source_citation": "https://www.esafety.gov.au/newsroom/blogs/deepfake-damage-in-schools-how-ai-generated-abuse-is-disrupting-students-families-and-school-communities",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A child is blackmailed without sending an intimate image",
+    "scam_category": "Synthetic Child Sexual Abuse Risk",
+    "mechanism_summary": "An official warning describes offenders combining a child's ordinary face image with sexual imagery. The fabricated result is used to try to extort the child.",
+    "suggested_beats": [
+      "A child shares an ordinary face image.",
+      "An altered image becomes a threat.",
+      "Tell a trusted adult; the abuse is not the child's fault."
+    ],
+    "who_falls_for_it_archetype": "a child threatened with fabricated intimate content",
+    "why_it_works": "A false image can create fear of exposure without any intimate exchange.",
+    "source_citation": "https://www.fbi.gov/how-we-can-help-you/common-frauds-and-scams/sextortion/financially-motivated-sextortion",
+    "source_type": "government_advisory"
+  }
+]

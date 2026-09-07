@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A fabricated air-strike video spreads as current news",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "Fact-check reporting describes an AI-generated video falsely presented as footage of a real attack. Accounts amplified it to exaggerate wartime destruction.",
+    "suggested_beats": [
+      "A dramatic conflict clip appears.",
+      "Reposts treat synthetic footage as evidence.",
+      "Check independent reporting before sharing."
+    ],
+    "who_falls_for_it_archetype": "someone following breaking conflict news",
+    "why_it_works": "Vivid footage can feel more conclusive than its unverified origin warrants.",
+    "source_citation": "https://apnews.com/article/iran-war-images-misinformation-russia-israel-9e495017dc5c4bf24a0b6152863dbfb1",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A landmark appears to burn in fabricated images",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "Fact-checkers documented false images of a landmark burning during real wildfires. Some of the circulated visuals appeared to use AI.",
+    "suggested_beats": [
+      "A real disaster drives urgent updates.",
+      "A fabricated landmark image spreads.",
+      "Verify damage through official updates and original reporting."
+    ],
+    "who_falls_for_it_archetype": "someone tracking an unfolding disaster",
+    "why_it_works": "Real danger makes plausible-looking false imagery especially convincing.",
+    "source_citation": "https://factcheck.afp.com/doc.afp.com.36TF3XJ",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A synthetic rescue photo triggers emotional sharing",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "A fact-check describes a fabricated image presented as a child rescued after a hurricane. Its emotional scene circulated as if it documented a real rescue.",
+    "suggested_beats": [
+      "An affecting rescue image appears.",
+      "Viewers share it as factual evidence.",
+      "Verify the image before amplifying it."
+    ],
+    "who_falls_for_it_archetype": "someone moved by disaster coverage",
+    "why_it_works": "An emotional scene can prompt sharing before source checking.",
+    "source_citation": "https://politifact.com/factchecks/2024/oct/11/viral-image/recent-hurricanes-devastated-us-communities-but-th/",
+    "source_type": "news_article"
+  },
+  {
+    "title": "Generated reviews invent customer experience",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "Reporting describes AI tools being used to produce fake online reviews at scale. Fabricated experiences can influence purchases without representing genuine customers.",
+    "suggested_beats": [
+      "A shopper reads detailed praise.",
+      "Invented experience appears to establish quality.",
+      "Compare independent evidence beyond review fluency."
+    ],
+    "who_falls_for_it_archetype": "someone choosing a product or service online",
+    "why_it_works": "Specific-sounding detail can imitate authentic firsthand experience.",
+    "source_citation": "https://apnews.com/article/40f5000346b1894a778434ba295a0496",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A campaign publishes generated news that never existed",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "Reporting describes a political campaign promoting fake AI-generated news stories. The apparent outside coverage supplied false credibility to its message.",
+    "suggested_beats": [
+      "A campaign shares supposed news coverage.",
+      "The stories lack authentic reporting behind them.",
+      "Check the original publisher and article."
+    ],
+    "who_falls_for_it_archetype": "someone evaluating campaign claims",
+    "why_it_works": "The appearance of independent coverage can disguise self-promotion.",
+    "source_citation": "https://apnews.com/article/artificial-intelligence-local-races-deepfakes-2024-1d5080a5c916d5ff10eadd1d81f43dfd",
+    "source_type": "news_article"
+  },
+  {
+    "title": "Fabricated arrest pictures lose their context",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "A fact-check documents AI images depicting a public figure's arrest before such an event had occurred. Reposts omitted the synthetic origin, and some viewers believed them.",
+    "suggested_beats": [
+      "A realistic arrest image circulates.",
+      "Reposting strips away its fabricated origin.",
+      "Confirm the event through original reporting."
+    ],
+    "who_falls_for_it_archetype": "someone following a prominent news story",
+    "why_it_works": "A believable image can seem to confirm an anticipated event.",
+    "source_citation": "https://factcheck.afp.com/doc.afp.com.33BY6R4",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A leader appears to order surrender in a fake video",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "Reporting documents a deepfake falsely showing a national leader ordering surrender. The fabricated message circulated during an active conflict.",
+    "suggested_beats": [
+      "An apparent official address appears.",
+      "The video announces a false surrender.",
+      "Verify through established official channels."
+    ],
+    "who_falls_for_it_archetype": "someone seeking urgent conflict information",
+    "why_it_works": "A recognizable authority figure can make an extraordinary claim seem credible.",
+    "source_citation": "https://news.sky.com/story/ukraine-war-deepfake-video-of-zelenskyy-telling-ukrainians-to-lay-down-arms-debunked-12567789",
+    "source_type": "news_article"
+  },
+  {
+    "title": "Synthetic pictures invent a celebrity endorsement",
+    "scam_category": "Misleading Synthetic Media",
+    "mechanism_summary": "Reporting describes fabricated images implying that a celebrity endorsed a political candidate. At the time of the posts, the claimed endorsement had not been made.",
+    "suggested_beats": [
+      "A familiar celebrity appears in campaign imagery.",
+      "The image implies an unsupported endorsement.",
+      "Check the person's authentic statement."
+    ],
+    "who_falls_for_it_archetype": "someone influenced by celebrity political support",
+    "why_it_works": "Borrowed celebrity approval can substitute for verified evidence.",
+    "source_citation": "https://time.com/7012117/swifties-for-trump-taylor-swift-presidential-election-endorsement-ai-factcheck/",
+    "source_type": "news_article"
+  }
+]

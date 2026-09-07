@@ -56,6 +56,21 @@ class Settings(BaseSettings):
     gemini_reserve_model: str = "gemini-2.5-flash"
     gemini_timeout_seconds: float = 25.0
 
+    fal_key: str = ""
+    fal_h3_model: str = "minimax/h3-max-turbo/text-to-video"
+    fal_h3_reference_model: str = "minimax/h3-max/reference-to-video"
+
+    # PSA publish connectors (plan-awareness-psa.md, Phase 3). Each is inert until its
+    # credentials are set -- publish_to_configured_channels skips any that aren't.
+    youtube_client_id: str = ""
+    youtube_client_secret: str = ""
+    youtube_refresh_token: str = ""
+    youtube_category_id: str = "27"
+    youtube_privacy_status: str = "unlisted"
+
+    instagram_access_token: str = ""
+    instagram_business_account_id: str = ""
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:

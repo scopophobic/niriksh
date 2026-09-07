@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A security caller asks for the login code",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "An impostor claims there is an account security problem and requests a verification code. Sharing it can give the attacker the second credential needed to enter the account.",
+    "suggested_beats": [
+      "A caller offers urgent protection.",
+      "Protection requires reading out a code.",
+      "Contact the provider independently."
+    ],
+    "who_falls_for_it_archetype": "someone worried about account security",
+    "why_it_works": "The promise of protection disguises a request for account access.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2024/03/whats-verification-code-why-would-someone-ask-me-it",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Payroll login hidden in a search advertisement",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "A fraudulent search advertisement leads to a lookalike payroll portal that captures login credentials. Attackers use access to change deposit instructions and divert funds.",
+    "suggested_beats": [
+      "An employee searches for payroll access.",
+      "The apparent portal collects credentials.",
+      "Use a saved official login address."
+    ],
+    "who_falls_for_it_archetype": "someone checking payroll online",
+    "why_it_works": "A prominent search result can be mistaken for a verified destination.",
+    "source_citation": "https://www.ic3.gov/CrimeInfo/AccountTakeover",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A second approver is drawn into the same trap",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "After capturing corporate login details, attackers may ask a second authorized person to use the fraudulent website. This undermines a payment process meant to require two independent approvals.",
+    "suggested_beats": [
+      "A corporate login appears to need help.",
+      "The second approver enters the same trap.",
+      "Verify the destination before approving."
+    ],
+    "who_falls_for_it_archetype": "an employee authorizing business payments",
+    "why_it_works": "A routine approval workflow can lend credibility to a compromised process.",
+    "source_citation": "https://www.ic3.gov/CrimeInfo/AccountTakeover",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A swapped SIM receives the security texts",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "A scammer convinces a mobile provider to move a person's number to another SIM. Combined with login credentials, intercepted verification texts allow access to linked accounts.",
+    "suggested_beats": [
+      "The phone unexpectedly loses service.",
+      "Security codes reach someone else.",
+      "Contact the carrier through a trusted channel."
+    ],
+    "who_falls_for_it_archetype": "someone relying on text authentication",
+    "why_it_works": "Trust in a familiar phone number hides the change in who controls it.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2019/10/sim-swap-scams-how-protect-yourself",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "The inbox becomes a password-reset gateway",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "An intruder who controls an email account requests resets for other accounts. The reset links arrive in the compromised inbox, allowing further lockouts.",
+    "suggested_beats": [
+      "An email account is compromised.",
+      "Other account passwords begin changing.",
+      "Secure the inbox and review account recovery settings."
+    ],
+    "who_falls_for_it_archetype": "someone using email for account recovery",
+    "why_it_works": "The convenience of centralized recovery also concentrates access in one inbox.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A hidden forwarding rule survives unnoticed",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "An email intruder adds a rule that forwards incoming messages elsewhere. Private correspondence can continue reaching the intruder until the unauthorized rule is removed.",
+    "suggested_beats": [
+      "An intruder accesses the inbox.",
+      "A hidden rule copies incoming mail.",
+      "Review forwarding rules during account recovery."
+    ],
+    "who_falls_for_it_archetype": "someone recovering a hacked mailbox",
+    "why_it_works": "Invisible settings can conceal continuing exposure after obvious symptoms disappear.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A real verification page authorizes the wrong device",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "A phishing email supplies a device code and directs the recipient to a genuine verification page. Entering the attacker's code authorizes access to the recipient's cloud account.",
+    "suggested_beats": [
+      "A document-sharing email supplies a code.",
+      "The code connects an attacker's device.",
+      "Do not authorize device codes from unsolicited messages."
+    ],
+    "who_falls_for_it_archetype": "someone opening a shared work document",
+    "why_it_works": "A genuine website can make an attacker-initiated authorization seem safe.",
+    "source_citation": "https://www.ic3.gov/PSA/2026/PSA260521",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Old breach credentials unlock another account",
+    "scam_category": "Account Compromise",
+    "mechanism_summary": "Attackers obtain login credentials exposed in earlier breaches. They use those credentials to gain unauthorized account access and pursue money or information.",
+    "suggested_beats": [
+      "Old login details circulate after a breach.",
+      "An attacker uses them against an account.",
+      "Use unique passwords and enable stronger authentication."
+    ],
+    "who_falls_for_it_archetype": "someone reusing account credentials",
+    "why_it_works": "Reusing a familiar password lets one breach threaten several accounts.",
+    "source_citation": "https://www.ic3.gov/CrimeInfo/AccountTakeover",
+    "source_type": "government_advisory"
+  }
+]

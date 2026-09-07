@@ -1,0 +1,114 @@
+[
+  {
+    "title": "An ordinary portrait becomes sexual blackmail",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "An advisory describes criminals altering ordinary photographs into sexual imagery. They threaten to circulate the fabricated material unless the target pays.",
+    "suggested_beats": [
+      "A familiar portrait is misused.",
+      "A fake sexual image accompanies a demand.",
+      "Seek reporting support without paying."
+    ],
+    "who_falls_for_it_archetype": "someone whose portrait is publicly accessible",
+    "why_it_works": "Fear of reputational damage can create pressure even when an image is fake.",
+    "source_citation": "https://www.ic3.gov/PSA/2023/PSA230605",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A fabricated image demands real intimate material",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "Criminals use manipulated sexual images to threaten a target. Their demand is for genuine intimate content rather than money.",
+    "suggested_beats": [
+      "A fabricated image arrives.",
+      "The sender demands real intimate material.",
+      "Stop contact and seek support."
+    ],
+    "who_falls_for_it_archetype": "someone facing image-based coercion",
+    "why_it_works": "A threat to expose a fabrication can be used to obtain new leverage.",
+    "source_citation": "https://www.ic3.gov/PSA/2023/PSA230605",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A coworker distributes a sexual forgery",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "An official example describes a coworker creating an AI sexual deepfake of another worker. The fabricated image is emailed around the workplace.",
+    "suggested_beats": [
+      "A colleague's image is altered.",
+      "The forgery reaches coworkers.",
+      "Report the abuse through safe workplace and platform channels."
+    ],
+    "who_falls_for_it_archetype": "someone targeted by a colleague",
+    "why_it_works": "Workplace circulation turns a fabrication into immediate social pressure.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/gendered-violence",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An acquaintance is placed in a fabricated sexual video",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "A public charging account alleges that ordinary images of acquaintances were transformed into sexual videos with AI. The material was published without the depicted people's consent.",
+    "suggested_beats": [
+      "An ordinary image is obtained.",
+      "A fabricated sexual video is published.",
+      "Report the posting without amplifying it."
+    ],
+    "who_falls_for_it_archetype": "someone whose acquaintance misuses their image",
+    "why_it_works": "Familiar likenesses make fabricated scenes personally damaging.",
+    "source_citation": "https://www.justice.gov/usao-edny/pr/two-individuals-arrested-publishing-ai-deepfake-pornography-violation-take-it-down-act",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Bulk sexual forgeries become a public archive",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "A public charging account describes AI sexual images organized into online albums. Publishing many forgeries exposes depicted people to repeated unwanted viewing and circulation.",
+    "suggested_beats": [
+      "Fabricated images are collected.",
+      "Albums make the abuse widely accessible.",
+      "Report abusive collections without sharing them."
+    ],
+    "who_falls_for_it_archetype": "someone depicted in a nonconsensual synthetic collection",
+    "why_it_works": "Scale and repeat exposure can deepen the harm of a false depiction.",
+    "source_citation": "https://www.justice.gov/usao-edny/pr/two-individuals-arrested-publishing-ai-deepfake-pornography-violation-take-it-down-act",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A public profile supplies likenesses for sexual websites",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "An enforcement announcement describes websites publishing nude digital forgeries of public-facing women. The sites exploit recognizable likenesses without consent.",
+    "suggested_beats": [
+      "A public likeness is copied.",
+      "A website publishes a sexual forgery.",
+      "Report the content and avoid recirculation."
+    ],
+    "who_falls_for_it_archetype": "someone with a public-facing role",
+    "why_it_works": "Public recognition creates an audience for an abusive fabrication.",
+    "source_citation": "https://www.justice.gov/usao-nj/pr/united-states-seizes-domain-names-publishing-nude-digital-forgeries-famous-women",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A loan app turns contact access into humiliation",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "A reported loan-app case describes digitally altered intimate images used for blackmail. The images were sent to the borrower's contacts as part of the pressure.",
+    "suggested_beats": [
+      "A loan application obtains personal access.",
+      "Altered images reach contacts.",
+      "Report coercion and seek trusted help."
+    ],
+    "who_falls_for_it_archetype": "someone borrowing through an unfamiliar app",
+    "why_it_works": "Access to a social circle makes a fabricated image a coercive threat.",
+    "source_citation": "https://indianexpress.com/article/cities/chandigarh/loan-application-gang-cheating-woman-police-arrest-9200213/",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A sexual forgery circulates without a money demand",
+    "scam_category": "Sexual Deepfake",
+    "mechanism_summary": "An official guide identifies fake intimate imagery as image-based abuse. Circulation can harm someone without any extortion demand.",
+    "suggested_beats": [
+      "An intimate forgery appears online.",
+      "Others spread it without consent.",
+      "Report it and do not forward it."
+    ],
+    "who_falls_for_it_archetype": "someone targeted by nonconsensual synthetic imagery",
+    "why_it_works": "Viewers may mistake visual realism for evidence.",
+    "source_citation": "https://consumer.ftc.gov/articles/image-based-abuse-what-know-and-do",
+    "source_type": "government_advisory"
+  }
+]

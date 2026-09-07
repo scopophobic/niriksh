@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A video caller declares a digital arrest",
+    "scam_category": "Threats",
+    "mechanism_summary": "Impostors accuse someone of involvement in a crime and demand money to settle the supposed case. They may keep the person continuously visible on a video call until demands are met.",
+    "suggested_beats": [
+      "An apparent officer announces a case.",
+      "The person is ordered to remain on camera.",
+      "End the coercive contact and report through official channels."
+    ],
+    "who_falls_for_it_archetype": "someone frightened by an apparent police accusation",
+    "why_it_works": "Authority and isolation reduce opportunities to question the demand.",
+    "source_citation": "https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=2020570&lang=2&reg=48",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A relative is supposedly in police custody",
+    "scam_category": "Threats",
+    "mechanism_summary": "A caller claims that a loved one is detained after a crime or accident. Money is demanded to compromise the supposed case.",
+    "suggested_beats": [
+      "A caller announces trouble involving family.",
+      "Release depends on an immediate payment.",
+      "Verify the relative's situation independently."
+    ],
+    "who_falls_for_it_archetype": "someone worried about a loved one",
+    "why_it_works": "Fear for family can make an unverified official claim persuasive.",
+    "source_citation": "https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=2020570&lang=2&reg=48",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A tax caller threatens arrest over invented debt",
+    "scam_category": "Threats",
+    "mechanism_summary": "A caller impersonates a tax agency and demands immediate payment. Threats of arrest or other consequences pressure the recipient to comply.",
+    "suggested_beats": [
+      "An apparent tax official announces debt.",
+      "Payment becomes a condition of avoiding arrest.",
+      "Contact the tax agency through a trusted channel."
+    ],
+    "who_falls_for_it_archetype": "someone anxious about tax compliance",
+    "why_it_works": "Fear of punishment can override doubts about an unexpected demand.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An identity warning demands a protective transfer",
+    "scam_category": "Threats",
+    "mechanism_summary": "An impostor claims a person's identity or accounts are implicated in a serious problem. The person is told to move money to protect it, placing it under the scammer's control.",
+    "suggested_beats": [
+      "An apparent official raises an identity alarm.",
+      "Protection requires moving money.",
+      "Verify the claim before making any transfer."
+    ],
+    "who_falls_for_it_archetype": "someone worried about identity misuse",
+    "why_it_works": "A threat is presented alongside a false route to safety.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A workplace reference makes a death threat feel immediate",
+    "scam_category": "Threats",
+    "mechanism_summary": "A cyberstalker sent anonymous threats that referred to the target's workplace. Those references made the online campaign intrude on the person's sense of physical safety.",
+    "suggested_beats": [
+      "Threatening messages arrive.",
+      "The sender refers to the workplace.",
+      "Preserve messages and seek police support."
+    ],
+    "who_falls_for_it_archetype": "someone receiving location-specific threats",
+    "why_it_works": "Knowledge of a real location can make an anonymous threat feel close.",
+    "source_citation": "https://www.justice.gov/archives/opa/pr/seattle-man-sentenced-over-two-years-prison-cyberstalking-campaign",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A network threatens exposure to force compliance",
+    "scam_category": "Threats",
+    "mechanism_summary": "An abusive online network threatens to reveal private information or intimate material. The threats are used to coerce escalating harmful behavior.",
+    "suggested_beats": [
+      "An online connection gains private information.",
+      "Exposure becomes a condition for obedience.",
+      "Seek trusted support and report the coercion."
+    ],
+    "who_falls_for_it_archetype": "someone pressured by an abusive online group",
+    "why_it_works": "Fear of exposure can isolate the target from people who could help.",
+    "source_citation": "https://www.ic3.gov/PSA/2025/PSA250306",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A swatting threat creates fear of armed response",
+    "scam_category": "Threats",
+    "mechanism_summary": "Abusive online actors threaten false emergency reports against a target. The threat exploits the danger of sending emergency responders to an invented incident.",
+    "suggested_beats": [
+      "An online actor issues a demand.",
+      "Refusal brings a swatting threat.",
+      "Report the threat to police and seek support."
+    ],
+    "who_falls_for_it_archetype": "someone targeted by an abusive network",
+    "why_it_works": "Threatened real-world consequences can make online coercion feel inescapable.",
+    "source_citation": "https://www.ic3.gov/PSA/2025/PSA250306",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A business threatens a reviewer into silence",
+    "scam_category": "Threats",
+    "mechanism_summary": "A business uses intimidation or an unfounded legal threat to suppress a negative review. Other consumers then see a distorted picture of customer experience.",
+    "suggested_beats": [
+      "A customer posts a negative review.",
+      "A threat demands its removal.",
+      "Keep evidence of the threat and report the conduct."
+    ],
+    "who_falls_for_it_archetype": "someone reviewing a poor purchase experience",
+    "why_it_works": "Fear of conflict or legal expense can silence legitimate criticism.",
+    "source_citation": "https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials",
+    "source_type": "government_advisory"
+  }
+]

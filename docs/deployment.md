@@ -221,6 +221,9 @@ Then verify:
 
 1. Landing page and `/whatsapp` load over HTTPS.
 2. Officer login works with `triage@example.local` and the configured demo password.
+   Demo credentials (seeded by `backend/app/main.py` when `SEED_DEMO_USERS=true`):
+   - Officer: `triage@example.local` / `DEMO_USER_PASSWORD` (default `demo-only-change-me`)
+   - Admin: `admin@example.local` / `DEMO_USER_PASSWORD` (default `demo-only-change-me`)
 3. A fictional complaint persists after containers restart.
 4. A fictional evidence file reaches the private Supabase bucket and is not publicly enumerable.
 5. `/dashboard`, a case page, routing, tracking, Related Incidents, and logout work.

@@ -279,3 +279,28 @@ class IntegrationSupplement(Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class PsaQueueItem(Base):
+    """A rendered PSA clip waiting for an officer's decision. Approval is what
+    triggers publishing -- see plan-awareness-psa.md, Phase 3. Nothing here reaches
+    a channel before status becomes "approved"."""
+
+    __tablename__ = "psa_queue_items"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    story_id: Mapped[str] = mapped_column(String(200))
+    story_title: Mapped[str] = mapped_column(String(240))
+    beats: Mapped[list] = mapped_column(JSON, default=list)
+    video_url: Mapped[str] = mapped_column(Text)
+    resolution: Mapped[str] = mapped_column(String(16))
+    duration_seconds: Mapped[int] = mapped_column(Integer)
+    cost_cents: Mapped[int] = mapped_column(Integer)
+    used_reference_images: Mapped[bool] = mapped_column(Boolean, default=False)
+    source: Mapped[str] = mapped_column(String(16), default="manual")
+    status: Mapped[str] = mapped_column(String(20), default="pending_review", index=True)
+    review_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_by: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    publish_results: Mapped[dict] = mapped_column(JSON, default=dict)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)

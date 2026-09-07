@@ -1,0 +1,114 @@
+[
+  {
+    "title": "Unpaid postage opens a counterfeit payment page",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A text claiming to be from a delivery service says that postage remains unpaid and provides a link to fix the problem. The link opens a counterfeit delivery website that requests personal and card information. Any submitted payment and details go to the scammer.",
+    "suggested_beats": [
+      "A delivery text reports unpaid postage.",
+      "The linked page asks for card details.",
+      "Check the order through the retailer or courier independently before paying."
+    ],
+    "who_falls_for_it_archetype": "someone expecting a parcel",
+    "why_it_works": "A routine-sounding postage problem can make a fraudulent payment request seem like ordinary delivery administration.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2025/04/think-text-message-usps-it-could-be-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Reschedule now or the parcel goes back",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A fake shipping message claims a delivery was missed or shipping preferences need updating. It may threaten to return the parcel unless the recipient acts immediately. The link leads to a lookalike website that captures personal or financial information.",
+    "suggested_beats": [
+      "A message warns that a parcel may be returned.",
+      "An urgent rescheduling link requests sensitive information.",
+      "Check delivery status from the original order rather than the message link."
+    ],
+    "who_falls_for_it_archetype": "someone worried about missing an expected delivery",
+    "why_it_works": "The prospect of losing a parcel creates pressure to solve the supposed problem before checking it.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2023/12/fake-shipping-notification-emails-text-messages-what-you-need-know-holiday-season",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Tracking update turns into a prize shipping charge",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A text supplies a fake shipment tracking code and asks the recipient to update delivery preferences. Its link instead leads to a fake retail website offering a survey and a supposedly free prize. Claiming the prize requires card details to pay shipping.",
+    "suggested_beats": [
+      "A tracking message appears to need a routine update.",
+      "The page changes the task into claiming a prize for a shipping fee.",
+      "A tracking link that turns into a prize checkout is a warning sign."
+    ],
+    "who_falls_for_it_archetype": "someone following a delivery update on a phone",
+    "why_it_works": "A familiar delivery task gets the first click before a reward pitch redirects attention toward payment.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2020/02/text-message-about-your-fedex-package-really-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Customs release payment to a private account",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "Impersonators contact a person by call or message claiming that customs has held a parcel. They demand duty or clearance charges before the supposed goods can be released, directing payment into private accounts. The official-sounding delivery explanation disguises a fraudulent money request.",
+    "suggested_beats": [
+      "A caller claims that a parcel is held at customs.",
+      "Release depends on paying the account supplied by the caller.",
+      "Verify the customs communication independently before sending money."
+    ],
+    "who_falls_for_it_archetype": "someone expecting an international delivery",
+    "why_it_works": "An unfamiliar clearance process can make an official-sounding caller seem like the only way to release a parcel.",
+    "source_citation": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2025648",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Courier pickup fee followed by a malicious installer",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A person booking a courier pickup reportedly called a fraudulent support contact found through an online search. The purported executive requested a small confirmation payment and then sent an app installation file through chat, saying it was needed for the pickup. After installation, the person reported unauthorized transfers from their account.",
+    "suggested_beats": [
+      "An online search leads to a supposed courier support agent.",
+      "A small booking payment is followed by a request to install an app file.",
+      "Use independently verified courier support and reject app installers sent through chat."
+    ],
+    "who_falls_for_it_archetype": "someone arranging a courier pickup",
+    "why_it_works": "Having initiated the support call can make the person trust instructions that appear to complete their own request.",
+    "source_citation": "https://indianexpress.com/article/cities/chandigarh/retired-army-officer-chandigarh-cyber-fraud-12-lakh-scam-apk-file-10585341/",
+    "source_type": "news_article"
+  },
+  {
+    "title": "Parcel tracking requires a malicious app",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A delivery-themed text links to a page using courier branding and asks the recipient to install an app to track or schedule a parcel. The app is malware rather than a delivery tool. On an affected device it can expose messages, contacts, passwords, or accounts, potentially enabling financial theft.",
+    "suggested_beats": [
+      "A text offers access to parcel tracking.",
+      "The courier-looking page requires an app installation.",
+      "Do not install software from an unsolicited delivery link."
+    ],
+    "who_falls_for_it_archetype": "someone trying to track a delivery on a phone",
+    "why_it_works": "Courier branding can make an unnecessary installation feel like a normal part of getting tracking information.",
+    "source_citation": "https://www.scamwatch.gov.au/about-us/news-and-alerts/browse-news-and-alerts/flubot-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Delivery surcharge harvests banking credentials",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A text or email impersonating a logistics service requests an additional payment to deliver purchased goods. Its link takes the recipient to a spoofed website collecting personal details or banking credentials. People affected by this reported pattern discover unauthorized account or card transactions afterward.",
+    "suggested_beats": [
+      "An apparent logistics message requests an extra delivery charge.",
+      "The payment page asks for banking credentials.",
+      "Verify the charge through an official channel and never give banking credentials to a message-linked page."
+    ],
+    "who_falls_for_it_archetype": "someone receiving multiple online shopping deliveries",
+    "why_it_works": "A plausible extra charge can hide the much larger risk of handing over account access.",
+    "source_citation": "https://www.police.gov.sg/media-hub/news/2023/20231101_police_advisory_on_parcel_delivery_phishing_scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A forgotten parcel needs to be claimed",
+    "scam_category": "Online Financial Fraud",
+    "mechanism_summary": "A text says that a package is waiting and asks the recipient to follow a link to claim it or arrange delivery. The message uses the possibility of an overlooked parcel to draw the person into phishing. The linked scam may seek passwords, account numbers, or other personal information.",
+    "suggested_beats": [
+      "A message says an old parcel is still waiting.",
+      "Claiming it requires following an unexpected link.",
+      "Check existing orders independently before responding to a waiting-parcel claim."
+    ],
+    "who_falls_for_it_archetype": "someone unsure whether an earlier delivery is outstanding",
+    "why_it_works": "Uncertainty about a forgotten order can turn curiosity into compliance with a phishing request.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2020/09/heard-about-waiting-package-phishing-scam",
+    "source_type": "government_advisory"
+  }
+]

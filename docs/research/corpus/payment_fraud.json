@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A buyer's payment exists only in a notification",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "A supposed buyer sends a seller a fake payment notification. The seller may release the item despite receiving no real payment.",
+    "suggested_beats": [
+      "A buyer claims payment is complete.",
+      "Only a notification supports the claim.",
+      "Check the actual account before releasing goods."
+    ],
+    "who_falls_for_it_archetype": "someone selling goods online",
+    "why_it_works": "An official-looking notification can substitute for checking the balance.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2022/07/selling-stuff-online-heres-how-avoid-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An accidental overpayment requires a real refund",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "A buyer sends an oversized counterfeit check and requests a refund. The seller loses the returned money when the check fails.",
+    "suggested_beats": [
+      "A buyer appears to overpay.",
+      "The seller is asked to refund the excess.",
+      "Do not refund an unverified check overpayment."
+    ],
+    "who_falls_for_it_archetype": "someone accepting a check for an online sale",
+    "why_it_works": "A visible deposit can be mistaken for a final payment.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-fake-check-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A retail barcode pays a fake utility bill",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "An unexpected caller threatens utility shutoff and sends a barcode for payment at a shop. The barcode instruction is part of an impersonation scam.",
+    "suggested_beats": [
+      "A caller threatens disconnection.",
+      "Payment must use a supplied barcode.",
+      "Call the utility through details on a genuine bill."
+    ],
+    "who_falls_for_it_archetype": "someone worried about losing essential service",
+    "why_it_works": "An urgent service threat makes an unusual payment method seem necessary.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2024/07/got-barcode-your-utility-company-make-payment-thats-scam",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A caller supplies the destination at a crypto ATM",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "An impersonator directs someone to a cryptocurrency ATM and supplies a QR code. The code routes the transfer to the scammer's wallet.",
+    "suggested_beats": [
+      "A caller creates an urgent money problem.",
+      "The ATM transfer uses the caller's code.",
+      "Do not follow unsolicited crypto-payment instructions."
+    ],
+    "who_falls_for_it_archetype": "someone following live payment instructions",
+    "why_it_works": "Step-by-step coaching leaves little room to reconsider the destination.",
+    "source_citation": "https://consumer.ftc.gov/new-crypto-payment-scam-alert",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A familiar supplier suddenly changes payment details",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "Attackers compromise or imitate business correspondence to redirect a legitimate payment. The payer sends funds to an account supplied by the impostor.",
+    "suggested_beats": [
+      "A familiar business payment is due.",
+      "Email changes where the money should go.",
+      "Confirm changed payment instructions through a known contact."
+    ],
+    "who_falls_for_it_archetype": "someone paying a supplier",
+    "why_it_works": "An existing business relationship makes substituted instructions look routine.",
+    "source_citation": "https://www.ic3.gov/PSA/2024/PSA240911",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An invoice bills for unordered supplies",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "A business receives a fake invoice for routine supplies. Scammers hope staff pay it without confirming that anything was ordered.",
+    "suggested_beats": [
+      "An ordinary-looking invoice arrives.",
+      "No matching purchase can be found.",
+      "Match invoices to verified orders."
+    ],
+    "who_falls_for_it_archetype": "someone handling business invoices",
+    "why_it_works": "Familiar paperwork exploits habitual payment processing.",
+    "source_citation": "https://www.ftc.gov/business-guidance/resources/scams-your-small-business-guide-business-0",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A payment-app message impersonates a friend",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "A scammer poses as someone the recipient knows and requests money through a payment app. The transfer goes to the impostor.",
+    "suggested_beats": [
+      "A familiar-looking contact asks for help.",
+      "The request moves straight to payment.",
+      "Confirm the request through a separate trusted channel."
+    ],
+    "who_falls_for_it_archetype": "someone using payment apps with friends",
+    "why_it_works": "Social trust can shorten the pause before an irreversible transfer.",
+    "source_citation": "https://consumer.ftc.gov/articles/mobile-payment-apps-how-avoid-scam-when-you-use-one",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An assistant job sends a counterfeit check",
+    "scam_category": "Payment Fraud",
+    "mechanism_summary": "A supposed employer sends a counterfeit check for gift cards. The scammer spends the codes before the check fails.",
+    "suggested_beats": [
+      "A new employer sends advance funds.",
+      "The assignment requires sharing gift-card codes.",
+      "Do not spend an unknown employer's check on gift cards."
+    ],
+    "who_falls_for_it_archetype": "someone starting an online assistant job",
+    "why_it_works": "A job assignment makes sending value to a stranger feel like work.",
+    "source_citation": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-fake-check-scams",
+    "source_type": "government_advisory"
+  }
+]

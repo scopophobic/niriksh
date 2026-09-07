@@ -1,0 +1,114 @@
+[
+  {
+    "title": "A former partner shares a private image",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An advisory describes intimate images shared without permission by a former partner. Consent to create or privately send the image does not authorize later publication.",
+    "suggested_beats": [
+      "A private image is entrusted to a partner.",
+      "It is shared after the relationship ends.",
+      "Report the abuse and seek support."
+    ],
+    "who_falls_for_it_archetype": "someone whose former partner breaks their trust",
+    "why_it_works": "A prior relationship gives the abuser access to private material.",
+    "source_citation": "https://consumer.ftc.gov/articles/image-based-abuse-what-know-and-do",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An image threat is used to prevent separation",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An official guide describes threats to release intimate images to keep someone in a relationship. The material becomes a tool of control rather than a consensual exchange.",
+    "suggested_beats": [
+      "A partner holds private images.",
+      "Leaving triggers an exposure threat.",
+      "Seek safe support for the coercion."
+    ],
+    "who_falls_for_it_archetype": "someone trying to leave a controlling relationship",
+    "why_it_works": "Fear of exposure can make leaving feel unsafe.",
+    "source_citation": "https://consumer.ftc.gov/articles/image-based-abuse-what-know-and-do",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A private live chat is secretly recorded",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An online safety guide warns that intimate live chats can be captured without the participant knowing. The recording may then be shared beyond the intended conversation.",
+    "suggested_beats": [
+      "A video chat seems private.",
+      "A recording circulates elsewhere.",
+      "Report the sharing without blaming the target."
+    ],
+    "who_falls_for_it_archetype": "someone trusting a private video conversation",
+    "why_it_works": "A live interaction can feel temporary even when another person records it.",
+    "source_citation": "https://www.esafety.gov.au/young-people/my-nudes-have-been-shared",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An intimate image is turned into a mocking meme",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An official guide describes private images being edited into memes and shared. The change in presentation does not remove the lack of consent.",
+    "suggested_beats": [
+      "A private image is obtained.",
+      "A mocking edit spreads through messages.",
+      "Do not forward it; report the abuse."
+    ],
+    "who_falls_for_it_archetype": "someone targeted by peers or acquaintances",
+    "why_it_works": "Humor can be used to disguise a violation of privacy.",
+    "source_citation": "https://www.esafety.gov.au/young-people/my-nudes-have-been-shared",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A recipient forwards an image to peers",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An advisory describes intimate images being passed on beyond the person who received them. A private exchange becomes wider exposure without the depicted person's agreement.",
+    "suggested_beats": [
+      "An image is shared with one person.",
+      "That recipient forwards it.",
+      "Receiving an image does not permit redistribution."
+    ],
+    "who_falls_for_it_archetype": "someone trusting an intended recipient",
+    "why_it_works": "Trust in one person cannot control what that person later shares.",
+    "source_citation": "https://www.esafety.gov.au/parents/issues-and-advice/sending-nudes-sexting",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A hidden recording violates an intimate setting",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An official guide includes nonconsensual recordings of private activities as image-based abuse. Sharing such material extends the original privacy violation.",
+    "suggested_beats": [
+      "Someone expects privacy.",
+      "An intimate recording is shared.",
+      "Report the recording and distribution."
+    ],
+    "who_falls_for_it_archetype": "someone recorded in a private setting",
+    "why_it_works": "The target may have no opportunity to prevent a concealed recording.",
+    "source_citation": "https://www.esafety.gov.au/key-topics/image-based-abuse",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A photo exchange is a publication trap",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An enforcement complaint describes an operator posing as another person to solicit intimate photographs. The photographs were then posted publicly without permission.",
+    "suggested_beats": [
+      "An apparent private exchange begins.",
+      "Submitted images appear on a public site.",
+      "Report the publication and impersonation."
+    ],
+    "who_falls_for_it_archetype": "someone deceived about a private recipient",
+    "why_it_works": "Apparent reciprocity can create trust in a false identity.",
+    "source_citation": "https://www.ftc.gov/news-events/news/press-releases/2015/01/website-operator-banned-revenge-porn-business-after-ftc-charges-he-unfairly-posted-nude-photos",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "Personal details accompany an abusive upload",
+    "scam_category": "Non-consensual Intimate Imagery",
+    "mechanism_summary": "An enforcement complaint describes a site collecting intimate images alongside identifying information. Publishing them together exposed targets to unwanted contact from strangers.",
+    "suggested_beats": [
+      "An image is submitted without consent.",
+      "Personal information directs strangers to the target.",
+      "Report both the image and exposed information."
+    ],
+    "who_falls_for_it_archetype": "someone whose private imagery is publicly linked to them",
+    "why_it_works": "Connecting imagery to contact details intensifies exposure and intrusion.",
+    "source_citation": "https://www.ftc.gov/news-events/news/press-releases/2015/01/website-operator-banned-revenge-porn-business-after-ftc-charges-he-unfairly-posted-nude-photos",
+    "source_type": "government_advisory"
+  }
+]

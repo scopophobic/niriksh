@@ -1,0 +1,114 @@
+[
+  {
+    "title": "An imitation profile damages real friendships",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "Someone creates a fake account in another person's identity and sends hostile messages to their friends. Recipients attribute the messages to the person being impersonated.",
+    "suggested_beats": [
+      "A copied identity appears online.",
+      "Friends receive messages the person never sent.",
+      "Verify unusual messages and report the fake account."
+    ],
+    "who_falls_for_it_archetype": "someone whose identity is copied online",
+    "why_it_works": "Familiar identity cues can make fabricated messages believable.",
+    "source_citation": "https://www.esafety.gov.au/young-people/cyberbullying",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A fake public profile is designed to humiliate",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "An impostor opens a social account in someone's identity to embarrass them. The profile makes abusive material appear associated with the target.",
+    "suggested_beats": [
+      "A duplicate profile appears.",
+      "Its content humiliates the identity holder.",
+      "Report impersonation and keep evidence."
+    ],
+    "who_falls_for_it_archetype": "someone with a public online profile",
+    "why_it_works": "An apparent first-person account can make humiliation seem self-inflicted.",
+    "source_citation": "https://www.esafety.gov.au/women/women-in-the-spotlight/online-abuse",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A distant romantic partner invents an emergency",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "A scammer builds a romantic connection through an online persona. An invented medical or travel emergency becomes a request for money.",
+    "suggested_beats": [
+      "A new online relationship grows.",
+      "An emergency requires a transfer.",
+      "Do not send money to an unverified online partner."
+    ],
+    "who_falls_for_it_archetype": "someone seeking companionship online",
+    "why_it_works": "Emotional closeness can make financial requests feel like mutual care.",
+    "source_citation": "https://consumer.ftc.gov/features/pass-it-on/impersonator-scams/romance-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "An offshore worker persona explains every absence",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "A romance scammer claims to work somewhere that prevents meeting in person. The fabricated occupation sustains the relationship while money requests follow.",
+    "suggested_beats": [
+      "A new contact claims distant work.",
+      "The explanation prevents meeting while requests continue.",
+      "Independently question identity and financial claims."
+    ],
+    "who_falls_for_it_archetype": "someone trusting a remote romantic contact",
+    "why_it_works": "A credible-sounding absence explains away a major opportunity to verify identity.",
+    "source_citation": "https://www.ftc.gov/news-events/data-visualizations/data-spotlight/2023/02/romance-scammers-favorite-lies-exposed",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A military profile borrows trust from service",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "A romance scammer poses as a servicemember through an online account. The false identity supports a relationship that is used to solicit money.",
+    "suggested_beats": [
+      "A service-themed profile makes contact.",
+      "Romantic attention becomes a financial request.",
+      "Verify identity outside the account."
+    ],
+    "who_falls_for_it_archetype": "someone trusting a military-themed profile",
+    "why_it_works": "Respect for service can lend an impostor unearned credibility.",
+    "source_citation": "https://consumer.ftc.gov/features/pass-it-on/impersonator-scams/romance-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A celebrity mimic seeks a private relationship",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "Scam accounts impersonate celebrities to approach people through social media. The apparent personal attention is used as part of a romance scam.",
+    "suggested_beats": [
+      "An apparent celebrity makes contact.",
+      "The conversation becomes an intimate approach.",
+      "Treat unsolicited celebrity relationships as unverified."
+    ],
+    "who_falls_for_it_archetype": "someone flattered by celebrity attention",
+    "why_it_works": "A sense of exceptional access can displace ordinary skepticism.",
+    "source_citation": "https://apnews.com/article/3700bcc55473b410d0026c01c8c07138",
+    "source_type": "news_article"
+  },
+  {
+    "title": "A giveaway winner must pay to collect",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "A social media giveaway message says the recipient has won a prize. The supposed organizer demands payment or financial information to release it.",
+    "suggested_beats": [
+      "A giveaway announces a win.",
+      "Collecting requires money or private details.",
+      "Verify the organizer and reject prize-payment demands."
+    ],
+    "who_falls_for_it_archetype": "someone entering social media giveaways",
+    "why_it_works": "The excitement of winning can conceal an impersonator's collection demand.",
+    "source_citation": "https://consumer.ftc.gov/consumer-alerts/2023/11/slow-your-scroll-spot-avoid-social-media-giveaway-scams",
+    "source_type": "government_advisory"
+  },
+  {
+    "title": "A valuable gift from an online partner needs fees",
+    "scam_category": "Social Media Impersonation",
+    "mechanism_summary": "A romance scammer claims to have sent a valuable package. The invented delivery then requires customs or other payments before release.",
+    "suggested_beats": [
+      "An online partner promises a valuable gift.",
+      "Clearance charges block its arrival.",
+      "Verify the shipment independently before paying."
+    ],
+    "who_falls_for_it_archetype": "someone trusting gifts promised by an online partner",
+    "why_it_works": "Romantic trust and anticipated value can normalize repeated fees.",
+    "source_citation": "https://www.ftc.gov/news-events/data-visualizations/data-spotlight/2023/02/romance-scammers-favorite-lies-exposed",
+    "source_type": "government_advisory"
+  }
+]

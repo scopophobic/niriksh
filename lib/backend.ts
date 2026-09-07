@@ -13,7 +13,7 @@ function cookieValue(header: string | null, name: string) {
   return undefined;
 }
 
-export async function backendRequest(path: string, init: RequestInit = {}, incoming?: Request, publicEndpoint = false) {
+export async function backendRequest(path: string, init: RequestInit = {}, incoming?: Request, publicEndpoint = false, timeoutMs = 10_000) {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
   const authorization = incoming?.headers.get("Authorization");
@@ -25,7 +25,7 @@ export async function backendRequest(path: string, init: RequestInit = {}, incom
   else if (publicEndpoint) { /* public intake is authorised by the backend route itself */ }
   else throw new BackendAuthenticationError("Officer authentication is required");
   if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  return fetch(`${BASE_URL}${path}`, { ...init, headers, cache: "no-store", signal: AbortSignal.timeout(10_000) });
+  return fetch(`${BASE_URL}${path}`, { ...init, headers, cache: "no-store", signal: AbortSignal.timeout(timeoutMs) });
 }
 
 export async function relayJson(response: Response) {
