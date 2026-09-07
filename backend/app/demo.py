@@ -36,7 +36,7 @@ RESEARCH_CLUSTERS = (
     {
         "slug": "bill-impersonation", "title": "FTC bill-payment impersonator case", "url": "https://consumer.ftc.gov/consumer-alerts/2024/04/pay-your-bills-not-impersonators",
         "category": "financial", "platform": "Search / Web", "shared": [("Domain", "research-billing.example"), ("UPI ID", "research-billing@upi")],
-        "theme": "business impersonation and misleading payment destinations",
+        "theme": "bill-payment impersonation and misleading payment destinations",
     },
     {
         "slug": "business-email", "title": "FBI IC3 2024 Annual Report", "url": "https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf",
@@ -71,7 +71,7 @@ RESEARCH_CLUSTERS = (
     {
         "slug": "council-ransomware", "title": "Tewkesbury Borough Council cyber incident case study", "url": "https://www2.local.gov.uk/case-studies/tewkesbury-borough-council-managing-cyber-incident",
         "category": "access", "platform": "Network / Email", "shared": [("Domain", "research-council.example"), ("Email", "it-response@research-council.example")],
-        "theme": "organisational disruption, escalation, and incident recovery",
+        "theme": "council ransomware disruption, escalation, and incident recovery",
     },
 )
 

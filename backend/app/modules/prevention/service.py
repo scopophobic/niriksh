@@ -34,6 +34,22 @@ def _behaviour(cases: list[Complaint]) -> str | None:
 
 def _title(cases: list[Complaint], behaviour: str | None) -> str:
     text = " ".join(f"{case.category} {case.description}".casefold() for case in cases)
+    if "council" in text and "ransomware" in text:
+        return "Public-sector ransomware recovery pattern"
+    if "ransomware" in text:
+        return "Ransomware recovery pattern"
+    if "shopping" in text:
+        return "Fraudulent shopping-site payment pattern"
+    if "bill-payment" in text or "billing" in text:
+        return "Bill-payment impersonation pattern"
+    if "business email" in text or "redirected payments" in text:
+        return "Business email compromise pattern"
+    if "romance" in text:
+        return "Romance-scam payment pattern"
+    if "mobile-loan" in text or "mobile loan" in text:
+        return "Mobile-loan fee and data-harvesting pattern"
+    if "call-centre" in text or "call centre" in text:
+        return "Call-centre investment fraud pattern"
     if "court" in text or "investigator" in text or "police officer" in text:
         return "Digital arrest and authority-impersonation pattern"
     if "parcel" in text or "courier" in text or "customs" in text:
@@ -115,6 +131,9 @@ def aggregate_patterns(db: Session) -> list[PreventionPattern]:
             pattern = PreventionPattern(id=_id(cluster_key), cluster_key=cluster_key, title=_title(list(cases.values()), behaviour))
             db.add(pattern)
             created.append(pattern)
+        else:
+            # Keep labels current as a cluster gains richer contextual text.
+            pattern.title = _title(list(cases.values()), behaviour)
         pattern.shared_indicators = indicator_items
         pattern.supporting_complaints = sorted(ids)
         pattern.behavioural_pattern = behaviour
