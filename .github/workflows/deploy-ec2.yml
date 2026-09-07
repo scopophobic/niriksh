@@ -45,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -62,11 +63,11 @@ jobs:
       - name: Validate deployment variables
         env:
           AWS_REGION: ${{ vars.AWS_REGION }}
-        run: test -n "$AWS_REGION"
+          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+        run: test -n "$AWS_REGION" && test -n "$AWS_ROLE_ARN"
       - uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
       - id: ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -91,16 +92,17 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Validate deployment variables
         env:
           AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
           EC2_INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
-        run: test -n "$AWS_REGION" && test -n "$EC2_INSTANCE_ID"
+        run: test -n "$AWS_REGION" && test -n "$AWS_ROLE_ARN" && test -n "$EC2_INSTANCE_ID"
       - uses: aws-actions/configure-aws-credentials@v6.2.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
       - name: Deploy through AWS Systems Manager
         env:

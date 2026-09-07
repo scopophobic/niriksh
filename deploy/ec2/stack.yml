@@ -8,6 +8,14 @@ Parameters:
   GitHubRepository:
     Type: String
     Description: GitHub repository name only, without the owner.
+  GitHubOwnerId:
+    Type: String
+    AllowedPattern: "^[0-9]+$"
+    Description: Immutable numeric GitHub organization or user ID used in OIDC subjects.
+  GitHubRepositoryId:
+    Type: String
+    AllowedPattern: "^[0-9]+$"
+    Description: Immutable numeric GitHub repository ID used in OIDC subjects.
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC containing the public subnet.
@@ -213,7 +221,7 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOwner}/${GitHubRepository}:ref:refs/heads/main
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubOwner}@${GitHubOwnerId}/${GitHubRepository}@${GitHubRepositoryId}:ref:refs/heads/main
       Policies:
         - PolicyName: PushImagesAndDeployNiriksh
           PolicyDocument:

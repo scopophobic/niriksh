@@ -58,7 +58,7 @@ From CloudFormation in the AWS Console:
 
 1. Create a stack with new resources.
 2. Upload `deploy/ec2/stack.yml`.
-3. Supply the exact GitHub owner and repository name.
+3. Supply the exact GitHub owner and repository name, plus their immutable numeric IDs. You can obtain the IDs with `gh api users/YOUR_GITHUB_OWNER --jq .id` and `gh api repos/YOUR_GITHUB_OWNER/YOUR_REPOSITORY_NAME --jq .id`.
 4. Select the VPC and a **public** subnet.
 5. Keep `t4g.small` and 30 GB unless testing proves more memory is necessary.
 6. Supply a billing email to create the USD 25 budget, or leave it empty.
@@ -75,6 +75,8 @@ aws cloudformation deploy \
   --parameter-overrides \
     GitHubOwner=YOUR_GITHUB_OWNER \
     GitHubRepository=YOUR_REPOSITORY_NAME \
+    GitHubOwnerId=YOUR_NUMERIC_GITHUB_OWNER_ID \
+    GitHubRepositoryId=YOUR_NUMERIC_GITHUB_REPOSITORY_ID \
     VpcId=vpc-EXAMPLE \
     PublicSubnetId=subnet-EXAMPLE \
     BillingAlertEmail=owner@example.com
