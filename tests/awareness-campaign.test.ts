@@ -27,3 +27,23 @@ test("parcel campaign gives a relevant verification action", () => {
   const campaign = buildAwarenessCampaign(pattern, "English", "Older adults");
   assert.match(campaign.scenes.at(-1)?.narration || "", /official website/);
 });
+
+test("image awareness produces a poster brief without raw identifiers", () => {
+  const campaign = buildAwarenessCampaign(pattern, "Hindi", "General public", "image");
+  const output = campaignAsText(campaign);
+  assert.equal(campaign.format, "image");
+  assert.match(campaign.image.headline, /parcel-release fee pattern/i);
+  assert.match(output, /Format: Image awareness/);
+  assert.match(output, /Warning signs:/);
+  assert.doesNotMatch(output, /99999 11111|private@upi/);
+});
+
+test("text awareness produces a complete public advisory", () => {
+  const campaign = buildAwarenessCampaign(pattern, "English", "Small businesses", "text");
+  const output = campaignAsText(campaign);
+  assert.equal(campaign.format, "text");
+  assert.match(campaign.text.headline, /Public advisory/);
+  assert.match(output, /What to do:/);
+  assert.match(output, /official website/);
+  assert.doesNotMatch(output, /99999 11111|private@upi/);
+});

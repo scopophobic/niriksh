@@ -7,6 +7,8 @@ export interface AwarenessPattern {
   indicators: Array<{ type_label: string; case_count: number }>;
 }
 
+export type AwarenessFormat = "video" | "image" | "text";
+
 export interface AwarenessScene {
   id: string;
   duration: string;
@@ -15,14 +17,42 @@ export interface AwarenessScene {
   narration: string;
 }
 
-export interface AwarenessCampaign {
+interface AwarenessCampaignBase {
   title: string;
   objective: string;
   evidenceLine: string;
   language: string;
   audience: string;
+}
+
+export interface VideoAwarenessCampaign extends AwarenessCampaignBase {
+  format: "video";
   scenes: AwarenessScene[];
 }
+
+export interface ImageAwarenessCampaign extends AwarenessCampaignBase {
+  format: "image";
+  image: {
+    headline: string;
+    body: string;
+    warningSigns: string[];
+    action: string;
+    footer: string;
+  };
+}
+
+export interface TextAwarenessCampaign extends AwarenessCampaignBase {
+  format: "text";
+  text: {
+    headline: string;
+    introduction: string;
+    warningSigns: string[];
+    action: string;
+    closing: string;
+  };
+}
+
+export type AwarenessCampaign = VideoAwarenessCampaign | ImageAwarenessCampaign | TextAwarenessCampaign;
 
 function safeAction(title: string) {
   const value = title.toLowerCase();
@@ -38,20 +68,74 @@ function safeAction(title: string) {
   return "Pause, verify through a trusted channel, do not send money, and report the suspicious contact.";
 }
 
-export function buildAwarenessCampaign(pattern: AwarenessPattern, language: string, audience: string): AwarenessCampaign {
+function campaignFoundation(pattern: AwarenessPattern, language: string, audience: string) {
   const signalTypes = [...new Set(pattern.indicators.map(item => item.type_label))];
+  const behaviour = pattern.behavioural_pattern?.replaceAll("→", "followed by")
+    || "An unexpected approach builds trust or urgency before asking the person to act.";
+  return {
+    signalTypes,
+    behaviour,
+    action: safeAction(pattern.title),
+    base: {
+      title: `Spot the warning signs: ${pattern.title}`,
+      objective: `Help ${audience.toLowerCase()} recognise this reported tactic and pause before acting.`,
+      evidenceLine: `Built from one human-verified pattern supported by ${pattern.complaint_count} reports and ${signalTypes.length} recurring signal type${signalTypes.length === 1 ? "" : "s"}.`,
+      language,
+      audience,
+    },
+  };
+}
+
+export function buildAwarenessCampaign(pattern: AwarenessPattern, language: string, audience: string): VideoAwarenessCampaign;
+export function buildAwarenessCampaign(pattern: AwarenessPattern, language: string, audience: string, format: "video"): VideoAwarenessCampaign;
+export function buildAwarenessCampaign(pattern: AwarenessPattern, language: string, audience: string, format: "image"): ImageAwarenessCampaign;
+export function buildAwarenessCampaign(pattern: AwarenessPattern, language: string, audience: string, format: "text"): TextAwarenessCampaign;
+export function buildAwarenessCampaign(pattern: AwarenessPattern, language: string, audience: string, format: AwarenessFormat): AwarenessCampaign;
+export function buildAwarenessCampaign(
+  pattern: AwarenessPattern,
+  language: string,
+  audience: string,
+  format: AwarenessFormat = "video",
+): AwarenessCampaign {
+  const { signalTypes, behaviour, action, base } = campaignFoundation(pattern, language, audience);
   const signalPhrase = signalTypes.length
     ? signalTypes.slice(0, 3).join(", ")
     : "repeated contact and payment requests";
-  const behaviour = pattern.behavioural_pattern?.replaceAll("→", "followed by")
-    || "An unexpected approach builds trust or urgency before asking the person to act.";
+  const warningSigns = signalTypes.length
+    ? signalTypes.slice(0, 3).map(signal => `Unexpected requests involving ${signal.toLowerCase()}`)
+    : ["Repeated contact", "Pressure to act quickly", "Requests for money or sensitive information"];
+
+  if (format === "image") {
+    return {
+      ...base,
+      format,
+      image: {
+        headline: `Pause before you respond to ${pattern.title.toLowerCase()}`,
+        body: behaviour,
+        warningSigns,
+        action,
+        footer: "If money was sent, contact your bank immediately and report through official channels.",
+      },
+    };
+  }
+
+  if (format === "text") {
+    return {
+      ...base,
+      format,
+      text: {
+        headline: `Public advisory: ${pattern.title}`,
+        introduction: `Cybercrime reports reviewed by officers show a recurring pattern. ${behaviour}`,
+        warningSigns,
+        action,
+        closing: "No single sign proves fraud. Pause, verify independently, and use official reporting channels if something feels wrong.",
+      },
+    };
+  }
 
   return {
-    title: `Spot the warning signs: ${pattern.title}`,
-    objective: `Help ${audience.toLowerCase()} recognise this reported tactic and pause before acting.`,
-    evidenceLine: `Built from one human-verified pattern supported by ${pattern.complaint_count} reports and ${signalTypes.length} recurring signal type${signalTypes.length === 1 ? "" : "s"}.`,
-    language,
-    audience,
+    ...base,
+    format,
     scenes: [
       {
         id: "hook",
@@ -79,17 +163,46 @@ export function buildAwarenessCampaign(pattern: AwarenessPattern, language: stri
         duration: "40–60 sec",
         heading: "Give one safe action",
         onScreen: "Pause. Verify. Protect. Report.",
-        narration: `${safeAction(pattern.title)} If money was sent, contact the bank immediately and use official reporting channels.`,
+        narration: `${action} If money was sent, contact the bank immediately and use official reporting channels.`,
       },
     ],
   };
 }
 
 export function campaignAsText(campaign: AwarenessCampaign) {
-  const scenes = campaign.scenes.map(scene => [
-    `${scene.duration} — ${scene.heading}`,
-    `On screen: ${scene.onScreen}`,
-    `Narration: ${scene.narration}`,
-  ].join("\n")).join("\n\n");
-  return `${campaign.title}\nAudience: ${campaign.audience}\nLanguage: ${campaign.language}\nObjective: ${campaign.objective}\nEvidence basis: ${campaign.evidenceLine}\n\n${scenes}\n\nHuman review is required before production or publication.`;
+  const header = [
+    campaign.title,
+    `Format: ${campaign.format === "video" ? "Video awareness" : campaign.format === "image" ? "Image awareness" : "Text awareness"}`,
+    `Audience: ${campaign.audience}`,
+    `Language: ${campaign.language}`,
+    `Objective: ${campaign.objective}`,
+    `Evidence basis: ${campaign.evidenceLine}`,
+  ].join("\n");
+
+  let content: string;
+  if (campaign.format === "video") {
+    content = campaign.scenes.map(scene => [
+      `${scene.duration} — ${scene.heading}`,
+      `On screen: ${scene.onScreen}`,
+      `Narration: ${scene.narration}`,
+    ].join("\n")).join("\n\n");
+  } else if (campaign.format === "image") {
+    content = [
+      `Headline: ${campaign.image.headline}`,
+      `Body: ${campaign.image.body}`,
+      `Warning signs:\n${campaign.image.warningSigns.map(item => `- ${item}`).join("\n")}`,
+      `Safe action: ${campaign.image.action}`,
+      `Footer: ${campaign.image.footer}`,
+    ].join("\n\n");
+  } else {
+    content = [
+      campaign.text.headline,
+      campaign.text.introduction,
+      `Warning signs:\n${campaign.text.warningSigns.map(item => `- ${item}`).join("\n")}`,
+      `What to do: ${campaign.text.action}`,
+      campaign.text.closing,
+    ].join("\n\n");
+  }
+
+  return `${header}\n\n${content}\n\nHuman review is required before production or publication.`;
 }
