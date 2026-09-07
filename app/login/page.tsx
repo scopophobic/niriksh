@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
-import { KeyRound, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
+import { KeyRound, ShieldCheck, Sparkles } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 function LoginForm() {
@@ -37,7 +37,6 @@ function LoginForm() {
   return <main className="officer-login-page">
     <section className="officer-login-card">
       <Link href="/" className="officer-login-brand"><Logo/></Link>
-      <span className="officer-login-icon"><LockKeyhole/></span>
       <small>AUTHORISED WORKSPACE</small>
       <h1>Officer sign in</h1>
       <p>Case material and routing actions are available only to authenticated reviewers.</p>
