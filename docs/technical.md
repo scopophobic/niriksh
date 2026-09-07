@@ -238,12 +238,14 @@ python -m app.demo seed
 python -m app.demo reset
 ```
 
-The utility owns only these IDs:
+The utility owns the fixed demo IDs plus the generated `research-*` fixture IDs:
 
 - `demo-connect-a` / `CYB-2026-D001`
 - `demo-connect-b` / `CYB-2026-D002`
 - `demo-connect-c` / `CYB-2026-D003`
 - `demo-connect-d` / `CYB-2026-D004`
+
+It also owns 40 fictional research-informed fixtures across ten public-source themes. Each fixture stores its source title, URL, and provenance note in the case payload; it is a paraphrased demo record, not copied article text or model-training data.
 
 It deletes/recreates only those records, creates report version 1 for each, and synchronizes indicators through the production service path. The main app never depends on seed data.
 

@@ -21,6 +21,7 @@ export function Dashboard() {
   const needsInformation = cases.filter(item => item.status === "Needs information").length;
   const timelinesBuilt = cases.filter(item => item.analysisDetails?.timeline.length).length;
   const sourcedFacts = cases.reduce((total, item) => total + (item.analysisDetails?.facts.length || 0), 0);
+  const researchFixtures = cases.filter(item => item.researchSource).length;
 
   return (
     <div className="page dashboard-page product-dashboard">
@@ -73,6 +74,7 @@ export function Dashboard() {
         <div className="engine-checks"><span><CheckCircle2 size={14}/> Understands who, what and whether it is ongoing</span><span><CheckCircle2 size={14}/> Connects details to their source</span><span><CheckCircle2 size={14}/> Finds conflicting statements</span><span><CheckCircle2 size={14}/> Asks for missing context</span></div>
         <Link href="/routing">Open routing dashboard <ArrowRight size={15}/></Link>
         <small className="engine-boundary">Media understanding depends on the connected service and consent. When unavailable, Niriksh labels the local fallback instead of presenting it as media analysis.</small>
+        {researchFixtures > 0 && <p className="engine-corpus-note"><Sparkles size={13}/><span><strong>{researchFixtures} fictional research fixtures</strong> synthesize public case-study themes for this demo. They are not real complaints or model-training data.</span></p>}
       </aside>
       </div>
     </div>

@@ -21,7 +21,9 @@ This walkthrough uses fictional data only. It demonstrates Report → Understand
 5. Sign in at `/login` with the officer email/password configured in the environment. Local development may use the repository’s documented demo-auth setting; production must not disable officer authentication.
 6. Open `/cases/demo-connect-a` in another tab.
 
-The seed command may be repeated. It replaces only the four fixed demo IDs and leaves every other complaint untouched.
+The seed command may be repeated. It replaces only the fixed demo/research fixture IDs and leaves every other complaint untouched. Research fixtures are fictional, source-attributed theme syntheses; they do not copy article text, import real identifiers, or represent model-training data.
+
+The expanded corpus includes 40 research-informed fictional cases across ransomware recovery, fake shopping, bill-payment impersonation, business-email compromise, investment and romance scams, mobile-loan fraud, call-centre fraud, authority impersonation, and public-sector ransomware. Each source is linked in the case review screen.
 
 ## Exact fictional scenario
 

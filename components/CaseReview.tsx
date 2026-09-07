@@ -50,6 +50,11 @@ export function CaseReview({ id }: { id: string }) {
       <div><small className="folio-meta-label">Case reconstruction</small><h2>What happened</h2><p>{item.summary}</p><em>Prepared from the submitted complaint and available evidence. It remains a review aid, not a finding of fact.</em></div>
     </section>
 
+    {item.researchSource && <section className="research-provenance" aria-label="Research fixture provenance">
+      <div><span><FileText size={16}/></span><div><small>FICTIONAL RESEARCH FIXTURE</small><strong>Source-informed demonstration record</strong><p>This case is a short synthesis of a public case-study theme. No article text, real victim, suspect, account, or live indicator was imported.</p></div></div>
+      <a href={item.researchSource.url} target="_blank" rel="noreferrer">Read public source <ArrowLeft size={14}/></a>
+    </section>}
+
     <div className="folio-grid">
       <div className="folio-main">
         <section className="folio-section hero-timeline">

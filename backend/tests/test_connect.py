@@ -1,5 +1,5 @@
 from app.modules.connect.normalization import normalize_indicator
-from app.demo import DEMO_IDS, reset_demo, seed_demo
+from app.demo import DEMO_IDS, RESEARCH_DEMO_IDS, reset_demo, seed_demo
 from app.db.models import Complaint, Report
 
 
@@ -88,8 +88,9 @@ def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_
     with database.session_factory() as db:
         assert seed_demo(db) == len(DEMO_IDS)
         assert seed_demo(db) == len(DEMO_IDS)
-        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == len(DEMO_IDS)
-        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == len(DEMO_IDS)
+        assert len(db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == len(DEMO_IDS) - len(RESEARCH_DEMO_IDS)
+        assert len(db.query(Complaint).filter(Complaint.source_channel == "research_fixture").all()) == len(RESEARCH_DEMO_IDS)
+        assert len(db.query(Report).join(Complaint).filter(Complaint.source_channel == "demo_seed").all()) == len(DEMO_IDS) - len(RESEARCH_DEMO_IDS)
 
     response = client.get("/api/v1/complaints/demo-connect-a/related-incidents", headers=internal_headers)
     assert response.status_code == 200
@@ -118,6 +119,7 @@ def test_fictional_demo_seed_is_repeatable_and_reset_is_scoped(client, internal_
         assert reset_demo(db) == len(DEMO_IDS)
         assert db.get(Complaint, "not-demo-data") is not None
         assert not db.query(Complaint).filter(Complaint.source_channel == "demo_seed").all()
+        assert not db.query(Complaint).filter(Complaint.source_channel == "research_fixture").all()
 
 
 def test_verified_pattern_creates_an_explainable_future_case_warning(client, internal_headers):

@@ -161,6 +161,13 @@ export interface AuditEvent {
   actor: string;
 }
 
+export interface ResearchSource {
+  kind: string;
+  title: string;
+  url: string;
+  note: string;
+}
+
 export interface TriageCase {
   reviewCategory?: string;
   id: string;
@@ -194,6 +201,8 @@ export interface TriageCase {
     totalEntities: number;
     confirmedAt?: string;
   };
+  researchSource?: ResearchSource;
+  corpusLabel?: string;
 }
 
 export interface IndicatorSource {

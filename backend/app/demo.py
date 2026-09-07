@@ -19,6 +19,69 @@ DEMO_IDS = (
     "demo-parcel-k", "demo-parcel-l", "demo-parcel-m", "demo-parcel-n",
 )
 
+# Public-source synthesis, not a scraped article corpus. Each fixture paraphrases a
+# documented pattern and uses reserved/example identifiers so the graph is useful
+# without importing real victims, suspects, accounts, domains, or evidence.
+RESEARCH_CLUSTERS = (
+    {
+        "slug": "ransomware-recovery", "title": "CISA #StopRansomware Guide", "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
+        "category": "access", "platform": "Email / Network", "shared": [("Domain", "research-ransomware.example"), ("Email", "restore@research-ransomware.example")],
+        "theme": "ransomware response, recovery planning, and lessons learned",
+    },
+    {
+        "slug": "fake-shopping", "title": "Europol fraudulent shopping sites case", "url": "https://www.europol.europa.eu/media-press/newsroom/news/fraudulent-shopping-sites-tied-to-cybercrime-marketplace-taken-offline",
+        "category": "financial", "platform": "Web / Search", "shared": [("Domain", "research-shopping.example"), ("UPI ID", "research-shopping@upi")],
+        "theme": "fraudulent shopping sites and payment collection",
+    },
+    {
+        "slug": "bill-impersonation", "title": "FTC bill-payment impersonator case", "url": "https://consumer.ftc.gov/consumer-alerts/2024/04/pay-your-bills-not-impersonators",
+        "category": "financial", "platform": "Search / Web", "shared": [("Domain", "research-billing.example"), ("UPI ID", "research-billing@upi")],
+        "theme": "business impersonation and misleading payment destinations",
+    },
+    {
+        "slug": "business-email", "title": "FBI IC3 2024 Annual Report", "url": "https://www.ic3.gov/AnnualReport/Reports/2024_IC3Report.pdf",
+        "category": "financial", "platform": "Email", "shared": [("Email", "accounts@research-vendor.example"), ("Transaction ID / UTR", "DEMO-BEC-2026")],
+        "theme": "business email compromise and redirected payments",
+    },
+    {
+        "slug": "investment-scam", "title": "INTERPOL Operation First Light", "url": "https://www.interpol.int/News-and-Events/News/2024/USD-257-million-seized-in-global-police-crackdown-against-online-scams",
+        "category": "financial", "platform": "Telegram / Web", "shared": [("Domain", "research-investment.example"), ("UPI ID", "research-investment@upi"), ("Social handle", "@research_invest_demo")],
+        "theme": "investment, phishing, and impersonation scam infrastructure",
+    },
+    {
+        "slug": "romance-scam", "title": "INTERPOL Operation Contender 3.0", "url": "https://www.interpol.int/en/News-and-Events/News/2025/260-suspected-scammers-arrested-in-pan-African-cybercrime-operation",
+        "category": "social", "platform": "Social media", "shared": [("Social handle", "@research_romance_demo"), ("Domain", "research-romance.example")],
+        "theme": "romance approaches and coercive requests for money",
+    },
+    {
+        "slug": "mobile-loan", "title": "INTERPOL Operation Red Card 2.0", "url": "https://www.interpol.int/en/News-and-Events/News/2026/Major-operation-in-Africa-targeting-online-scams-nets-651-arrests-recovers-USD-4.3-million",
+        "category": "financial", "platform": "Mobile app / Messaging", "shared": [("Domain", "research-loans.example"), ("UPI ID", "research-loans@upi")],
+        "theme": "fraudulent mobile-loan applications, fees, and data harvesting",
+    },
+    {
+        "slug": "call-centre", "title": "Europol online fraud call-centre operation", "url": "https://www.europol.europa.eu/media-press/newsroom/news/call-centres-dismantled-and-ten-arrested-in-eur-50-million-online-fraud-case",
+        "category": "financial", "platform": "Phone / Web", "shared": [("Phone", "+12025550101"), ("Domain", "research-callcentre.example")],
+        "theme": "call-centre social engineering and fake investment platforms",
+    },
+    {
+        "slug": "authority-scam", "title": "INTERPOL Operation Ramz", "url": "https://www.interpol.int/en/News-and-Events/News/2026/201-arrests-in-first-of-its-kind-cybercrime-operation-in-MENA-region",
+        "category": "financial", "platform": "Phone / Web", "shared": [("Phone", "+12025550102"), ("Domain", "research-authority.example")],
+        "theme": "authority impersonation, phishing, and fake trading platforms",
+    },
+    {
+        "slug": "council-ransomware", "title": "Tewkesbury Borough Council cyber incident case study", "url": "https://www2.local.gov.uk/case-studies/tewkesbury-borough-council-managing-cyber-incident",
+        "category": "access", "platform": "Network / Email", "shared": [("Domain", "research-council.example"), ("Email", "it-response@research-council.example")],
+        "theme": "organisational disruption, escalation, and incident recovery",
+    },
+)
+
+RESEARCH_DEMO_IDS = tuple(
+    f"research-{cluster['slug']}-{index:02d}"
+    for cluster in RESEARCH_CLUSTERS
+    for index in range(1, 5)
+)
+DEMO_IDS = DEMO_IDS + RESEARCH_DEMO_IDS
+
 
 def evidence(name: str, extracted_text: str) -> dict:
     return {
@@ -182,6 +245,64 @@ def compact_demo_case(
             "declarationConfirmed": True,
         },
     }
+
+
+def build_research_cases() -> list[dict]:
+    """Create fictional, source-attributed case-study syntheses.
+
+    Only short paraphrased themes are retained. Source URLs live in metadata,
+    while all indicators use reserved/example values that cannot point to a real
+    account or infrastructure.
+    """
+    cases: list[dict] = []
+    for cluster_index, cluster in enumerate(RESEARCH_CLUSTERS):
+        for case_index in range(1, 5):
+            case_id = f"research-{cluster['slug']}-{case_index:02d}"
+            reference = f"CYB-2026-R{cluster_index * 4 + case_index:03d}"
+            entities = [{"type": kind, "value": value} for kind, value in cluster["shared"]]
+            # Vary the path while keeping the domain and the other explicit
+            # identifiers exact, producing explainable multi-case clusters.
+            path = f"/fixture/{case_index}"
+            if any(kind == "Domain" for kind, _ in cluster["shared"]):
+                domain = next(value for kind, value in cluster["shared"] if kind == "Domain")
+                entities.append({"type": "URL", "value": f"https://{domain}{path}"})
+            indicator_text = ", ".join(value for _, value in cluster["shared"])
+            description = (
+                f"This fictional research fixture synthesises the documented theme of {cluster['theme']}. "
+                f"A reporter describes a simulated {cluster['platform'].lower()} approach that used the reserved "
+                f"identifiers {indicator_text}. No real person, account, payment, domain, or incident is represented. "
+                f"The message was retained as a research-style demonstration record for human review."
+            )
+            evidence_text = (
+                f"Fictional evidence note: a simulated {cluster['theme']} scenario was organised from a public case-study theme. "
+                "This note contains no copied article text and no real-world identifier."
+            )
+            case = compact_demo_case(
+                case_id=case_id,
+                reference=reference,
+                description=description,
+                summary=f"Fictional synthesis of a public case-study theme: {cluster['theme']}; exact demo indicators are shown for connection testing.",
+                review_category=cluster["category"],
+                category="Financial fraud" if cluster["category"] == "financial" else "Account access and phishing",
+                status=("In review" if case_index == 2 else "Awaiting review"),
+                created_at=f"2026-08-{10 + cluster_index:02d}T{8 + case_index:02d}:15:00+05:30",
+                created_label=f"Research fixture · source theme {cluster_index + 1}, case {case_index}",
+                platform=cluster["platform"],
+                state=("Research fixture"),
+                team="Cybercrime research review",
+                entities=entities,
+                evidence_name=f"research-{cluster['slug']}-{case_index:02d}.txt",
+                evidence_text=evidence_text,
+            )
+            case["researchSource"] = {
+                "kind": "Public-source synthesis",
+                "title": cluster["title"],
+                "url": cluster["url"],
+                "note": "Paraphrased theme only; not a copied article, real complaint, or model-training record.",
+            }
+            case["corpusLabel"] = "Niriksh research-informed fictional fixture"
+            cases.append(case)
+    return cases
 
 
 def build_cases() -> list[dict]:
@@ -354,7 +475,7 @@ def build_cases() -> list[dict]:
             {"label": "Structured case prepared", "detail": "Timeline, sources, indicators and gaps were prepared without priority scoring.", "time": "Demo seed", "actor": "Niriksh Analysis"},
         ]
         case["citizenVerification"] = {"status": "Confirmed", "summaryConfirmed": True, "confirmedEntities": len(case["entities"]), "totalEntities": len(case["entities"]), "confirmedAt": "Demo seed"}
-    return cases
+    return cases + build_research_cases()
 
 
 def reset_demo(db) -> int:
@@ -372,13 +493,20 @@ def reset_demo(db) -> int:
 def seed_demo(db) -> int:
     reset_demo(db)
     for case in build_cases():
-        complaint = sync_case(db, case, source_channel="demo_seed", event_type="demo.seeded")
+        is_research = bool(case.get("researchSource"))
+        complaint = sync_case(
+            db,
+            case,
+            source_channel="research_fixture" if is_research else "demo_seed",
+            event_type="research.fixture_seeded" if is_research else "demo.seeded",
+        )
         complaint.created_at = datetime.fromisoformat(case["createdAt"])
         db.flush()
+        source_note = case.get("researchSource", {}).get("title") if is_research else "Fictional Niriksh demo scenario"
         db.add(Report(
             complaint_id=complaint.id,
             version=1,
-            content_text=f"FICTIONAL DEMO REPORT\n\n{case['reference']}\n{case['summary']}",
+            content_text=f"FICTIONAL DEMO REPORT\n\n{case['reference']}\n{case['summary']}\n\nResearch basis: {source_note}",
             snapshot={"demo_only": True, "case": complaint.case_payload},
             created_at=datetime.now(timezone.utc),
         ))
