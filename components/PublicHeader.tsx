@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, LifeBuoy, MessageCircle, MessageSquareWarning, Sparkles } from "lucide-react";
+import { ArrowRight, FileSearch, LifeBuoy, MessageCircle, MessageSquareWarning } from "lucide-react";
 import { Logo } from "./Logo";
 import { POVSwitch } from "./POVSwitch";
 
@@ -11,7 +11,7 @@ export function PublicHeader() {
   return <header className="public-unified-header">
     <Link className="public-brand" href="/" aria-label="Niriksh home"><Logo/></Link>
     <nav aria-label="Niriksh navigation">
-      <Link className={path.startsWith("/prevention") ? "active" : ""} href="/prevention"><Sparkles/>Explore intelligence</Link>
+      <Link className={path.startsWith("/track") ? "active" : ""} href="/track"><FileSearch/>Track complaint</Link>
       <Link className={path === "/whatsapp" ? "active" : ""} href="/whatsapp"><MessageCircle/>WhatsApp demo</Link>
       <Link className={path === "/safety" ? "active" : ""} href="/safety"><MessageSquareWarning/>Safety check</Link>
       <a href="tel:1930"><LifeBuoy/>Get help</a>

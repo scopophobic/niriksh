@@ -19,7 +19,7 @@ export default function Home() {
           <h1>Every complaint should make the next one safer.</h1>
           <p className="story-deck">Niriksh turns cybercrime reports into structured intelligence, learns recurring patterns across incidents, and helps surface threats earlier—under human review.</p>
           <div className="prevention-chips"><span>Prevention-first</span><span>Learns across incidents</span><span>Human-reviewed</span><span>Source-backed</span></div>
-          <div className="story-actions"><Link className="story-primary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link><Link className="story-secondary" href="/report">Report an incident</Link></div>
+          <div className="story-actions"><Link className="story-primary" href="/report">Report an incident <ArrowRight/></Link><Link className="story-secondary" href="/safety">Check a suspicious message</Link></div>
           <p className="story-boundary"><ShieldCheck/>People verify patterns and decide every operational action.</p>
         </div>
 
@@ -69,7 +69,7 @@ export default function Home() {
 
       <section className="connect-story" id="prevention-intelligence">
         <div className="connect-story-mark"><GitBranch/></div>
-        <div><p>Prevention intelligence</p><h2>Patterns make the reason visible. Conclusions remain human.</h2><span>Niriksh compares normalized phone numbers, emails, UPI IDs, transaction references, URLs, domains and scoped social handles. Exact shared identifiers create candidates; behavioural context can explain them, never prove them.</span><Link className="story-secondary" href="/prevention">Explore prevention intelligence <ArrowRight/></Link></div>
+        <div><p>Prevention intelligence</p><h2>Patterns make the reason visible. Conclusions remain human.</h2><span>Niriksh compares normalized phone numbers, emails, UPI IDs, transaction references, URLs, domains and scoped social handles. Exact shared identifiers create candidates; behavioural context can explain them, never prove them. This intelligence is reviewed inside the officer workspace.</span></div>
         <div className="connect-match"><span><small>5 related reports</small><strong translate="no">demo-invest@upi</strong></span><i/><span><small>Recurring domain</small><strong translate="no">wealth-demo.example</strong></span><p><AlertTriangle/>Potential connection only. A human must verify a pattern before it can support a warning or awareness draft.</p></div>
       </section>
 
@@ -83,7 +83,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="final-invitation"><div><h2>Cybercrime systems shouldn’t forget.</h2><p>Explore how incident intelligence can help prevent repeated harm.</p></div><Link href="/prevention">Explore prevention intelligence <ArrowRight/></Link></section>
+      <section className="final-invitation"><div><h2>Cybercrime systems shouldn’t forget.</h2><p>Your report can help officers recognise repeated harm.</p></div><Link href="/report">Report an incident <ArrowRight/></Link></section>
     </main>
     <footer className="landing-v3-footer"><Logo/><p>Niriksh is prevention intelligence built from incident patterns, always under human review.</p><div><Link href="/safety">Check a suspicious message</Link><Link href="/track">Track a complaint</Link></div></footer>
   </div>;
