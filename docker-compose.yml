@@ -12,9 +12,12 @@ services:
       SESSION_COOKIE_SECURE: "false"
       DISABLE_OFFICER_AUTH: ${DISABLE_OFFICER_AUTH:-true}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
       GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.5-flash}
-      GEMINI_RESERVE_MODEL: ${GEMINI_RESERVE_MODEL:-gemini-3.6-flash}
+      GEMINI_RESERVE_MODEL: ${GEMINI_RESERVE_MODEL:-gemini-2.5-flash}
+      # Shared secret for app/api/internal/whatsapp/turn -- must match the api service's
+      # WHATSAPP_INTERNAL_KEY below. Never exposed as NEXT_PUBLIC_.
+      WHATSAPP_INTERNAL_KEY: ${WHATSAPP_INTERNAL_KEY:-local-whatsapp-internal-key}
     depends_on:
       api:
         condition: service_healthy
@@ -42,6 +45,18 @@ services:
       GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.6-flash}
       GEMINI_RESERVE_MODEL: ${GEMINI_RESERVE_MODEL:-gemini-2.5-flash}
       AUTO_CREATE_TABLES: "false"
+      # Real Meta webhook (backend/app/modules/whatsapp/) -- stays inert (503s) until both
+      # WHATSAPP_VERIFY_TOKEN and WHATSAPP_APP_SECRET are set to real, non-default values. See
+      # docs/bhumika-integration.md's replacement once the direct WhatsApp channel goes live.
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-replace-me}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_GRAPH_VERSION: ${WHATSAPP_GRAPH_VERSION:-v21.0}
+      # Where the actual conversation brain lives (lib/whatsapp-chat-engine.ts) -- "web" is this
+      # compose network's Next.js service name, not localhost.
+      WHATSAPP_INTERNAL_URL: http://web:3000
+      WHATSAPP_INTERNAL_KEY: ${WHATSAPP_INTERNAL_KEY:-local-whatsapp-internal-key}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 5s

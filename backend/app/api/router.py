@@ -13,6 +13,7 @@ from app.modules.reports.router import router as reports_router
 from app.modules.routing.router import router as routing_router
 from app.modules.safety.router import router as safety_router
 from app.modules.tracking.router import router as tracking_router
+from app.modules.whatsapp.router import router as whatsapp_router
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth_router)
@@ -29,3 +30,4 @@ api_router.include_router(audit_router)
 api_router.include_router(bhumika_router)
 api_router.include_router(tracking_router)
 api_router.include_router(safety_router)
+api_router.include_router(whatsapp_router)

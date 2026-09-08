@@ -8,7 +8,9 @@ Deployment status: the Niriksh endpoints, migration, and tracking page are live 
 
 Decision-policy update (5 September 2026): Bhumika should ask the victim to choose the closest Niriksh subject folder and send its ID in `complaint_details.selectedCategory`. It must not derive priority, severity, or routing. Niriksh no longer returns a severity score. See `docs/human-review-and-safety.md`.
 
-## Ownership boundary
+**Ownership-boundary update (8 September 2026, see `docs/whatsapp-cutover.md`): the "Ownership boundary" section immediately below describes the OLD split and is kept for history. Niriksh is now the single point of contact for Meta/WhatsApp — see the corrected boundary underneath it.**
+
+## Ownership boundary (superseded — kept for history)
 
 Bhumika owns Meta/WhatsApp completely: webhook verification, conversation state, questions, language handling, media download, and replies. Niriksh has no Meta callback, access token, phone-number ID, or outbound WhatsApp transport.
 
@@ -24,6 +26,22 @@ Victim ↔ WhatsApp/Meta ↔ Bhumika
                            |-- private Supabase Storage
                            |-- extraction-only Gemini + deterministic organiser
                            `-- report + CYB tracking number
+```
+
+## Ownership boundary (current, 8 September 2026)
+
+Niriksh owns Meta/WhatsApp directly for this phone number: webhook signature verification, conversation state, questions, language handling (see `lib/whatsapp-i18n.ts`), media download, and replies all run inside Niriksh (`backend/app/modules/whatsapp/` receives the Meta webhook; `lib/whatsapp-chat-engine.ts` is the actual conversation brain, reached over the internal `app/api/internal/whatsapp/turn` route). Required Meta credentials and the internal service key are documented in `.env.example` / `deploy/ec2/api.env.example`.
+
+The Bhumika curated-submission contract below (`POST /api/v1/integrations/bhumika/intakes` and friends) remains live and unchanged — this reversal only concerns who talks to Meta directly for WhatsApp, not Bhumika's own submission API.
+
+```text
+Victim ↔ WhatsApp/Meta ↔ Niriksh (backend/app/modules/whatsapp/ → lib/whatsapp-chat-engine.ts)
+                           |-- Supabase PostgreSQL
+                           |-- private Supabase Storage
+                           |-- extraction-only Gemini + deterministic organiser
+                           `-- report + CYB tracking number
+
+Bhumika (other intake paths) ↔ curated submission ↔ Niriksh API   [unchanged, see below]
 ```
 
 ## Authentication

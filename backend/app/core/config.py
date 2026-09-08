@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     whatsapp_access_token: str = Field(default="", validation_alias=AliasChoices("WHATSAPP_ACCESS_TOKEN", "WHATSAPP_TOKEN"))
     whatsapp_phone_number_id: str = Field(default="", validation_alias=AliasChoices("WHATSAPP_PHONE_NUMBER_ID", "PHONE_NUMBER_ID"))
     whatsapp_graph_version: str = Field(default="v21.0", validation_alias=AliasChoices("WHATSAPP_GRAPH_VERSION", "GRAPH_API_VERSION"))
+    # The Next.js side that actually decides what to ask/say next (lib/whatsapp-chat-engine.ts),
+    # reused as-is from the /whatsapp mock demo -- see app/modules/whatsapp/brain.py.
+    whatsapp_internal_url: str = "http://localhost:3000"
+    whatsapp_internal_key: str = ""
 
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.5-flash"

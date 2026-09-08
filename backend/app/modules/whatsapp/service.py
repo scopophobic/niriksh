@@ -5,16 +5,24 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.db.models import AnalysisRun, ChannelContact, ChannelMessage, ChannelSession, Complaint, EvidenceItem, WebhookEvent
-from app.modules.analysis.provider import GeminiComplaintAnalyzer, MediaInput
-from app.modules.analysis.service import apply_baseline_finding, apply_connected_finding, persist_case
+from app.core.config import Settings
+from app.db.models import ChannelContact, ChannelMessage, ChannelSession, Complaint, EvidenceItem, WebhookEvent
+from app.modules.analysis.provider import MediaInput
+from app.modules.analysis.service import apply_baseline_finding, persist_case
 from app.modules.audit.service import record_event
 from app.modules.complaints.schemas import ComplaintCreate, EvidenceMetadata
 from app.modules.complaints.service import build_case, sync_case
 from app.modules.reports.service import create_report_snapshot
+from app.modules.whatsapp.brain import call_turn_engine
 from app.modules.whatsapp.parser import describe_message, extract_messages
 from app.modules.whatsapp.transport import WhatsAppTransport
 from app.storage import EvidenceStorage
+
+# What the conversation ASKS/SAYS next lives in Niriksh's Next.js app (lib/whatsapp-chat-
+# engine.ts, called via brain.call_turn_engine) -- the exact same code the /whatsapp mock demo
+# runs. This module only owns Meta transport, media, and turning a finished checklist into a
+# real Complaint via the same build_case/sync_case/apply_baseline_finding/persist_case/
+# create_report_snapshot pipeline every other Niriksh intake path uses.
 
 
 def external_id(response: dict) -> str | None:
@@ -65,28 +73,6 @@ def latest_session(db: Session, contact: ChannelContact) -> ChannelSession | Non
         ChannelSession.contact_id == contact.id,
         ChannelSession.complaint_id.is_not(None),
     ).order_by(ChannelSession.last_message_at.desc()))
-
-
-def immediate_guidance(case: dict) -> str:
-    details = case.get("complaintDetails") or {}
-    financial = details.get("financial") or {}
-    if financial.get("involved") or "financial" in case.get("category", "").lower():
-        return "For recent financial cyber fraud in India, contact your bank/payment provider and call 1930 immediately."
-    return "If anyone is in immediate danger, contact local emergency services."
-
-
-def compose_prompt(case: dict) -> str:
-    missing = case.get("missing", [])
-    if not missing:
-        ask = "The report has the main details. Add anything else, or submit it for officer review."
-    else:
-        ask = "Helpful next detail: " + missing[0] + ". Reply with it, attach evidence, or submit now."
-    return (
-        f"Niriksh saved this as {case['reference']}.\n"
-        f"Subject folder: {case['category']}\n"
-        f"Information checklist: {case['completeness']}% complete\n\n{ask}\n\n"
-        f"The folder is selected by a person and requires officer confirmation. {immediate_guidance(case)}"
-    )
 
 
 def normalized_expected_digest(value: str | None) -> str | None:
@@ -222,20 +208,33 @@ def deliver_reply(
     db.commit()
 
 
+def _engine_message_type(message: dict) -> str:
+    kind = message.get("type")
+    if kind == "image":
+        return "image"
+    if kind in ("audio", "voice"):
+        return "audio"
+    if kind in ("document", "video"):
+        return "document"
+    return "text"
+
+
 def process_message(
     db: Session,
     message: dict,
     transport: WhatsAppTransport,
     storage: EvidenceStorage,
     maximum: int,
-    analyzer: GeminiComplaintAnalyzer | None = None,
+    settings: Settings,
 ) -> None:
     contact = get_or_create_contact(db, message)
     session = open_session(db, contact)
     inbound_text = describe_message(message)
-    command = (message.get("button_id") or message.get("text") or "").strip().lower()
+    text_command = (message.get("text") or "").strip().lower()
+    button_id = message.get("button_id")
+    is_button = message.get("type") == "interactive" and bool(button_id)
 
-    if session is None and (command == "status" or command.startswith("track") or command.startswith("status ")):
+    if session is None and not is_button and (text_command == "status" or text_command.startswith("track") or text_command.startswith("status ")):
         previous = latest_session(db, contact)
         if previous:
             complaint = db.get(Complaint, previous.complaint_id)
@@ -252,17 +251,8 @@ def process_message(
                 return
 
     if session is None:
-        evidence = [EvidenceMetadata(
-            name=item.get("filename") or f"whatsapp-{item.get('kind', 'media')}-{item.get('id', 'attachment')}",
-            type=(item.get("kind") or "document").title(),
-            size="Pending download",
-            mimeType=item.get("mime_type"),
-            sha256=item.get("sha256"),
-            purpose="Supporting evidence",
-            originality="Original",
-        ) for item in message.get("media", [])]
         location = message.get("location") or {}
-        details = {
+        details: dict = {
             "channel": "WhatsApp",
             "accountOrUrl": message["from"],
             "incidentStatus": "Not sure",
@@ -273,13 +263,24 @@ def process_message(
         create = ComplaintCreate(
             description=inbound_text if len(inbound_text) >= 20 else f"The reporter sent this information over WhatsApp: {inbound_text}",
             complaint_details=details,
-            evidence=evidence,
+            evidence=[EvidenceMetadata(
+                name=item.get("filename") or f"whatsapp-{item.get('kind', 'media')}-{item.get('id', 'attachment')}",
+                type=(item.get("kind") or "document").title(),
+                size="Pending download",
+                mimeType=item.get("mime_type"),
+                sha256=item.get("sha256"),
+                purpose="Supporting evidence",
+                originality="Original",
+            ) for item in message.get("media", [])],
             source_channel="whatsapp",
         )
         case = build_case(db, create)
         case["status"] = "Needs information"
         complaint = sync_case(db, case, "whatsapp")
-        session = ChannelSession(contact_id=contact.id, complaint_id=complaint.id, state="collecting", context={"turns": 1})
+        session = ChannelSession(contact_id=contact.id, complaint_id=complaint.id, state="collecting", context={
+            "turns": 0, "textHistory": [], "category": None, "checklist": None,
+            "values": None, "summary": "", "language": None,
+        })
         db.add(session)
         db.flush()
     else:
@@ -288,23 +289,73 @@ def process_message(
             session.state = "failed"
             raise RuntimeError("WhatsApp session points to a missing complaint")
         case = dict(complaint.case_payload)
-        turns = int((session.context or {}).get("turns", 1)) + 1
-        session.context = {**(session.context or {}), "turns": turns}
-
-        if command not in {"add_details", "add details", "send_now", "submit", "submit report", "send now"}:
-            case["description"] = f"{case['description']}\n\nWhatsApp follow-up: {inbound_text}"
 
     register_message_media(db, complaint, case, message)
-
     store_message(db, session.id, "in", inbound_text, message.get("id"), message.get("raw", {}), message.get("type", "text"))
     media_inputs = ingest_media(db, complaint, message, transport, storage, maximum)
     session.last_message_at = datetime.now(timezone.utc)
 
-    if command in {"send_now", "submit", "submit report", "send now"}:
-        case["status"] = "Awaiting review"
-        complaint.status = "Awaiting review"
-        complaint.case_payload = case
+    context = session.context or {}
+    media_field = None
+    if media_inputs:
+        first = media_inputs[0]
+        media_field = {"mimeType": first.mime_type, "base64": base64.b64encode(first.content).decode("ascii")}
+
+    payload: dict = {
+        "mode": "full",
+        "type": "button" if is_button else _engine_message_type(message),
+        "text": inbound_text,
+        "history": context.get("textHistory") or [],
+        "buttonId": button_id if is_button else None,
+        "category": context.get("category"),
+        "checklist": context.get("checklist"),
+        "values": context.get("values"),
+        "summary": context.get("summary", ""),
+        "language": context.get("language"),
+    }
+    if media_field:
+        payload["mediaBase64"] = media_field["base64"]
+        payload["mimeType"] = media_field["mimeType"]
+
+    result = call_turn_engine(settings, payload)
+
+    new_history = context.get("textHistory") or []
+    if not is_button:
+        new_history = [*new_history, inbound_text][-40:]
+    turns = int(context.get("turns", 0)) + 1
+    session.context = {
+        "turns": turns,
+        "textHistory": new_history,
+        "category": result.get("category", context.get("category")),
+        "checklist": result.get("checklist", context.get("checklist")),
+        "values": result.get("values", context.get("values")),
+        "summary": result.get("summary", context.get("summary", "")),
+        "language": result.get("language", context.get("language")),
+    }
+
+    # --- Don't send: soft-withdraw. Any evidence already downloaded this session stays stored
+    # for audit purposes -- Meta media links expire in minutes, so it can't be buffered
+    # client-side like the browser demo does, and once received it isn't silently erased. ---
+    if result.get("discarded"):
+        complaint.status = "Withdrawn by reporter"
         complaint.version += 1
+        session.state = "discarded"
+        session.closed_at = datetime.now(timezone.utc)
+        record_event(db, "whatsapp.withdrawn", "The reporter chose not to send this complaint.", complaint.id, actor_type="complainant")
+        db.commit()
+        messages = result.get("messages") or []
+        reply = messages[0]["body"] if messages else "No worries — this one's been dropped."
+        deliver_reply(db, complaint, session, transport, message["from"], reply, buttons=False)
+        return
+
+    if result.get("readyToSubmit"):
+        if result.get("narrative"):
+            case["description"] = result["narrative"]
+        if result.get("complaintDetails"):
+            case["complaintDetails"] = result["complaintDetails"]
+        apply_baseline_finding(case)
+        case["status"] = "Awaiting review"
+        persist_case(complaint, case)
         session.state = "submitted"
         session.closed_at = datetime.now(timezone.utc)
         report = create_report_snapshot(db, complaint)
@@ -318,38 +369,22 @@ def process_message(
         deliver_reply(db, complaint, session, transport, message["from"], reply, buttons=False)
         return
 
+    # --- Ordinary turn: fold the engine's fresh narrative/mapping into the draft case, reply
+    # with whatever it said (a checklist question, "not ready yet", or "tell me more"). ---
+    if result.get("narrative"):
+        case["description"] = result["narrative"]
+    if result.get("complaintDetails"):
+        case["complaintDetails"] = result["complaintDetails"]
     apply_baseline_finding(case)
-    if analyzer and analyzer.configured:
-        try:
-            prior_extractions = [
-                f"{item.get('name', 'Evidence')}: {item.get('extractedText')}"
-                for item in case.get("evidence", [])
-                if item.get("extractedText")
-            ]
-            analysis_narrative = case["description"]
-            if prior_extractions:
-                analysis_narrative += "\n\nPreviously extracted evidence text:\n" + "\n".join(prior_extractions)
-            connected = analyzer.analyze(analysis_narrative, case.get("complaintDetails", {}), media_inputs)
-            if connected:
-                apply_connected_finding(db, complaint, case, connected)
-                record_event(db, "analysis.completed", "Connected multimodal intake analysis completed.", complaint.id, actor_type="analysis", data={"model": connected.model})
-        except RuntimeError as error:
-            db.add(AnalysisRun(
-                complaint_id=complaint.id,
-                status="failed",
-                provider="Gemini",
-                input_version=complaint.version,
-                error=str(error),
-                completed_at=datetime.now(timezone.utc),
-            ))
-            record_event(db, "analysis.fallback", "Connected analysis was unavailable; deterministic triage was retained.", complaint.id, actor_type="analysis")
     persist_case(complaint, case)
-    if session.context.get("turns", 1) > 1:
+    if turns > 1:
         record_event(db, "whatsapp.details_added", "The reporter added information over WhatsApp.", complaint.id, actor_type="complainant")
 
-    reply = compose_prompt(case)
+    messages = result.get("messages") or []
+    reply = messages[0]["body"] if messages else "I couldn't process that — could you try again?"
+    has_buttons = bool(messages) and messages[0].get("kind") == "buttons"
     db.commit()
-    deliver_reply(db, complaint, session, transport, message["from"], reply, buttons=True)
+    deliver_reply(db, complaint, session, transport, message["from"], reply, buttons=has_buttons)
 
 
 def process_webhook_event(app, event_id: str) -> None:
@@ -373,7 +408,7 @@ def process_webhook_event(app, event_id: str) -> None:
                     transport,
                     app.state.evidence_storage,
                     app.state.settings.max_evidence_bytes,
-                    app.state.complaint_analyzer,
+                    app.state.settings,
                 )
             event.status = "processed"
             event.processed_at = datetime.now(timezone.utc)

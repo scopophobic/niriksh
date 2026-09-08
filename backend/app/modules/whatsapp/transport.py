@@ -37,6 +37,11 @@ class WhatsAppTransport:
         return self._post({"messaging_product": "whatsapp", "to": to, "type": "text", "text": {"body": text[:4096]}})
 
     def send_buttons(self, to: str, text: str) -> dict:
+        # ids/titles match sendButtons() in lib/whatsapp-classifier.ts exactly, so the real bot's
+        # buttons read identically to the /whatsapp mock demo. WhatsApp has no "disabled" button
+        # state (unlike the mock UI greying out "Send now" when the checklist isn't ready) --
+        # both are always tappable; tapping "Send now" early is handled by the turn engine
+        # itself (it replies "not ready yet" instead of finalizing).
         return self._post({
             "messaging_product": "whatsapp",
             "to": to,
@@ -45,8 +50,8 @@ class WhatsAppTransport:
                 "type": "button",
                 "body": {"text": text[:1024]},
                 "action": {"buttons": [
-                    {"type": "reply", "reply": {"id": "send_now", "title": "Submit report"}},
-                    {"type": "reply", "reply": {"id": "add_details", "title": "Add details"}},
+                    {"type": "reply", "reply": {"id": "send_now", "title": "Send now"}},
+                    {"type": "reply", "reply": {"id": "dont_send", "title": "Don't send"}},
                 ]},
             },
         })

@@ -106,7 +106,9 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
             "version": "2.0.0",
             "database": "connected",
             "bhumika_integration": "configured" if settings.bhumika_integration_key else "disabled",
-            "direct_whatsapp_webhook": "disabled",
+            "direct_whatsapp_webhook": "configured" if (
+                settings.whatsapp_app_secret and settings.whatsapp_verify_token not in ("", "replace-me")
+            ) else "disabled",
             "connected_analysis": "configured" if settings.gemini_api_key else "fallback",
             "evidence_storage": settings.evidence_storage_backend,
         }

@@ -3,9 +3,15 @@
 
 	# Bhumika remains a separate service. Only its protected integration surface is
 	# exposed directly; all other browser API traffic continues through Next.js.
+	#
+	# The real Meta WhatsApp webhook (backend/app/modules/whatsapp/) is also routed straight to
+	# the API container -- Meta calls this path directly, it isn't a Next.js route, and it
+	# stays inert (503s) until WHATSAPP_VERIFY_TOKEN/WHATSAPP_APP_SECRET are actually configured.
 	route {
 		@bhumika path /api/v1/integrations/bhumika /api/v1/integrations/bhumika/*
 		reverse_proxy @bhumika api:8000
+		@whatsapp_webhook path /api/v1/channels/whatsapp/webhook
+		reverse_proxy @whatsapp_webhook api:8000
 		reverse_proxy web:3000
 	}
 

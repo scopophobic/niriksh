@@ -1,9 +1,9 @@
 import base64
 import hashlib
+import hmac
+import json
 import time
 from urllib.parse import parse_qs, urlparse
-
-import pytest
 
 from app.modules.whatsapp.transport import WhatsAppTransport
 from app.modules.analysis.provider import ConnectedFinding
@@ -14,8 +14,9 @@ def test_login_and_database_health(client):
     assert health.status_code == 200
     assert health.json()["database"] == "connected"
     assert health.json()["bhumika_integration"] == "configured"
-    assert health.json()["direct_whatsapp_webhook"] == "disabled"
-    assert client.get("/api/v1/channels/whatsapp/webhook").status_code == 404
+    assert health.json()["direct_whatsapp_webhook"] == "configured"
+    assert client.get("/api/v1/channels/whatsapp/webhook").status_code == 422
+    assert client.get("/api/v1/channels/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=wrong&hub.challenge=1").status_code == 403
 
     login = client.post("/api/v1/auth/login", json={"email": "triage@example.local", "password": "test-password"})
     assert login.status_code == 200
@@ -192,18 +193,53 @@ def test_evidence_hash_report_routing_and_audit(client, internal_headers):
     assert {item["event_type"] for item in audit.json()} >= {"complaint.created", "evidence.stored", "report.created", "routing.decision"}
 
 
-@pytest.mark.skip(reason="legacy direct Meta adapter is no longer publicly mounted")
-def test_whatsapp_webhook_is_idempotent_and_creates_same_complaint_model(client, internal_headers):
+def whatsapp_signed_post(client, body, secret="test-webhook-secret"):
+    """Meta signs every webhook POST with X-Hub-Signature-256; the hardened receive_webhook
+    (app/modules/whatsapp/router.py) now refuses anything that doesn't verify. Signing over the
+    exact bytes sent (not a re-serialization) is required for the HMAC to match."""
+    raw = json.dumps(body).encode()
+    signature = "sha256=" + hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+    return client.post(
+        "/api/v1/channels/whatsapp/webhook",
+        content=raw,
+        headers={"Content-Type": "application/json", "x-hub-signature-256": signature},
+    )
+
+
+def patch_turn_engine(monkeypatch, respond):
+    """The real conversation brain lives in Niriksh's Next.js app (lib/whatsapp-chat-engine.ts)
+    and is reached over HTTP via app.modules.whatsapp.brain.call_turn_engine -- there is no
+    Next.js server in this test process, so every WhatsApp test replaces it with a fixture
+    matching that engine's actual response shape (see app/api/internal/whatsapp/turn/route.ts)."""
+    import app.modules.whatsapp.service as whatsapp_service
+    monkeypatch.setattr(whatsapp_service, "call_turn_engine", respond)
+
+
+def test_whatsapp_webhook_is_idempotent_and_creates_same_complaint_model(client, internal_headers, monkeypatch):
     verify = client.get("/api/v1/channels/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=verify-test&hub.challenge=42")
     assert verify.status_code == 200
     assert verify.text == "42"
+
+    def respond(settings, payload):
+        return {
+            "messages": [{"kind": "buttons", "body": "Got it — this looks like *Investment deepfake*. I still need the video link.", "buttons": [
+                {"id": "send_now", "title": "Send now", "disabled": True}, {"id": "dont_send", "title": "Don't send"},
+            ]}],
+            "category": "investment_deepfake", "categoryLabel": "Investment deepfake",
+            "checklist": {"media_evidence": False}, "values": {}, "summary": payload["text"][:140],
+            "language": "en", "ready": False,
+            "complaintDetails": {"selectedCategory": "social", "channel": "WhatsApp", "accountOrUrl": "919000000001"},
+            "narrative": payload["text"],
+        }
+    patch_turn_engine(monkeypatch, respond)
+
     body = {"entry": [{"changes": [{"value": {
         "contacts": [{"wa_id": "919000000001", "profile": {"name": "Demo Reporter"}}],
         "messages": [{"from": "919000000001", "id": "wamid.TEST1", "type": "text", "text": {"body": "Someone is using an AI fake video of me for an investment scam on Instagram."}}],
     }}]}]}
-    accepted = client.post("/api/v1/channels/whatsapp/webhook", json=body)
+    accepted = whatsapp_signed_post(client, body)
     assert accepted.status_code == 202
-    duplicate = client.post("/api/v1/channels/whatsapp/webhook", json=body)
+    duplicate = whatsapp_signed_post(client, body)
     assert duplicate.status_code == 202
     assert duplicate.json()["duplicate"] is True
 
@@ -217,20 +253,34 @@ def test_whatsapp_webhook_is_idempotent_and_creates_same_complaint_model(client,
     assert whatsapp[0]["status"] == "Needs information"
 
 
-@pytest.mark.skip(reason="legacy direct Meta adapter is no longer publicly mounted")
 def test_whatsapp_media_reuses_bhumika_transport_and_is_stored(client, internal_headers, monkeypatch):
     content = b"fictional whatsapp image bytes"
     meta_digest = base64.b64encode(hashlib.sha256(content).digest()).decode()
     monkeypatch.setattr(WhatsAppTransport, "configured", property(lambda _: True))
     monkeypatch.setattr(WhatsAppTransport, "download_media", lambda self, media_id, maximum=None: (content, "image/png"))
     monkeypatch.setattr(WhatsAppTransport, "_post", lambda self, body: {"messages": [{"id": "wamid.OUT"}]})
+
+    def respond(settings, payload):
+        assert payload["mimeType"] == "image/png"
+        return {
+            "messages": [{"kind": "buttons", "body": "Got it — this looks like *Threatening messages*.", "buttons": [
+                {"id": "send_now", "title": "Send now", "disabled": True}, {"id": "dont_send", "title": "Don't send"},
+            ]}],
+            "category": "threatening_messages", "categoryLabel": "Threatening messages",
+            "checklist": {"chat_evidence": True}, "values": {}, "summary": "The reporter shared a threatening screenshot.",
+            "language": "en", "ready": False,
+            "complaintDetails": {"selectedCategory": "harassment", "channel": "WhatsApp", "accountOrUrl": "919000000002"},
+            "narrative": "The reporter shared a threatening screenshot.",
+        }
+    patch_turn_engine(monkeypatch, respond)
+
     body = {"entry": [{"changes": [{"value": {"messages": [{
         "from": "919000000002",
         "id": "wamid.MEDIA1",
         "type": "image",
         "image": {"id": "media-existing-meta-account", "mime_type": "image/png", "sha256": meta_digest, "caption": "This fake profile is threatening me repeatedly."},
     }]}}]}]}
-    accepted = client.post("/api/v1/channels/whatsapp/webhook", json=body)
+    accepted = whatsapp_signed_post(client, body)
     assert accepted.status_code == 202
     cases = client.get("/api/v1/complaints", headers=internal_headers).json()
     complaint = next(case for case in cases if case.get("platform") == "WhatsApp")
@@ -240,59 +290,60 @@ def test_whatsapp_media_reuses_bhumika_transport_and_is_stored(client, internal_
     assert evidence[0]["sha256"] == hashlib.sha256(content).hexdigest()
 
 
-@pytest.mark.skip(reason="legacy direct Meta adapter is no longer publicly mounted")
-def test_whatsapp_audio_is_transcribed_and_submit_creates_report(client, internal_headers, monkeypatch):
+def test_whatsapp_audio_submit_creates_report_and_status_lookup_works(client, internal_headers, monkeypatch):
     audio = b"fictional opus voice note"
     monkeypatch.setattr(WhatsAppTransport, "configured", property(lambda _: True))
     monkeypatch.setattr(WhatsAppTransport, "download_media", lambda self, media_id, maximum=None: (audio, "audio/ogg"))
     monkeypatch.setattr(WhatsAppTransport, "_post", lambda self, body: {"messages": [{"id": "wamid.OUT"}]})
 
-    class FakeAnalyzer:
-        configured = True
+    financial_details = {
+        "selectedCategory": "financial", "channel": "WhatsApp",
+        "incidentDate": "2026-09-03", "state": "Karnataka", "district": "Bengaluru",
+        "financial": {"involved": True, "lossAmount": 5000, "currency": "INR", "transactionId": "UTR123", "bankOrWallet": "UPI", "moneyStatus": "Transferred or debited"},
+    }
 
-        def analyze(self, narrative, details, media):
-            assert media[0].mime_type == "audio/ogg"
-            return ConnectedFinding("Gemini", "test-model", {
-                "situation_summary": "The reporter describes a fraudulent payment request received by voice note.",
-                "category": "Online financial fraud",
-                "severity": "High",
-                "confidence": 0.9,
-                "suspected_ai_manipulation": False,
-                "extracted_details": {
-                    "incidentDate": "2026-09-03", "incidentTime": None, "state": "Karnataka",
-                    "district": "Bengaluru", "incidentStatus": "Ongoing", "channel": "WhatsApp",
-                    "accountOrUrl": None, "suspectIdentifiers": ["+91 90000 00000"],
-                    "financialInvolved": True, "lossAmount": 5000, "currency": "INR",
-                    "transactionIds": ["UTR123"], "bankOrWallet": "UPI",
-                },
-                "important_indicators": [],
-                "evidence_findings": [{
-                    "file_name": "whatsapp-audio-audio-demo", "transcript": "I sent five thousand rupees using UPI.",
-                    "observations": ["A payment is described."], "visible_text": [], "limitations": [],
-                }],
-                "timeline": [],
-                "missing_questions": ["What UPI ID received the payment?"],
-                "limitations": [],
-            })
+    def respond(settings, payload):
+        # The engine (mocked here) decides readiness; Python just relays whatever it returns --
+        # see the real logic in lib/whatsapp-chat-engine.ts's runChatTurn.
+        if payload.get("buttonId") == "send_now":
+            return {
+                "readyToSubmit": True, "category": "phishing_payment", "categoryLabel": "Phishing & payment loss",
+                "checklist": {"amount": True, "utr": True, "bank_account": True}, "values": {"amount": "5000", "utr": "UTR123", "bank_account": "UPI"},
+                "summary": "The reporter describes a fraudulent payment request received by voice note.",
+                "language": "en", "complaintDetails": financial_details,
+                "narrative": "The reporter describes a fraudulent payment request received by voice note.\n\nDetails the reporter gave:\n- UTR: UTR123",
+            }
+        assert payload["mimeType"] == "audio/ogg"
+        return {
+            "messages": [{"kind": "buttons", "body": "Got it — this looks like *Phishing & payment loss*.", "buttons": [
+                {"id": "send_now", "title": "Send now", "disabled": False}, {"id": "dont_send", "title": "Don't send"},
+            ]}],
+            "category": "phishing_payment", "categoryLabel": "Phishing & payment loss",
+            "checklist": {"amount": True, "utr": True, "bank_account": True}, "values": {"amount": "5000", "utr": "UTR123", "bank_account": "UPI"},
+            "summary": "The reporter describes a fraudulent payment request received by voice note.",
+            "language": "en", "ready": True, "complaintDetails": financial_details,
+            "narrative": "The reporter describes a fraudulent payment request received by voice note.",
+        }
+    patch_turn_engine(monkeypatch, respond)
 
-    client.app.state.complaint_analyzer = FakeAnalyzer()
     first = {"entry": [{"changes": [{"value": {"messages": [{
         "from": "919000000003", "id": "wamid.AUDIO1", "type": "audio",
         "audio": {"id": "audio-demo", "mime_type": "audio/ogg"},
     }]}}]}]}
-    assert client.post("/api/v1/channels/whatsapp/webhook", json=first).status_code == 202
+    assert whatsapp_signed_post(client, first).status_code == 202
 
+    # apply_baseline_finding recomputes `summary` itself from the narrative (Python's own
+    # deterministic severity/routing engine) rather than passing the engine's summary through
+    # verbatim, so look this case up by its distinguishing complaint detail instead.
     cases = client.get("/api/v1/complaints", headers=internal_headers).json()
-    complaint = next(case for case in cases if case.get("reference") and case.get("summary", "").startswith("The reporter describes"))
+    complaint = next(case for case in cases if (case.get("complaintDetails") or {}).get("financial", {}).get("transactionId") == "UTR123")
     assert complaint["complaintDetails"]["financial"]["lossAmount"] == 5000
-    evidence = client.get(f"/api/v1/complaints/{complaint['id']}/evidence", headers=internal_headers).json()
-    assert evidence[0]["extracted_text"] == "I sent five thousand rupees using UPI."
 
     submit = {"entry": [{"changes": [{"value": {"messages": [{
         "from": "919000000003", "id": "wamid.SUBMIT1", "type": "interactive",
-        "interactive": {"button_reply": {"id": "send_now", "title": "Submit report"}},
+        "interactive": {"button_reply": {"id": "send_now", "title": "Send now"}},
     }]}}]}]}
-    assert client.post("/api/v1/channels/whatsapp/webhook", json=submit).status_code == 202
+    assert whatsapp_signed_post(client, submit).status_code == 202
     reports = client.get(f"/api/v1/complaints/{complaint['id']}/reports", headers=internal_headers)
     assert reports.status_code == 200
     assert len(reports.json()) == 1
@@ -302,9 +353,22 @@ def test_whatsapp_audio_is_transcribed_and_submit_creates_report(client, interna
         "from": "919000000003", "id": "wamid.STATUS1", "type": "text",
         "text": {"body": "status"},
     }]}}]}]}
-    assert client.post("/api/v1/channels/whatsapp/webhook", json=status).status_code == 202
+    assert whatsapp_signed_post(client, status).status_code == 202
     cases_after_status = client.get("/api/v1/complaints", headers=internal_headers).json()
     assert len(cases_after_status) == len(cases)
+
+
+def test_whatsapp_webhook_rejects_unsigned_or_unconfigured_requests(client):
+    body = {"entry": []}
+    unsigned = client.post("/api/v1/channels/whatsapp/webhook", json=body)
+    assert unsigned.status_code == 401
+
+    wrongly_signed = client.post(
+        "/api/v1/channels/whatsapp/webhook",
+        content=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json", "x-hub-signature-256": "sha256=deadbeef"},
+    )
+    assert wrongly_signed.status_code == 401
 
 
 def bhumika_headers():

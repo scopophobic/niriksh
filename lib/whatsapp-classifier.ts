@@ -10,6 +10,10 @@
 // silently un-tick itself just because turn 3's re-read of the conversation missed it.
 
 import { GoogleGenAI } from "@google/genai";
+import { LangKey, resolveLanguage, t } from "./whatsapp-i18n";
+
+export type { LangKey };
+export { resolveLanguage };
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -57,11 +61,13 @@ export interface AnalyzeResult {
   values: Values;
   retract: string[];
   urgency: number;
+  language: string;
 }
 
 export interface SkimResult {
   category: CategoryKey;
   fields: Fields;
+  language: string;
 }
 
 // Two fields every case needs regardless of category — see lib/niriksh.js's original comment
@@ -186,13 +192,14 @@ function fieldWeights(cat: CategoryDef): Record<string, number> {
   return out;
 }
 
-// Ordered, label-carrying view of the checklist — what the UI renders tick marks from.
-export function checklistView(category: CategoryKey, fields: Fields, values: Values): ChecklistRow[] {
+// Ordered, label-carrying view of the checklist — what the UI renders tick marks from (both
+// the chat bubble's own checklistBlock() and the sidebar tray in WhatsAppDemo.tsx).
+export function checklistView(category: CategoryKey, fields: Fields, values: Values, language: LangKey = "en"): ChecklistRow[] {
   const cat = CATEGORIES[category];
   const w = fieldWeights(cat);
   return cat.fields.map(f => ({
     key: f.key,
-    label: f.label,
+    label: fieldLabel(f.key, language),
     required: f.required,
     done: isFieldDone(f.key, fields, values),
     deltaPct: Math.round(w[f.key]),
@@ -274,7 +281,12 @@ ${fieldsPromptBlock(lockedCategory)}${fieldTickRules(lockedCategory)}
   fill a gap. Use "" when the field is genuinely true but has no quotable value.
 - "retract": an array of field keys that the citizen is EXPLICITLY asking you to remove,
   undo, or forget. Leave "" (empty array) on almost every turn — this is rare.
-- "urgency": integer 0-25 — how time-critical this case is.`;
+- "urgency": integer 0-25 — how time-critical this case is.
+- "language": the human language AND script the citizen used in THIS message (audio or text),
+  e.g. "Hindi (Devanagari)", "Hindi (Hinglish / Latin script)", "Kannada", "Marathi", "Tamil",
+  "English". Match their script exactly — if they typed Hindi in Latin letters, report the
+  Hinglish/Latin variant, don't assume Devanagari. Default to "English" only if genuinely
+  ambiguous or mixed with no clear dominant language.`;
 }
 
 function buildSkimPrompt(lockedCategory: CategoryKey | null) {
@@ -284,7 +296,10 @@ Be fast and literal — do not infer, do not summarize, do not explain.
 ${categoryPromptBlock(lockedCategory)}
 - "fields": an object. Set a key true only if the citizen's words ACTUALLY state that detail,
   otherwise false. Media the citizen sent is NOT included here and is being read separately.
-${fieldsPromptBlock(lockedCategory)}${fieldTickRules(lockedCategory)}`;
+${fieldsPromptBlock(lockedCategory)}${fieldTickRules(lockedCategory)}
+- "language": the human language AND script of the citizen's words below, e.g.
+  "Hindi (Devanagari)", "Hindi (Hinglish / Latin script)", "Kannada", "English". Best-effort
+  from these words alone; default to "English" if there's nothing to go on.`;
 }
 
 interface RawAnalyze {
@@ -295,6 +310,12 @@ interface RawAnalyze {
   values?: Record<string, unknown>;
   retract?: unknown;
   urgency?: unknown;
+  language?: unknown;
+}
+
+function normalizeLanguage(value: unknown): string {
+  const s = typeof value === "string" ? value.trim().slice(0, 60) : "";
+  return s || "English";
 }
 
 function normalize(obj: RawAnalyze | null | undefined, fallbackCategory: CategoryKey): AnalyzeResult {
@@ -321,6 +342,7 @@ function normalize(obj: RawAnalyze | null | undefined, fallbackCategory: Categor
     values,
     retract,
     urgency: Number.isFinite(urgency) ? Math.max(0, Math.min(25, Math.round(urgency))) : 10,
+    language: normalizeLanguage(obj?.language),
   };
 }
 
@@ -392,7 +414,7 @@ export async function analyzeSkim({ textHistory = [], lockedCategory = null }: {
   if (!lines.length) return null;
   if (!API_KEY) {
     const { category, fields } = fixtureAnalyze(textHistory, [], lockedCategory);
-    return { category, fields };
+    return { category, fields, language: "English" };
   }
 
   try {
@@ -408,11 +430,11 @@ export async function analyzeSkim({ textHistory = [], lockedCategory = null }: {
       }],
       config: { responseMimeType: "application/json", temperature: 0 },
     });
-    const raw = JSON.parse(res.text || "{}") as { category?: unknown; fields?: Record<string, unknown> };
+    const raw = JSON.parse(res.text || "{}") as { category?: unknown; fields?: Record<string, unknown>; language?: unknown };
     const category = lockedCategory || (isCategoryKey(raw.category) ? raw.category : "phishing_payment");
     const fields = blankFields(category);
     for (const f of CATEGORIES[category].fields) fields[f.key] = Boolean(raw.fields?.[f.key]);
-    return { category, fields };
+    return { category, fields, language: normalizeLanguage(raw.language) };
   } catch (err) {
     console.error(`[whatsapp-classifier] skim (${SKIM_MODEL}) failed, full pass will cover it:`, providerMessage(err));
     return null;
@@ -485,51 +507,56 @@ function fixtureAnalyze(textHistory: string[], media: MediaPart[], lockedCategor
   }, resolvedCategory);
 }
 
-// Renders the checklist AS the citizen sees it — this goes straight into the chat bubble.
-function checklistRow(f: FieldDef, fields: Fields, values: Values, deltaPct: number): string {
-  if (!isFieldDone(f.key, fields, values)) {
-    return deltaPct ? `⬜ ${f.label} _(+${deltaPct}%)_` : `⬜ ${f.label}`;
-  }
-  const val = values?.[f.key];
-  return val ? `✅ ${f.label} — *${val}*` : `✅ ${f.label}`;
+// Every field/category label the citizen sees is looked up per-language here rather than from
+// FieldDef.label/CategoryDef.label directly — those English strings remain the internal/prompt
+// vocabulary (used to build the Gemini prompt and to key CATEGORIES), while fieldLabel/
+// categoryLabel are what actually renders in the chat bubble.
+function fieldLabel(key: string, lang: LangKey): string {
+  return t(`field_${key}`, lang);
 }
 
-function checklistBlock(cat: CategoryDef, fields: Fields, values: Values): string {
+function categoryLabel(category: CategoryKey, lang: LangKey): string {
+  return t(`cat_${category}`, lang);
+}
+
+// Renders the checklist AS the citizen sees it — this goes straight into the chat bubble.
+function checklistRow(f: FieldDef, fields: Fields, values: Values, deltaPct: number, lang: LangKey): string {
+  const label = fieldLabel(f.key, lang);
+  if (!isFieldDone(f.key, fields, values)) {
+    return deltaPct ? `⬜ ${label} _(+${deltaPct}%)_` : `⬜ ${label}`;
+  }
+  const val = values?.[f.key];
+  return val ? `✅ ${label} — *${val}*` : `✅ ${label}`;
+}
+
+function checklistBlock(cat: CategoryDef, fields: Fields, values: Values, lang: LangKey): string {
   const w = fieldWeights(cat);
   const rows = (required: boolean) => cat.fields
     .filter(f => Boolean(f.required) === required)
-    .map(f => checklistRow(f, fields, values, Math.round(w[f.key])))
+    .map(f => checklistRow(f, fields, values, Math.round(w[f.key]), lang))
     .join("\n");
 
-  const sections = [
-    `⚠️ *Required — without these the case can't go for review:*\n${rows(true)}`,
-  ];
+  const sections = [`${t("required_header", lang)}\n${rows(true)}`];
   if (cat.fields.some(f => !f.required)) {
-    sections.push(`💡 *Nice to have — speeds things up:*\n${rows(false)}`);
+    sections.push(`${t("optional_header", lang)}\n${rows(false)}`);
   }
   return sections.join("\n\n");
 }
 
-const CORRECTION_HINT = `If anything above is wrong, tell me the correct detail — or say "remove <detail>" to drop it.`;
-
-const TIMELINE_NOTES: Record<CategoryKey, string> = {
-  phishing_payment:
-    "🏦 RBI's zero-liability window is 3 working days from when this happened (RBI cir. 2017) — the sooner this reaches review, the stronger your protection.",
-  investment_deepfake:
-    "🏦 The same 3-working-day zero-liability window applies once money moved through a bank/UPI transfer (RBI cir. 2017) — report as soon as you can.",
-  threatening_messages:
-    "⏱️ No fixed statutory timeline for this category — the more complete this case is, the faster it can actually be acted on.",
-  child_safety:
-    "📵 Platforms are legally required to act on illegal content still online within roughly a day to a day and a half of a valid report (IT Rules, 2021) — sometimes faster under a government/court order.",
+// Legal/regulatory citations (RBI circular year, IT Rules year, day counts) are embedded as
+// literal tokens inside each language's timeline_* template — see lib/whatsapp-i18n.ts.
+const TIMELINE_KEY: Record<CategoryKey, string> = {
+  phishing_payment: "timeline_phishing_payment",
+  investment_deepfake: "timeline_investment_deepfake",
+  threatening_messages: "timeline_threatening_messages",
+  child_safety: "timeline_child_safety",
 };
 
-function strengthBlock(category: CategoryKey, fields: Fields, values: Values, ready: boolean): string {
+function strengthBlock(category: CategoryKey, fields: Fields, values: Values, ready: boolean, lang: LangKey): string {
   const pct = caseStrength(CATEGORIES[category], fields, values);
-  const band = pct < 30 ? "needs more detail" : pct < 40 ? "close — not passing yet" : "passing";
-  const timeline = ready
-    ? TIMELINE_NOTES[category]
-    : "⛔ *Execution not possible yet* — required details are still missing below.";
-  return `📊 *Case strength: ${pct}%* — ${band}\n${timeline}`;
+  const bandKey = pct < 30 ? "band_needs_detail" : pct < 40 ? "band_close" : "band_passing";
+  const timeline = ready ? t(TIMELINE_KEY[category], lang) : t("not_ready_yet", lang);
+  return `${t("strength_line", lang, { pct: String(pct), band: t(bandKey, lang) })}\n${timeline}`;
 }
 
 const AFFIRMATIVE = /\b(yes|yeah|yep|yup|ok|okay|okey|sure|correct|right|confirm(ed)?|send( it)?|submit|go ahead|proceed|haan|han|haa|ji|theek|thik|sahi|bilkul|bhej|bhejo|bhej do|kar do|done)\b/i;
@@ -543,9 +570,9 @@ export function detectConfirmation(text: string | null | undefined): boolean {
   return AFFIRMATIVE.test(t);
 }
 
-function listOut(items: string[]): string {
+function listOut(items: string[], lang: LangKey): string {
   if (items.length === 1) return items[0];
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+  return `${items.slice(0, -1).join(", ")} ${t("list_and", lang)} ${items[items.length - 1]}`;
 }
 
 export interface NextReplyArgs {
@@ -554,31 +581,37 @@ export interface NextReplyArgs {
   values: Values;
   summary: string;
   retracted?: string[];
+  language: LangKey;
 }
 
-export function nextReply({ category, fields, values, summary, retracted = [] }: NextReplyArgs): string {
+export function nextReply({ category, fields, values, summary, retracted = [], language }: NextReplyArgs): string {
   const cat = CATEGORIES[category];
   const { required, optional } = missingFields(category, fields, values);
   const ready = required.length === 0;
-  const strength = strengthBlock(category, fields, values, ready);
-  const block = checklistBlock(cat, fields, values);
+  const strength = strengthBlock(category, fields, values, ready, language);
+  const block = checklistBlock(cat, fields, values, language);
+  const correctionHint = t("correction_hint", language);
 
-  const retractedLabels = retracted.map(k => cat.fields.find(f => f.key === k)?.label).filter((v): v is string => Boolean(v));
+  const retractedLabels = retracted.filter(k => cat.fields.some(f => f.key === k)).map(k => fieldLabel(k, language));
   const retractedLine = retractedLabels.length
-    ? `Got it — I've removed ${listOut(retractedLabels)} from this case.\n\n`
+    ? `${t("retracted_line", language, { fields: listOut(retractedLabels, language) })}\n\n`
     : "";
 
   if (required.length) {
-    const next = cat.fields.find(f => f.key === required[0])!;
-    return `${strength}\n\n${retractedLine}Got it — this looks like *${cat.label}*. I still need ${next.label}. Could you share that?\n\n${block}\n\n${CORRECTION_HINT}`;
+    const nextLabel = fieldLabel(required[0], language);
+    const ask = t("ask_next", language, { category: categoryLabel(category, language), field: nextLabel });
+    return `${strength}\n\n${retractedLine}${ask}\n\n${block}\n\n${correctionHint}`;
   }
 
   const cleanSummary = (summary || "").replace(/\.+$/, "");
-  const base = `${retractedLine}Thanks — that's everything Niriksh needs for this *${cat.label}* case${cleanSummary ? `: ${cleanSummary}` : ""}.`;
+  const thanks = cleanSummary
+    ? t("ready_thanks_summary", language, { category: categoryLabel(category, language), summary: cleanSummary })
+    : t("ready_thanks_plain", language, { category: categoryLabel(category, language) });
+  const base = `${retractedLine}${thanks}`;
   const tail = optional.length
-    ? ` It'd also help to know ${cat.fields.find(f => f.key === optional[0])!.label}, if you have it.`
+    ? t("optional_tail", language, { field: fieldLabel(optional[0], language) })
     : "";
-  return `${strength}\n\n${base}\n\n${block}\n\nTap *Send now* below to submit this for review.${tail} ${CORRECTION_HINT}`;
+  return `${strength}\n\n${base}\n\n${block}\n\n${t("send_prompt", language)}${tail} ${correctionHint}`;
 }
 
 export interface ChatButton {
@@ -587,25 +620,26 @@ export interface ChatButton {
   disabled?: boolean;
 }
 
-export function sendButtons(ready: boolean): ChatButton[] {
+export function sendButtons(ready: boolean, language: LangKey): ChatButton[] {
   return [
-    { id: "send_now", title: "Send now", disabled: !ready },
-    { id: "dont_send", title: "Don't send" },
+    { id: "send_now", title: t("btn_send_now", language), disabled: !ready },
+    { id: "dont_send", title: t("btn_dont_send", language) },
   ];
 }
 
-export function skimReply({ category, fields, pendingMedia }: { category: CategoryKey; fields: Fields; pendingMedia: string | null }): string {
+export function skimReply({ category, fields, pendingMedia, language }: { category: CategoryKey; fields: Fields; pendingMedia: string | null; language: LangKey }): string {
   const cat = CATEGORIES[category];
   const ticked = cat.fields.filter(f => fields[f.key]);
-  const waiting = ({
-    audio: "I'm still transcribing your voice note",
-    image: "I'm still reading the image you sent",
-    video: "I'm still going through the video you sent",
-    document: "I'm still reading the file you sent",
-  } as Record<string, string>)[pendingMedia || ""] || "I'm still going through what you sent";
+  const waitingKey = ({
+    audio: "waiting_audio",
+    image: "waiting_image",
+    video: "waiting_video",
+    document: "waiting_document",
+  } as Record<string, string>)[pendingMedia || ""] || "waiting_default";
+  const waiting = t(waitingKey, language);
 
   const got = ticked.length
-    ? `From your message I've already got ${listOut(ticked.map(f => f.label))}.`
-    : `I've got your message.`;
-  return `${got} ${waiting} — one moment. Meanwhile, anything else you remember can make the report more complete for a reviewer.`;
+    ? t("got_fields", language, { fields: listOut(ticked.map(f => fieldLabel(f.key, language)), language) })
+    : t("got_message", language);
+  return `${got} ${t("skim_tail", language, { waiting })}`;
 }

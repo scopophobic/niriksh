@@ -166,6 +166,10 @@ Edit all four files with `sudoedit`. Required changes include:
 
 - Generate `BACKEND_INTERNAL_API_KEY` with `openssl rand -hex 32`.
 - Optionally add the Gemini key. Without it, the disclosed deterministic fallback still works.
+- Once the real WhatsApp channel is going live, generate `WHATSAPP_INTERNAL_KEY` with
+  `openssl rand -hex 32` and copy the exact value into `api.env`'s `WHATSAPP_INTERNAL_KEY`. This
+  authenticates the API container's calls into `app/api/internal/whatsapp/turn` — the only path
+  to the real conversation brain (`lib/whatsapp-chat-engine.ts`).
 
 ### `/etc/niriksh/api.env`
 
@@ -178,6 +182,11 @@ Edit all four files with `sudoedit`. Required changes include:
 - Set `DEMO_USER_PASSWORD` for missing demo users. Existing demo-user password hashes are not overwritten during startup, so retain the known password or reset those accounts deliberately before handoff.
 - Add the existing private Supabase Storage S3 endpoint, bucket, access key, and secret.
 - Add Gemini only if connected analysis is intended.
+- Leave `WHATSAPP_VERIFY_TOKEN`/`WHATSAPP_APP_SECRET` blank/default until Meta's webhook is
+  actually being pointed at this deployment — the route 503s until both are real, so mounting it
+  early is safe. When cutting over, set both plus `WHATSAPP_ACCESS_TOKEN`/
+  `WHATSAPP_PHONE_NUMBER_ID` from the Meta app, and copy the exact `WHATSAPP_INTERNAL_KEY` value
+  from `web.env`.
 
 The four security purposes must use distinct values, even when preserving their existing values during migration. Do not paste any of these files into chat, issues, GitHub Actions, or Git.
 

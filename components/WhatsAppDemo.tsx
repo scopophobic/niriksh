@@ -15,6 +15,7 @@ import {
   CATEGORIES, CategoryKey, ChatButton, ChecklistRow, Fields, Values,
   checklistView, mergeFields, mergeValues, missingFields, nextReply, sendButtons,
 } from "@/lib/whatsapp-classifier";
+import { resolveLanguage, t } from "@/lib/whatsapp-i18n";
 import { ComplaintDetails, EvidenceItem, TriageCase } from "@/lib/types";
 
 const SCENARIOS: Array<{ emoji: string; label: string; text: string; needs: string }> = [
@@ -62,6 +63,7 @@ interface NirikshState {
   values: Values;
   ready?: boolean;
   summary: string;
+  language?: string;
 }
 
 // The one shape /api/mock/whatsapp-chat ever replies with — skim and full responses are both
@@ -82,6 +84,7 @@ interface ChatApiResponse {
   readyToSubmit?: boolean;
   error?: string;
   messages?: Array<{ kind: string; body: string; buttons?: ChatButton[] }>;
+  language?: string;
 }
 
 interface EvidenceRefItem {
@@ -293,6 +296,7 @@ export function WhatsAppDemo({ aiConfigured }: { aiConfigured: boolean }) {
         checklist: niriksh?.checklist || null,
         values: niriksh?.values || null,
         summary: niriksh?.summary || "",
+        language: niriksh?.language || null,
       };
       const post = (extra: Record<string, unknown>): Promise<ChatApiResponse> => fetch("/api/mock/whatsapp-chat", {
         method: "POST",
@@ -322,6 +326,7 @@ export function WhatsAppDemo({ aiConfigured }: { aiConfigured: boolean }) {
           checklistView: data.checklistView!,
           values: prev?.values || data.values || {},
           summary: prev?.summary || data.summary || "",
+          language: data.language || prev?.language,
         }));
       }).catch(() => { /* best-effort tier */ });
 
@@ -387,6 +392,7 @@ export function WhatsAppDemo({ aiConfigured }: { aiConfigured: boolean }) {
           values: data.values || {},
           ready: data.ready,
           summary: data.summary || "",
+          language: data.language || niriksh?.language,
         });
       }
     } catch {
@@ -419,12 +425,13 @@ export function WhatsAppDemo({ aiConfigured }: { aiConfigured: boolean }) {
     const fields = mergeFields(niriksh.category, niriksh.checklist, { state: true, district: Boolean(locDistrict) });
     const values = mergeValues(niriksh.category, niriksh.values, { state: locState, district: locDistrict });
     const ready = missingFields(niriksh.category, fields, values).required.length === 0;
-    const view = checklistView(niriksh.category, fields, values);
-    const reply = nextReply({ category: niriksh.category, fields, values, summary: niriksh.summary });
+    const language = resolveLanguage(niriksh.language);
+    const view = checklistView(niriksh.category, fields, values, language);
+    const reply = nextReply({ category: niriksh.category, fields, values, summary: niriksh.summary, language });
     setChat(c => [
       ...c,
       { who: "me", kind: "text", body: `📍 ${[locDistrict, locState].filter(Boolean).join(", ")}` },
-      { who: "bot", kind: "buttons", body: reply, buttons: sendButtons(ready) },
+      { who: "bot", kind: "buttons", body: reply, buttons: sendButtons(ready, language) },
     ]);
     setNiriksh({ ...niriksh, checklist: fields, checklistView: view, values, ready });
     setLocState("");
@@ -539,7 +546,7 @@ export function WhatsAppDemo({ aiConfigured }: { aiConfigured: boolean }) {
             <div className="wad-checklist">
               <div className="wad-checklist-head"><strong>{niriksh.categoryLabel}</strong><span>{niriksh.checklistView.filter(item => item.done).length}/{niriksh.checklistView.length}</span></div>
               <div className="wad-progress"><i style={{ width: `${niriksh.checklistView.filter(item => item.done).reduce((total, item) => total + item.deltaPct, 0)}%` }}/></div>
-              <div className="wad-checklist-rows">{niriksh.checklistView.map(item => <div className={item.done ? "done" : ""} key={item.key}><i>{item.done ? "✓" : "○"}</i><span>{item.label}<small>{item.required ? "Required" : "Helpful if known"}</small></span></div>)}</div>
+              <div className="wad-checklist-rows">{niriksh.checklistView.map(item => <div className={item.done ? "done" : ""} key={item.key}><i>{item.done ? "✓" : "○"}</i><span>{item.label}<small>{t(item.required ? "badge_required" : "badge_optional", resolveLanguage(niriksh.language))}</small></span></div>)}</div>
             </div>
           </> : <>
             <div className="wad-tray-label">Try a case type →</div>

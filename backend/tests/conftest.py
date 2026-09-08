@@ -17,6 +17,8 @@ def client(tmp_path: Path):
         bhumika_integration_key="test-bhumika-key",
         jwt_secret="test-secret-that-is-long-enough-for-the-suite",
         whatsapp_verify_token="verify-test",
+        whatsapp_app_secret="test-webhook-secret",
+        whatsapp_internal_key="test-internal-turn-key",
         demo_user_password="test-password",
         gemini_api_key="",
     )

@@ -13,6 +13,13 @@ from app.modules.whatsapp.service import process_webhook_event
 router = APIRouter(prefix="/channels/whatsapp", tags=["whatsapp"])
 
 
+def _channel_configured(settings) -> bool:
+    """The router is always mounted, but stays inert until real secrets are set -- otherwise a
+    default/empty whatsapp_app_secret would silently skip signature verification below, and a
+    default whatsapp_verify_token ("replace-me") is guessable. Fail closed until both are real."""
+    return bool(settings.whatsapp_app_secret) and settings.whatsapp_verify_token not in ("", "replace-me")
+
+
 @router.get("/webhook", response_class=PlainTextResponse)
 def verify_webhook(
     request: Request,
@@ -21,6 +28,8 @@ def verify_webhook(
     hub_challenge: str = Query(alias="hub.challenge"),
 ):
     settings = request.app.state.settings
+    if not _channel_configured(settings):
+        raise HTTPException(status_code=503, detail="WhatsApp channel not configured")
     if hub_mode == "subscribe" and hmac.compare_digest(hub_verify_token, settings.whatsapp_verify_token):
         return hub_challenge
     raise HTTPException(status_code=403, detail="Webhook verification failed")
@@ -28,13 +37,14 @@ def verify_webhook(
 
 @router.post("/webhook", status_code=202)
 async def receive_webhook(request: Request, background: BackgroundTasks) -> dict:
-    raw = await request.body()
     settings = request.app.state.settings
+    if not _channel_configured(settings):
+        raise HTTPException(status_code=503, detail="WhatsApp channel not configured")
+    raw = await request.body()
     signature = request.headers.get("x-hub-signature-256", "")
-    if settings.whatsapp_app_secret:
-        expected = "sha256=" + hmac.new(settings.whatsapp_app_secret.encode(), raw, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature, expected):
-            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+    expected = "sha256=" + hmac.new(settings.whatsapp_app_secret.encode(), raw, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(signature, expected):
+        raise HTTPException(status_code=401, detail="Invalid webhook signature")
     try:
         payload = json.loads(raw or b"{}")
     except json.JSONDecodeError:
