@@ -13,6 +13,7 @@ from app.modules.audit.service import record_event
 from app.modules.complaints.schemas import ComplaintCreate, EvidenceMetadata
 from app.modules.complaints.service import build_case, sync_case
 from app.modules.reports.service import create_report_snapshot
+from app.modules.tracking.service import tracking_link_for
 from app.modules.whatsapp.brain import call_turn_engine
 from app.modules.whatsapp.parser import describe_message, extract_messages
 from app.modules.whatsapp.transport import WhatsAppTransport
@@ -245,6 +246,7 @@ def process_message(
                 reply = (
                     f"Niriksh tracking number: {complaint.reference}\n"
                     f"Current status: {complaint.status}\n"
+                    f"Track updates: {tracking_link_for(complaint, settings)}\n"
                     "This is Niriksh review status, not confirmation of a police or government filing."
                 )
                 deliver_reply(db, complaint, previous, transport, message["from"], reply, buttons=False)
@@ -361,6 +363,7 @@ def process_message(
         report = create_report_snapshot(db, complaint)
         reply = (
             f"Submitted for Niriksh review. Your tracking number is {complaint.reference}. "
+            f"Track updates: {tracking_link_for(complaint, settings)}. "
             f"Report version {report.version} has been created. An authorised reviewer must verify the report and routing."
         )
         record_event(db, "report.created", f"Report version {report.version} was generated from WhatsApp intake.", complaint.id, actor_type="whatsapp")
