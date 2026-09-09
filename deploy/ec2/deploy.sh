@@ -75,5 +75,13 @@ fi
 # unconditionally on every deploy so routing changes take effect without a manual restart.
 "${COMPOSE[@]}" exec -T proxy caddy reload --config /etc/caddy/Caddyfile
 
+echo "--- TEMP DEBUG: live Caddyfile ---"
+"${COMPOSE[@]}" exec -T proxy cat /etc/caddy/Caddyfile
+echo "--- TEMP DEBUG: caddy validate ---"
+"${COMPOSE[@]}" exec -T proxy caddy validate --config /etc/caddy/Caddyfile 2>&1 || true
+echo "--- TEMP DEBUG: caddy adapt ---"
+"${COMPOSE[@]}" exec -T proxy caddy adapt --config /etc/caddy/Caddyfile 2>&1 | head -c 4000 || true
+echo "--- END TEMP DEBUG ---"
+
 docker image prune -af --filter "until=168h" >/dev/null
 echo "Niriksh $IMAGE_TAG is healthy."
