@@ -6,6 +6,7 @@ node_modules
 !.env.example
 .DS_Store
 coverage
+output/intro/
 data/
 apps/api/.venv
 backend/.venv
