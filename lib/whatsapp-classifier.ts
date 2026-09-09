@@ -9,7 +9,7 @@
 // ORs new reads onto what's already ticked — so a field confirmed on turn 1 can never
 // silently un-tick itself just because turn 3's re-read of the conversation missed it.
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { LangKey, resolveLanguage, t } from "./whatsapp-i18n";
 
 export type { LangKey };
@@ -385,14 +385,32 @@ export async function analyzeFull({ textHistory = [], media = [], lockedCategory
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const parts = buildParts(textHistory, media, lockedCategory);
   const models = [MODEL, FALLBACK_MODEL, RESERVE_MODEL].filter((m, i, arr) => arr.indexOf(m) === i);
+  // Same shrinking per-attempt budget as app/api/analyze/route.ts's generateStructuredAnalysis
+  // -- each retry gets less time than the last, so the worst case (every model times out) still
+  // finishes well inside the Python backend's 90s call_turn_engine timeout.
+  const timeouts = [25_000, 18_000, 10_000];
 
   for (let i = 0; i < models.length; i += 1) {
     const model = models[i];
+    const timeout = timeouts[i] ?? 10_000;
+    // No configured model here is ever "gemini-2.5-*" (production only sets 3.x), but this
+    // mirrors analyze/route.ts's provider-config exactly rather than assuming that stays true.
+    // Without this, a gemini-3.x call runs with Gemini's uncontrolled default thinking budget --
+    // confirmed live: a trivial one-word prompt still spent 26 tokens "thinking" -- which is
+    // most of why real (structured, multimodal) turns were taking long enough to trip the old
+    // 30s outer timeout even with a valid key and working network.
+    const thinkingConfig = model.startsWith("gemini-2.5-") ? { thinkingBudget: 0 } : { thinkingLevel: ThinkingLevel.LOW };
     try {
       const res = await ai.models.generateContent({
         model,
         contents: [{ role: "user", parts }],
-        config: { responseMimeType: "application/json", temperature: 0 },
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0,
+          thinkingConfig,
+          httpOptions: { timeout },
+          abortSignal: AbortSignal.timeout(timeout),
+        },
       });
       const raw = JSON.parse(res.text || "{}") as RawAnalyze;
       return normalize(raw, lockedCategory || "phishing_payment");
@@ -419,6 +437,8 @@ export async function analyzeSkim({ textHistory = [], lockedCategory = null }: {
 
   try {
     const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const timeout = 15_000;
+    const thinkingConfig = SKIM_MODEL.startsWith("gemini-2.5-") ? { thinkingBudget: 0 } : { thinkingLevel: ThinkingLevel.LOW };
     const res = await ai.models.generateContent({
       model: SKIM_MODEL,
       contents: [{
@@ -428,7 +448,13 @@ export async function analyzeSkim({ textHistory = [], lockedCategory = null }: {
           { text: `Conversation so far, in order:\n${lines.map((l, i) => `${i + 1}. ${l}`).join("\n")}` },
         ],
       }],
-      config: { responseMimeType: "application/json", temperature: 0 },
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0,
+        thinkingConfig,
+        httpOptions: { timeout },
+        abortSignal: AbortSignal.timeout(timeout),
+      },
     });
     const raw = JSON.parse(res.text || "{}") as { category?: unknown; fields?: Record<string, unknown>; language?: unknown };
     const category = lockedCategory || (isCategoryKey(raw.category) ? raw.category : "phishing_payment");
