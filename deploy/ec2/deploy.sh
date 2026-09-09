@@ -75,12 +75,13 @@ fi
 # unconditionally on every deploy so routing changes take effect without a manual restart.
 "${COMPOSE[@]}" exec -T proxy caddy reload --config /etc/caddy/Caddyfile
 
-echo "--- TEMP DEBUG: live Caddyfile ---"
-"${COMPOSE[@]}" exec -T proxy cat /etc/caddy/Caddyfile
-echo "--- TEMP DEBUG: caddy validate ---"
-"${COMPOSE[@]}" exec -T proxy caddy validate --config /etc/caddy/Caddyfile 2>&1 || true
-echo "--- TEMP DEBUG: caddy adapt ---"
-"${COMPOSE[@]}" exec -T proxy caddy adapt --config /etc/caddy/Caddyfile 2>&1 | head -c 4000 || true
+echo "--- TEMP DEBUG: this instance's identity ---"
+echo "instance-id: $(curl -s -m 3 http://169.254.169.254/latest/meta-data/instance-id || true)"
+echo "public-ipv4: $(curl -s -m 3 http://169.254.169.254/latest/meta-data/public-ipv4 || true)"
+echo "proxy container started: $(docker inspect --format '{{.State.StartedAt}}' niriksh-proxy || true)"
+echo "host Caddyfile md5: $(md5sum /opt/niriksh/runtime/Caddyfile || true)"
+echo "repo Caddyfile md5: $(md5sum /opt/niriksh/source/deploy/ec2/Caddyfile || true)"
+echo "container Caddyfile md5: $("${COMPOSE[@]}" exec -T proxy md5sum /etc/caddy/Caddyfile || true)"
 echo "--- END TEMP DEBUG ---"
 
 docker image prune -af --filter "until=168h" >/dev/null
