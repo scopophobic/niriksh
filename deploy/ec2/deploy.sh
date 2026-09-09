@@ -68,21 +68,15 @@ fi
 
 "${COMPOSE[@]}" ps
 
-# Compose only recreates a service when its own definition changes (image tag, env, etc.).
-# The proxy service's image tag never changes between deploys, so a Caddyfile edit that lands
-# on disk via install-ec2-runtime.sh is otherwise never picked up -- Caddy keeps serving
-# whatever routes were loaded the last time its container actually (re)started. Reload it
-# unconditionally on every deploy so routing changes take effect without a manual restart.
-"${COMPOSE[@]}" exec -T proxy caddy reload --config /etc/caddy/Caddyfile
-
-echo "--- TEMP DEBUG: this instance's identity ---"
-echo "instance-id: $(curl -s -m 3 http://169.254.169.254/latest/meta-data/instance-id || true)"
-echo "public-ipv4: $(curl -s -m 3 http://169.254.169.254/latest/meta-data/public-ipv4 || true)"
-echo "proxy container started: $(docker inspect --format '{{.State.StartedAt}}' niriksh-proxy || true)"
-echo "host Caddyfile md5: $(md5sum /opt/niriksh/runtime/Caddyfile || true)"
-echo "repo Caddyfile md5: $(md5sum /opt/niriksh/source/deploy/ec2/Caddyfile || true)"
-echo "container Caddyfile md5: $("${COMPOSE[@]}" exec -T proxy md5sum /etc/caddy/Caddyfile || true)"
-echo "--- END TEMP DEBUG ---"
+# Compose only recreates a service when its own definition changes (image tag, env, etc.), so
+# the proxy service (a pinned upstream image tag that never changes) is never touched by `up`
+# just because the bind-mounted Caddyfile's content changed on disk. Worse, `caddy reload`
+# alone does not fix this: install-ec2-runtime.sh's `install` replaces Caddyfile with a new
+# inode at the same path, and Docker's single-file bind mount stays pinned to whichever inode
+# existed when the container last (re)started -- so a live `caddy reload` faithfully reloads
+# the *stale* file. Only recreating the mount namespace re-resolves the bind mount to the
+# current file, so restart (not reload) unconditionally on every deploy.
+"${COMPOSE[@]}" restart proxy
 
 docker image prune -af --filter "until=168h" >/dev/null
 echo "Niriksh $IMAGE_TAG is healthy."
