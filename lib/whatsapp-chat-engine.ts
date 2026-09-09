@@ -80,9 +80,13 @@ export async function runChatTurn(body: ChatTurnInput): Promise<ChatTurnResult> 
     language: rawPriorLanguage = null,
   } = body;
   const lockedCategory = isCategoryKey(rawLockedCategory) ? rawLockedCategory : null;
-  // Not locked like category: re-resolved fresh whenever a turn actually detects a language,
-  // so switching languages mid-conversation is honored. Branches with no fresh read (buttons,
-  // confirmation, fixed strings) just reuse this.
+  // Locked exactly like category once a turn has ever set it: a citizen who opens in Hindi
+  // stays in Hindi even if a later turn's text is ambiguous or code-switches in an English
+  // word/number and Gemini's per-turn guess comes back "English" -- that used to flip the
+  // whole reply language mid-conversation, which reads as broken, not helpful. `rawPriorLanguage`
+  // is only ever null on the very first turn of a session (nothing carried forward yet); any
+  // later turn always echoes back a real value, so its mere presence IS the lock signal.
+  const languageLocked = Boolean(rawPriorLanguage);
   const priorLanguage: LangKey = resolveLanguage(rawPriorLanguage);
 
   // The client fires the skim and full tiers CONCURRENTLY for every turn, including a button
@@ -159,7 +163,7 @@ export async function runChatTurn(body: ChatTurnInput): Promise<ChatTurnResult> 
 
     const category = lockedCategory || skim.category;
     const fields = mergeFields(category, priorChecklist, skim.fields);
-    const language: LangKey = skim.language ? resolveLanguage(skim.language) : priorLanguage;
+    const language: LangKey = languageLocked || !skim.language ? priorLanguage : resolveLanguage(skim.language);
     return {
       provisional: true,
       messages: pendingMedia ? [{ kind: "text", body: skimReply({ category, fields, pendingMedia, language }) }] : [],
@@ -184,7 +188,7 @@ export async function runChatTurn(body: ChatTurnInput): Promise<ChatTurnResult> 
   for (const key of retracted) { fields[key] = false; delete values[key]; }
 
   const summary = understood.summary || priorSummary;
-  const language: LangKey = understood.language ? resolveLanguage(understood.language) : priorLanguage;
+  const language: LangKey = languageLocked || !understood.language ? priorLanguage : resolveLanguage(understood.language);
   const { required, optional } = missingFields(category, fields, values);
   const ready = required.length === 0;
   const reply = nextReply({ category, fields, values, summary, retracted, language });

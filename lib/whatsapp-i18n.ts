@@ -40,6 +40,13 @@ const LANG_MATCHERS: Array<[RegExp, LangKey]> = [
 export function resolveLanguage(detected: string | null | undefined): LangKey {
   const s = (detected || "").trim();
   if (!s) return DEFAULT_LANG;
+  // A caller can pass either Gemini's verbose free-text guess ("Hindi (Devanagari)") or an
+  // already-canonical LangKey code round-tripped back from a prior turn ("hi"). The regexes
+  // below only match the former -- a short code like "hi" contains none of them ("hindi" can't
+  // appear inside a 2-character string) and fell through to DEFAULT_LANG every time, silently
+  // resetting the conversation to English on any turn that re-resolved a previously-locked
+  // language. Recognize an already-canonical code first so the round trip is lossless.
+  if (isLangKey(s)) return s;
   for (const [re, key] of LANG_MATCHERS) if (re.test(s)) return key;
   return DEFAULT_LANG;
 }
