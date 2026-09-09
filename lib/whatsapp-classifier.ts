@@ -259,9 +259,24 @@ const FIELD_TICK_RULES = `  Two keys are mis-ticked often enough to call out exp
   - "bank_account": set it true only when a specific bank is NAMED, or a specific
     account/UPI identifier is given. Generic phrasing ("my bank account") is NOT enough.`;
 
+// "chat_evidence"/"media_evidence" are the two fields whose entire meaning IS the attachment
+// (see EVIDENCE_ONLY_FIELDS below) -- a bare tick with no value is expected and fine for them.
+// But that same "no value needed" property is exactly what makes them easy to mis-tick from a
+// citizen's INTENT rather than an actual attachment/quote, so this gets called out on its own
+// rather than folded into the general "do not invent details" instruction above, which wasn't
+// enough on its own in testing.
+const EVIDENCE_TICK_RULES = `  "chat_evidence" and "media_evidence" are ticked ONLY by evidence actually present in this
+  conversation already -- an attached screenshot/video/document, or the literal message text
+  or link quoted in the citizen's own words. A promise to send it later ("I'll share the
+  screenshot", "I will send the video soon", "I have it, will forward it") is NOT evidence yet
+  -- leave the field false until something is actually here, even if the citizen sounds certain
+  they will send it.`;
+
 function fieldTickRules(lockedCategory: CategoryKey | null) {
   const payment = !lockedCategory || lockedCategory === "phishing_payment" ? `\n${FIELD_TICK_RULES}` : "";
-  return `${payment}\n${COMMON_FIELD_RULES}`;
+  const evidence = !lockedCategory || lockedCategory === "threatening_messages" || lockedCategory === "investment_deepfake"
+    ? `\n${EVIDENCE_TICK_RULES}` : "";
+  return `${payment}${evidence}\n${COMMON_FIELD_RULES}`;
 }
 
 function buildPrompt(lockedCategory: CategoryKey | null) {
