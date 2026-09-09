@@ -15,6 +15,7 @@ from app.modules.complaints.service import build_case, sync_case
 from app.modules.reports.service import create_report_snapshot
 from app.modules.tracking.service import tracking_link_for
 from app.modules.whatsapp.brain import call_turn_engine
+from app.modules.whatsapp.geocode import reverse_geocode
 from app.modules.whatsapp.parser import describe_message, extract_messages
 from app.modules.whatsapp.transport import WhatsAppTransport
 from app.storage import EvidenceStorage
@@ -298,6 +299,26 @@ def process_message(
     session.last_message_at = datetime.now(timezone.utc)
 
     context = session.context or {}
+
+    # A native WhatsApp location share carries exact GPS, not a place name -- reverse-geocode
+    # it into state/district ourselves and fold the result into prior checklist/values so
+    # mergeFields/mergeValues (both OR/keep-forward) carry it through every later turn, rather
+    # than asking the turn engine's Gemini call to guess an Indian state/district from bare
+    # coordinates in text. Every category defines "state"/"district" (COMMON_FIELDS in
+    # lib/whatsapp-classifier.ts), so this is safe before the category is even known.
+    if message.get("location"):
+        geocoded = reverse_geocode(db, message["location"].get("lat"), message["location"].get("lng"))
+        if geocoded:
+            new_checklist = dict(context.get("checklist") or {})
+            new_values = dict(context.get("values") or {})
+            new_checklist["state"] = True
+            new_values["state"] = geocoded["state"]
+            if geocoded.get("district"):
+                new_checklist["district"] = True
+                new_values["district"] = geocoded["district"]
+            context["checklist"] = new_checklist
+            context["values"] = new_values
+
     media_field = None
     if media_inputs:
         first = media_inputs[0]

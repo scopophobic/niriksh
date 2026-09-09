@@ -304,3 +304,16 @@ class PsaQueueItem(Base):
     publish_results: Mapped[dict] = mapped_column(JSON, default=dict)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class GeocodeCache(Base):
+    """Reverse-geocode results for WhatsApp-shared location pins, keyed by coordinates rounded
+    to ~11m (see app/modules/whatsapp/geocode.py). OpenStreetMap's Nominatim usage policy caps
+    anonymous use at roughly 1 request/second and expects callers to cache rather than
+    re-query -- this table is that cache, not just a latency optimization."""
+
+    __tablename__ = "geocode_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    state: Mapped[str] = mapped_column(String(120))
+    district: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
