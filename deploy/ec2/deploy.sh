@@ -67,5 +67,13 @@ if [ "$healthy" != true ]; then
 fi
 
 "${COMPOSE[@]}" ps
+
+# Compose only recreates a service when its own definition changes (image tag, env, etc.).
+# The proxy service's image tag never changes between deploys, so a Caddyfile edit that lands
+# on disk via install-ec2-runtime.sh is otherwise never picked up -- Caddy keeps serving
+# whatever routes were loaded the last time its container actually (re)started. Reload it
+# unconditionally on every deploy so routing changes take effect without a manual restart.
+"${COMPOSE[@]}" exec -T proxy caddy reload --config /etc/caddy/Caddyfile
+
 docker image prune -af --filter "until=168h" >/dev/null
 echo "Niriksh $IMAGE_TAG is healthy."
