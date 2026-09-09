@@ -17,11 +17,14 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.506",
+    "@remotion/google-fonts": "^4.0.506",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "16.3.3",
+    "remotion": "^4.0.506",
     "tsx": "^4.20.0",
     "typescript": "^5.7.2"
   }
