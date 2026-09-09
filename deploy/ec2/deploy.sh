@@ -78,5 +78,11 @@ fi
 # current file, so restart (not reload) unconditionally on every deploy.
 "${COMPOSE[@]}" restart proxy
 
+echo "--- TEMP DEBUG: recent POST webhook hits seen by Caddy ---"
+"${COMPOSE[@]}" logs --tail=1000 proxy 2>&1 | grep -i '"method":"POST"' | grep -i "channels/whatsapp/webhook" || echo "(no POST webhook requests in the last 1000 proxy log lines)"
+echo "--- TEMP DEBUG: last 300 api log lines (unfiltered) ---"
+"${COMPOSE[@]}" logs --tail=300 api 2>&1
+echo "--- END TEMP DEBUG ---"
+
 docker image prune -af --filter "until=168h" >/dev/null
 echo "Niriksh $IMAGE_TAG is healthy."
